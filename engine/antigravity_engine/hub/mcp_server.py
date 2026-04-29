@@ -29,21 +29,42 @@ from pathlib import Path
 
 
 def _resolve_workspace(workspace: str | None) -> Path:
-    """Resolve workspace path from argument or environment.
+    """Resolve workspace path from argument, env, or upward-scan from cwd.
 
-    Treats values containing un-expanded `${...}` placeholders (which happen
-    when an MCP host's variable substitution doesn't cover a particular field)
-    as if they were not provided, falling through to the next source.
+    Resolution order:
+      1. --workspace argument (if usable)
+      2. WORKSPACE_PATH env var (if usable)
+      3. Walk up from cwd looking for a `.env` or `.git` marker — the
+         common signature of a project root. This rescues cases where an
+         MCP host doesn't substitute variables and spawns the server from
+         a non-project cwd (cache dir, /, etc.).
+      4. cwd as last resort.
+
+    Treats values containing un-expanded `${...}` placeholders as missing.
     """
     def _usable(v: str | None) -> bool:
         return bool(v) and "${" not in v
 
     if _usable(workspace):
-        return Path(workspace).resolve()
+        resolved = Path(workspace).resolve()
+        print(f"[ag-mcp] workspace from --arg: {resolved}", file=sys.stderr)
+        return resolved
     env = os.environ.get("WORKSPACE_PATH", "")
     if _usable(env):
-        return Path(env).resolve()
-    return Path.cwd()
+        resolved = Path(env).resolve()
+        print(f"[ag-mcp] workspace from WORKSPACE_PATH env: {resolved}", file=sys.stderr)
+        return resolved
+
+    cwd = Path.cwd().resolve()
+    for d in [cwd, *cwd.parents]:
+        if (d / ".env").is_file() or (d / ".git").exists():
+            print(
+                f"[ag-mcp] workspace auto-detected by scanning up from cwd ({cwd}): {d}",
+                file=sys.stderr,
+            )
+            return d
+    print(f"[ag-mcp] workspace fallback to cwd (no .env/.git found upward): {cwd}", file=sys.stderr)
+    return cwd
 
 
 def serve(workspace: Path) -> None:
