@@ -1,6 +1,6 @@
 {
   "name": "antigravity",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Multi-agent knowledge hub plugin (Codex CLI). Provides ask_project/refresh_project MCP tools and the agent-repo-init skill.",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"

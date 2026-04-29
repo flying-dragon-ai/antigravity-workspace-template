@@ -73,12 +73,16 @@ Architecture is **files + a live Q&A engine**, not plugins. Portable across any 
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
 /antigravity:setup            # interactive: pick LLM provider, paste API key, writes .env
+/antigravity:ag-refresh       # first refresh auto-creates .antigravity/
+/antigravity:ag-ask "How does this project work?"
 
 # Codex CLI (install the engine manually first; Codex hooks are not yet supported)
 pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
 codex plugin marketplace add study8677/antigravity-workspace-template
 codex plugin install antigravity
 ```
+
+If the current Claude Code session says the Antigravity MCP tool is not connected, restart Claude Code once and rerun `/antigravity:ag-refresh`. This is a session-load issue, not an API key issue. See [troubleshooting](docs/en/TROUBLESHOOTING.md).
 
 After install + setup you get `/antigravity:ag-ask <question>`, `/antigravity:ag-refresh`, `/antigravity:ag-init <name>` slash commands plus the `antigravity` MCP server (`ask_project` + `refresh_project`). See [INSTALL.md](INSTALL.md) for details and troubleshooting.
 

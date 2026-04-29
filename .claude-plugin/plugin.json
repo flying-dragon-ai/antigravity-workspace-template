@@ -1,6 +1,6 @@
 {
   "name": "antigravity",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Multi-agent knowledge hub plugin. Bundles ag-mcp (ask_project/refresh_project), the ag CLI, and the agent-repo-init skill.",
   "author": {
     "name": "Antigravity Team",
@@ -12,13 +12,5 @@
   "skills": "./skills/",
   "commands": "./commands/",
   "hooks": "./hooks/hooks.json",
-  "mcpServers": {
-    "antigravity": {
-      "command": "ag-mcp",
-      "args": [],
-      "env": {
-        "WORKSPACE_PATH": "${CLAUDE_PROJECT_DIR}"
-      }
-    }
-  }
+  "mcpServers": "./.mcp.json"
 }

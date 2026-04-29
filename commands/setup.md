@@ -66,4 +66,4 @@ Next:
   3. /antigravity:ag-ask <question> — ask anything about the codebase
 ```
 
-Do NOT call `mcp__antigravity__refresh_project` from this command — the engine subprocess that's running right now still has the old (empty) env. The user must restart Claude Code first.
+Do NOT call `mcp__plugin_antigravity_antigravity__refresh_project` from this command — the engine subprocess that's running right now still has the old (empty) env. The user must restart Claude Code first.

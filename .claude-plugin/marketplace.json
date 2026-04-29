@@ -13,7 +13,7 @@
         "repo": "study8677/antigravity-workspace-template"
       },
       "description": "Multi-agent knowledge hub: ask_project / refresh_project MCP tools, agent-repo-init skill, and the ag CLI.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "category": "developer-tools",
       "keywords": ["mcp", "knowledge-graph", "multi-agent", "scaffolding"]
     }

@@ -30,6 +30,80 @@ from antigravity_engine.hub.contracts import (
 
 logger = logging.getLogger(__name__)
 
+_ANTIGRAVITY_MANIFEST_VERSION = 1
+_REFRESH_INIT_DIRS = (
+    "agents",
+    "modules",
+    "graph",
+    "retrieval_graphs",
+    "memory",
+    "decisions",
+    "logs",
+)
+
+
+def _ensure_refresh_workspace_initialized(workspace: Path) -> Path:
+    """Create the refresh-owned workspace scaffold without overwriting data.
+
+    Refresh owns the project-local ``.antigravity/`` knowledge directory. It
+    should be safe to run on a clean project and safe to re-run on an existing
+    project. If a required path is blocked by a regular file, fail before any
+    destructive action instead of replacing user data.
+
+    Args:
+        workspace: Project root directory.
+
+    Returns:
+        Path to the ``.antigravity`` directory.
+
+    Raises:
+        RuntimeError: If the workspace cannot be initialized safely.
+    """
+    workspace = workspace.expanduser().resolve()
+    if not workspace.exists() or not workspace.is_dir():
+        raise RuntimeError(
+            "Project initialization failed: workspace does not exist or is not a "
+            f"directory: {workspace}"
+        )
+
+    ag_dir = workspace / ".antigravity"
+    if ag_dir.exists() and not ag_dir.is_dir():
+        raise RuntimeError(
+            "Project initialization failed: .antigravity exists but is not a "
+            f"directory: {ag_dir}. Move or remove that file, then rerun refresh."
+        )
+    ag_dir.mkdir(parents=True, exist_ok=True)
+
+    for dirname in _REFRESH_INIT_DIRS:
+        child = ag_dir / dirname
+        if child.exists() and not child.is_dir():
+            raise RuntimeError(
+                "Project initialization failed: expected a directory at "
+                f"{child}, but found a file. Move or remove that file, then "
+                "rerun refresh."
+            )
+        child.mkdir(parents=True, exist_ok=True)
+
+    manifest_path = ag_dir / "manifest.json"
+    if manifest_path.exists() and not manifest_path.is_file():
+        raise RuntimeError(
+            "Project initialization failed: .antigravity/manifest.json exists "
+            "but is not a file. Move or repair it, then rerun refresh."
+        )
+    if not manifest_path.exists():
+        manifest = {
+            "schema_version": _ANTIGRAVITY_MANIFEST_VERSION,
+            "workspace": str(workspace),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "managed_by": "antigravity-refresh",
+        }
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+    return ag_dir
+
 def _get_retry_config(max_retries: int | None = None, base_delay: float | None = None) -> tuple[int, float]:
     """Read retry configuration from environment variables.
 
@@ -176,8 +250,7 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
         settings = get_settings()
         model = create_model(settings)
 
-    ag_dir = workspace / ".antigravity"
-    ag_dir.mkdir(parents=True, exist_ok=True)
+    ag_dir = _ensure_refresh_workspace_initialized(workspace)
     sha_file = ag_dir / ".last_refresh_sha"
     refresh_status = RefreshStatus(
         refresh_run_id=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"),

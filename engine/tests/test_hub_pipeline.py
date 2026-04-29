@@ -44,6 +44,46 @@ def test_get_head_sha_no_git(tmp_path: Path) -> None:
     assert sha is None or isinstance(sha, str)
 
 
+def test_refresh_initializes_antigravity_scaffold(tmp_path: Path) -> None:
+    """Refresh initialization creates project-local state idempotently."""
+    from antigravity_engine.hub.refresh_pipeline import (
+        _ensure_refresh_workspace_initialized,
+    )
+
+    ag_dir = _ensure_refresh_workspace_initialized(tmp_path)
+    manifest = ag_dir / "manifest.json"
+    original_manifest = manifest.read_text(encoding="utf-8")
+
+    assert ag_dir == tmp_path / ".antigravity"
+    assert manifest.exists()
+    for dirname in (
+        "agents",
+        "modules",
+        "graph",
+        "retrieval_graphs",
+        "memory",
+        "decisions",
+        "logs",
+    ):
+        assert (ag_dir / dirname).is_dir()
+
+    _ensure_refresh_workspace_initialized(tmp_path)
+
+    assert manifest.read_text(encoding="utf-8") == original_manifest
+
+
+def test_refresh_initialization_refuses_blocking_file(tmp_path: Path) -> None:
+    """Initialization fails instead of replacing user-owned files."""
+    from antigravity_engine.hub.refresh_pipeline import (
+        _ensure_refresh_workspace_initialized,
+    )
+
+    (tmp_path / ".antigravity").write_text("not a dir", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="Project initialization failed"):
+        _ensure_refresh_workspace_initialized(tmp_path)
+
+
 @pytest.mark.asyncio
 async def test_refresh_pipeline_creates_conventions(tmp_path: Path, monkeypatch) -> None:
     """refresh_pipeline writes conventions.md."""

@@ -24,8 +24,97 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+
+
+_SECRET_PATTERNS = (
+    (
+        re.compile(r"(?i)\b([A-Z0-9_]*API_KEY)\s*=\s*([^\s,;]+)"),
+        r"\1=<redacted>",
+    ),
+    (
+        re.compile(r"(?i)(Authorization\s*:\s*)(?:Bearer\s+)?([^\s,;]+)"),
+        r"\1<redacted>",
+    ),
+    (re.compile(r"(?i)\bBearer\s+([A-Za-z0-9._~+/=-]+)"), "Bearer <redacted>"),
+    (re.compile(r"\bsk-[A-Za-z0-9][A-Za-z0-9._-]{6,}"), "sk-<redacted>"),
+    (re.compile(r"\bAIza[0-9A-Za-z_-]{6,}"), "AIza<redacted>"),
+)
+
+
+def _redact_secrets(value: object) -> str:
+    """Redact common API key and authorization token patterns."""
+    text = str(value)
+    for pattern, replacement in _SECRET_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
+
+
+def _package_version() -> str:
+    """Return the installed engine package version when available."""
+    try:
+        from importlib.metadata import PackageNotFoundError, version
+
+        return version("antigravity-engine")
+    except Exception:
+        try:
+            from antigravity_engine import __version__
+
+            return __version__
+        except Exception:
+            return "unknown"
+
+
+def _mcp_log_path() -> Path:
+    """Return the user-visible log path for ag-mcp startup/tool errors."""
+    data_dir = os.environ.get("CLAUDE_PLUGIN_DATA_DIR", "").strip()
+    if data_dir:
+        base = Path(data_dir).expanduser()
+    else:
+        base = Path.home() / ".claude" / "plugins" / "data" / "antigravity-antigravity"
+    base.mkdir(parents=True, exist_ok=True)
+    try:
+        os.chmod(base, 0o700)
+    except OSError:
+        pass
+    return base / "ag-mcp.log"
+
+
+def _log_mcp_event(message: str) -> Path:
+    """Append a small diagnostic event without including environment values."""
+    log_path = _mcp_log_path()
+    timestamp = datetime.now(timezone.utc).isoformat()
+    clean = _redact_secrets(message).replace("\n", " ").replace("\r", " ")
+    fd = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+    try:
+        os.chmod(log_path, 0o600)
+    except OSError:
+        pass
+    with os.fdopen(fd, "a", encoding="utf-8") as handle:
+        handle.write(f"{timestamp} {clean}\n")
+    return log_path
+
+
+def _format_tool_error(tool_name: str, exc: Exception) -> str:
+    """Return a user-actionable MCP tool error."""
+    message = _redact_secrets(str(exc) or exc.__class__.__name__)
+    log_path = _log_mcp_event(f"{tool_name} failed: {exc.__class__.__name__}: {message}")
+
+    if "No LLM configured" in message:
+        return (
+            "Error: No LLM configured for this project. Run "
+            "`/antigravity:setup`, restart Claude Code once so ag-mcp reloads "
+            "the project environment, then rerun this command."
+        )
+    if "Project initialization failed" in message:
+        return f"Error: {message}"
+    return (
+        f"Error: {tool_name} failed: {message}\n"
+        f"Diagnostic log: {log_path}"
+    )
 
 
 def _resolve_workspace(workspace: str | None) -> Path:
@@ -144,6 +233,7 @@ def serve(workspace: Path) -> None:
     """
     global _active_workspace
     _active_workspace = workspace
+    _log_mcp_event(f"starting ag-mcp workspace={workspace}")
 
     from mcp.server.fastmcp import Context, FastMCP
 
@@ -180,7 +270,7 @@ def serve(workspace: Path) -> None:
         try:
             return await ask_pipeline(_active_workspace, question)
         except Exception as exc:  # noqa: BLE001
-            return f"Error: {exc}"
+            return _format_tool_error("ask_project", exc)
 
     @mcp.tool()
     async def refresh_project(quick: bool = False, ctx: Context = None) -> str:
@@ -210,7 +300,7 @@ def serve(workspace: Path) -> None:
                 f"  {ag_dir / 'structure.md'}"
             )
         except Exception as exc:  # noqa: BLE001
-            return f"Error: {exc}"
+            return _format_tool_error("refresh_project", exc)
 
     mcp.run(transport="stdio")
 
@@ -228,18 +318,29 @@ def main() -> None:
         default=None,
         help="Project root directory (default: WORKSPACE_PATH env or cwd)",
     )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {_package_version()}",
+    )
     args = parser.parse_args()
 
-    workspace = _resolve_workspace(args.workspace)
+    try:
+        workspace = _resolve_workspace(args.workspace)
 
-    if not workspace.exists():
-        print(f"Error: workspace does not exist: {workspace}", file=sys.stderr)
+        if not workspace.exists():
+            raise RuntimeError(f"workspace does not exist: {workspace}")
+
+        # Set env so pipeline picks up the workspace
+        os.environ["WORKSPACE_PATH"] = str(workspace)
+
+        serve(workspace)
+    except Exception as exc:  # noqa: BLE001
+        message = _redact_secrets(str(exc) or exc.__class__.__name__)
+        log_path = _log_mcp_event(f"fatal startup error: {exc.__class__.__name__}: {message}")
+        print(f"Error: ag-mcp failed to start: {message}", file=sys.stderr)
+        print(f"Diagnostic log: {log_path}", file=sys.stderr)
         sys.exit(1)
-
-    # Set env so pipeline picks up the workspace
-    os.environ["WORKSPACE_PATH"] = str(workspace)
-
-    serve(workspace)
 
 
 if __name__ == "__main__":

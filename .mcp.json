@@ -2,8 +2,10 @@
   "mcpServers": {
     "antigravity": {
       "command": "ag-mcp",
-      "args": [],
-      "env": {}
+      "args": ["--workspace", "${CLAUDE_PROJECT_DIR}"],
+      "env": {
+        "WORKSPACE_PATH": "${CLAUDE_PROJECT_DIR}"
+      }
     }
   }
 }
