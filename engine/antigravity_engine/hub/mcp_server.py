@@ -67,13 +67,85 @@ def _resolve_workspace(workspace: str | None) -> Path:
     return cwd
 
 
+# Active workspace is module-level so MCP roots can upgrade it on the first
+# tool call after the protocol handshake completes. Initialized by serve().
+_active_workspace: Path | None = None
+_roots_attempted = False
+
+
+def _root_uri_to_path(uri: str) -> Path | None:
+    """Convert an MCP file:// root URI to a filesystem Path."""
+    from urllib.parse import unquote, urlparse
+
+    parsed = urlparse(uri)
+    if parsed.scheme != "file":
+        return None
+    raw = unquote(parsed.path or "")
+    if not raw:
+        return None
+    return Path(raw).resolve()
+
+
+async def _maybe_upgrade_via_roots(ctx) -> None:
+    """If the MCP client supports the `roots` protocol, prefer its root.
+
+    MCP clients (Claude Code, Cursor, etc.) typically advertise the open
+    project as a workspace root. Asking the client directly is the most
+    reliable workspace source — better than args (host may not substitute
+    variables), better than env (same), better than cwd-scan (may pick a
+    nested git repo or miss entirely).
+
+    Idempotent: only attempts once per process. On success, updates
+    `_active_workspace`, sets WORKSPACE_PATH env var, and resets the
+    cached Settings so the new project's `.env` is read on next access.
+    """
+    global _active_workspace, _roots_attempted
+    if _roots_attempted:
+        return
+    _roots_attempted = True
+
+    try:
+        result = await ctx.request_context.session.list_roots()
+    except Exception as exc:  # noqa: BLE001 — client may not support roots
+        print(f"[ag-mcp] MCP roots/list unavailable ({exc.__class__.__name__}): keeping workspace = {_active_workspace}", file=sys.stderr)
+        return
+
+    if not result.roots:
+        print(f"[ag-mcp] MCP roots/list returned empty list: keeping workspace = {_active_workspace}", file=sys.stderr)
+        return
+
+    new_workspace = _root_uri_to_path(str(result.roots[0].uri))
+    if new_workspace is None or not new_workspace.exists():
+        print(f"[ag-mcp] MCP roots/list returned unusable URI {result.roots[0].uri!r}: keeping workspace = {_active_workspace}", file=sys.stderr)
+        return
+
+    if new_workspace == _active_workspace:
+        print(f"[ag-mcp] MCP roots confirmed workspace = {_active_workspace}", file=sys.stderr)
+        return
+
+    print(f"[ag-mcp] upgrading workspace via MCP roots: {_active_workspace} → {new_workspace}", file=sys.stderr)
+    _active_workspace = new_workspace
+    os.environ["WORKSPACE_PATH"] = str(new_workspace)
+    try:
+        from antigravity_engine.config import reset_settings
+
+        reset_settings()
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def serve(workspace: Path) -> None:
     """Start the MCP server on stdio.
 
     Args:
-        workspace: Absolute path to the project root.
+        workspace: Initial workspace guess from CLI/env/cwd-scan. Will be
+            upgraded to the MCP client's reported root on the first tool call
+            if the client supports the `roots` protocol.
     """
-    from mcp.server.fastmcp import FastMCP
+    global _active_workspace
+    _active_workspace = workspace
+
+    from mcp.server.fastmcp import Context, FastMCP
 
     mcp = FastMCP(
         "Antigravity Knowledge Hub",
@@ -86,7 +158,7 @@ def serve(workspace: Path) -> None:
     )
 
     @mcp.tool()
-    async def ask_project(question: str) -> str:
+    async def ask_project(question: str, ctx: Context) -> str:
         """Answer a question about the project using the knowledge hub.
 
         Searches the codebase, reads actual source files, checks git history,
@@ -102,15 +174,16 @@ def serve(workspace: Path) -> None:
         Returns:
             Grounded answer with file paths, line numbers, and context.
         """
+        await _maybe_upgrade_via_roots(ctx)
         from antigravity_engine.hub.pipeline import ask_pipeline
 
         try:
-            return await ask_pipeline(workspace, question)
+            return await ask_pipeline(_active_workspace, question)
         except Exception as exc:  # noqa: BLE001
             return f"Error: {exc}"
 
     @mcp.tool()
-    async def refresh_project(quick: bool = False) -> str:
+    async def refresh_project(quick: bool = False, ctx: Context = None) -> str:
         """Rebuild the project knowledge base (.antigravity/conventions.md and structure.md).
 
         Run this after significant code changes to keep the knowledge base
@@ -124,11 +197,13 @@ def serve(workspace: Path) -> None:
         Returns:
             Confirmation message with updated file paths.
         """
+        if ctx is not None:
+            await _maybe_upgrade_via_roots(ctx)
         from antigravity_engine.hub.pipeline import refresh_pipeline
 
         try:
-            await refresh_pipeline(workspace, quick=quick)
-            ag_dir = workspace / ".antigravity"
+            await refresh_pipeline(_active_workspace, quick=quick)
+            ag_dir = _active_workspace / ".antigravity"
             return (
                 f"Knowledge base updated:\n"
                 f"  {ag_dir / 'conventions.md'}\n"

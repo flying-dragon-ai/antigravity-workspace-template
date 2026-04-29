@@ -149,10 +149,17 @@ _settings: Settings | None = None
 
 
 def get_settings() -> Settings:
-    """Return the global Settings instance, creating it on first call."""
+    """Return the global Settings instance, creating it on first call.
+
+    Resolves the .env path from the *current* value of WORKSPACE_PATH
+    rather than the value frozen at class-definition time. This lets
+    runtime workspace upgrades (e.g. via MCP roots protocol) take effect
+    after `reset_settings()`.
+    """
     global _settings
     if _settings is None:
-        _settings = Settings()
+        env_path = Path(os.environ.get("WORKSPACE_PATH", str(Path.cwd()))) / ".env"
+        _settings = Settings(_env_file=str(env_path))
     return _settings
 
 
