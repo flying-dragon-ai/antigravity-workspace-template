@@ -72,6 +72,7 @@
 # Claude Code（首次会话由 SessionStart hook 自动安装 Python 引擎）
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
+/antigravity:setup            # 交互式：选 LLM 提供商、贴 API key，自动写 .env
 
 # Codex CLI（需手动先装引擎；Codex 暂不支持自动 hook）
 pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
@@ -79,7 +80,7 @@ codex plugin marketplace add study8677/antigravity-workspace-template
 codex plugin install antigravity
 ```
 
-安装后即可使用 `/ag-ask <问题>`、`/ag-refresh`、`/ag-init <名字>` 斜杠命令，以及 `antigravity` MCP 服务（`ask_project` + `refresh_project`）。详见 [INSTALL.md](INSTALL.md)。
+安装并 setup 后即可使用 `/antigravity:ag-ask <问题>`、`/antigravity:ag-refresh`、`/antigravity:ag-init <名字>` 斜杠命令，以及 `antigravity` MCP 服务（`ask_project` + `refresh_project`）。详见 [INSTALL.md](INSTALL.md)。
 
 **方案 B —— 手动安装：通过 pip 安装引擎 + CLI**
 ```bash

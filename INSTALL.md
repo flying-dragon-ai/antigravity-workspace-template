@@ -1,19 +1,21 @@
 # Installing the Antigravity plugin
 
-## Claude Code
-
-```
-/plugin marketplace add /absolute/path/to/antigravity-workspace-template
-/plugin install antigravity@antigravity
-```
-
-The first session after install runs `hooks/install_engine.sh`, which auto-installs the engine via `pipx` (preferred) or `pip --user`. If both fail, follow the printed manual command and restart the session.
-
-You can also add the marketplace directly from GitHub:
+## Claude Code (3 commands)
 
 ```
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
+/antigravity:setup
+```
+
+1. **Marketplace add** — clones the plugin manifest into Claude Code's cache.
+2. **Install** — first session triggers `hooks/install_engine.py`, which auto-installs `ag-mcp` via `pipx` (preferred), `pip --user` fallback, or prints a manual command if both fail. Cross-platform (macOS / Linux / Windows).
+3. **Setup** — interactive: choose your LLM provider (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA / Ollama), paste your API key, writes a `.env` to the current project root and ensures it's git-ignored. **Restart Claude Code afterwards** so `ag-mcp` picks up the new env.
+
+You can also add the marketplace from a local checkout:
+
+```
+/plugin marketplace add /absolute/path/to/antigravity-workspace-template
 ```
 
 ## Codex CLI
@@ -34,16 +36,19 @@ codex plugin install antigravity
 
 ## Verifying
 
-- **Claude Code**: `/ag-ask "what does the engine do?"` should invoke `mcp__antigravity__ask_project`.
+- **Claude Code**: `/antigravity:ag-ask "what does the engine do?"` should invoke `mcp__antigravity__ask_project`.
 - **Codex CLI**: confirm the `antigravity` MCP server appears in your Codex MCP server list.
 
 ## Available slash commands (Claude Code)
 
+Slash commands are namespaced by plugin name — type `/antigravity:` to discover them.
+
 | Command | What it does |
 |---|---|
-| `/ag-ask <question>` | Routed Q&A on the current codebase |
-| `/ag-refresh [quick]` | Rebuild the project knowledge base |
-| `/ag-init <name>` | Scaffold a new multi-agent repo from this template |
+| `/antigravity:setup` | **First-time setup** — interactive `.env` writer (LLM provider + key + model) |
+| `/antigravity:ag-refresh [quick]` | Rebuild / incrementally update the project knowledge base |
+| `/antigravity:ag-ask <question>` | Routed Q&A on the current codebase |
+| `/antigravity:ag-init <name>` | Scaffold a new multi-agent repo from this template |
 
 ## Bundled MCP tools
 

@@ -72,6 +72,7 @@ Architecture is **files + a live Q&A engine**, not plugins. Portable across any 
 # Claude Code (auto-installs the Python engine on first session via SessionStart hook)
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
+/antigravity:setup            # interactive: pick LLM provider, paste API key, writes .env
 
 # Codex CLI (install the engine manually first; Codex hooks are not yet supported)
 pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
@@ -79,7 +80,7 @@ codex plugin marketplace add study8677/antigravity-workspace-template
 codex plugin install antigravity
 ```
 
-After install you get `/ag-ask <question>`, `/ag-refresh`, `/ag-init <name>` slash commands plus the `antigravity` MCP server (`ask_project` + `refresh_project`). See [INSTALL.md](INSTALL.md) for details and troubleshooting.
+After install + setup you get `/antigravity:ag-ask <question>`, `/antigravity:ag-refresh`, `/antigravity:ag-init <name>` slash commands plus the `antigravity` MCP server (`ask_project` + `refresh_project`). See [INSTALL.md](INSTALL.md) for details and troubleshooting.
 
 **Option B — Manual install: engine + CLI via pip**
 ```bash

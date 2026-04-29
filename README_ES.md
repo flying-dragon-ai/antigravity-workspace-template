@@ -72,6 +72,7 @@ La arquitectura son **archivos + un motor Q&A en vivo**, no plugins. Portable en
 # Claude Code (auto-instala el motor Python en la primera sesión vía SessionStart hook)
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
+/antigravity:setup            # interactivo: elige proveedor LLM, pega API key, escribe .env
 
 # Codex CLI (instala el motor manualmente primero; los hooks de Codex aún no son soportados)
 pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
@@ -79,7 +80,7 @@ codex plugin marketplace add study8677/antigravity-workspace-template
 codex plugin install antigravity
 ```
 
-Después de instalar dispondrás de los comandos slash `/ag-ask <pregunta>`, `/ag-refresh`, `/ag-init <nombre>`, y del servidor MCP `antigravity` (`ask_project` + `refresh_project`). Ver [INSTALL.md](INSTALL.md) para detalles y solución de problemas.
+Después de instalar y configurar dispondrás de los comandos slash `/antigravity:ag-ask <pregunta>`, `/antigravity:ag-refresh`, `/antigravity:ag-init <nombre>`, y del servidor MCP `antigravity` (`ask_project` + `refresh_project`). Ver [INSTALL.md](INSTALL.md) para detalles y solución de problemas.
 
 **Opción B — Instalación manual: motor + CLI vía pip**
 ```bash
