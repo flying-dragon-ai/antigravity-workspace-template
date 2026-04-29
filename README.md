@@ -67,7 +67,21 @@ Architecture is **files + a live Q&A engine**, not plugins. Portable across any 
 
 ## Quick Start
 
-**Option A — Engine: multi-agent Q&A on your codebase (recommended)**
+**Option A — One-line install as a Claude Code / Codex CLI plugin (recommended)**
+```bash
+# Claude Code (auto-installs the Python engine on first session via SessionStart hook)
+/plugin marketplace add study8677/antigravity-workspace-template
+/plugin install antigravity@antigravity
+
+# Codex CLI (install the engine manually first; Codex hooks are not yet supported)
+pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
+codex plugin marketplace add study8677/antigravity-workspace-template
+codex plugin install antigravity
+```
+
+After install you get `/ag-ask <question>`, `/ag-refresh`, `/ag-init <name>` slash commands plus the `antigravity` MCP server (`ask_project` + `refresh_project`). See [INSTALL.md](INSTALL.md) for details and troubleshooting.
+
+**Option B — Manual install: engine + CLI via pip**
 ```bash
 # 1. Install engine + CLI
 pip install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli"
@@ -92,7 +106,7 @@ ag-ask "How does auth work in this project?"
 claude mcp add antigravity ag-mcp -- --workspace $(pwd)
 ```
 
-**Option B — Context files only (any IDE, no LLM needed)**
+**Option C — Context files only (any IDE, no LLM needed)**
 ```bash
 pip install git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli
 ag init my-project && cd my-project

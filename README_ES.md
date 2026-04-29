@@ -67,7 +67,21 @@ La arquitectura son **archivos + un motor Q&A en vivo**, no plugins. Portable en
 
 ## Inicio Rápido
 
-**Opción A — Motor: Q&A multi-agente sobre tu codebase (recomendado)**
+**Opción A — Instalación de una línea como plugin de Claude Code / Codex CLI (recomendado)**
+```bash
+# Claude Code (auto-instala el motor Python en la primera sesión vía SessionStart hook)
+/plugin marketplace add study8677/antigravity-workspace-template
+/plugin install antigravity@antigravity
+
+# Codex CLI (instala el motor manualmente primero; los hooks de Codex aún no son soportados)
+pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
+codex plugin marketplace add study8677/antigravity-workspace-template
+codex plugin install antigravity
+```
+
+Después de instalar dispondrás de los comandos slash `/ag-ask <pregunta>`, `/ag-refresh`, `/ag-init <nombre>`, y del servidor MCP `antigravity` (`ask_project` + `refresh_project`). Ver [INSTALL.md](INSTALL.md) para detalles y solución de problemas.
+
+**Opción B — Instalación manual: motor + CLI vía pip**
 ```bash
 # 1. Instalar motor + CLI
 pip install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli"
@@ -92,7 +106,7 @@ ag-ask "¿Cómo funciona la autenticación en este proyecto?"
 claude mcp add antigravity ag-mcp -- --workspace $(pwd)
 ```
 
-**Opción B — Solo archivos de contexto (cualquier IDE, sin LLM)**
+**Opción C — Solo archivos de contexto (cualquier IDE, sin LLM)**
 ```bash
 pip install git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli
 ag init mi-proyecto && cd mi-proyecto

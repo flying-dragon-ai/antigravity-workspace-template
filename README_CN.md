@@ -67,7 +67,21 @@
 
 ## 快速开始
 
-**方案 A —— 引擎：多智能体代码问答（推荐）**
+**方案 A —— 作为 Claude Code / Codex CLI 插件一行安装（推荐）**
+```bash
+# Claude Code（首次会话由 SessionStart hook 自动安装 Python 引擎）
+/plugin marketplace add study8677/antigravity-workspace-template
+/plugin install antigravity@antigravity
+
+# Codex CLI（需手动先装引擎；Codex 暂不支持自动 hook）
+pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
+codex plugin marketplace add study8677/antigravity-workspace-template
+codex plugin install antigravity
+```
+
+安装后即可使用 `/ag-ask <问题>`、`/ag-refresh`、`/ag-init <名字>` 斜杠命令，以及 `antigravity` MCP 服务（`ask_project` + `refresh_project`）。详见 [INSTALL.md](INSTALL.md)。
+
+**方案 B —— 手动安装：通过 pip 安装引擎 + CLI**
 ```bash
 # 1. 安装引擎 + CLI
 pip install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli"
@@ -92,7 +106,7 @@ ag-ask "这个项目的认证逻辑是怎么实现的？"
 claude mcp add antigravity ag-mcp -- --workspace $(pwd)
 ```
 
-**方案 B —— 仅注入上下文文件（任意 IDE，无需 LLM）**
+**方案 C —— 仅注入上下文文件（任意 IDE，无需 LLM）**
 ```bash
 pip install git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli
 ag init my-project && cd my-project
