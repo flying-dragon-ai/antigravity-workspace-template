@@ -17,3 +17,29 @@ Although never is often better than *right* now.
 If the implementation is hard to explain, it's a bad idea.
 If the implementation is easy to explain, it may be a good idea.
 Namespaces are one honking great idea -- let's do more of those!
+
+## Antigravity Knowledge Hub
+
+For broad codebase questions, architecture questions, "where is X implemented",
+"how does X work", dependency or impact analysis, or onboarding questions, prefer:
+
+```bash
+ag-ask "<question>" --workspace .
+```
+
+Use this before broad grep, rg, or file search when `.antigravity/` exists.
+
+Run:
+
+```bash
+ag-refresh --workspace .
+```
+
+when `.antigravity/` is missing, stale, or after significant code changes.
+
+Use direct file reads or rg only for:
+
+- verifying exact lines after `ag-ask` gives candidate files
+- narrow symbol or string searches
+- editing or debugging specific files
+- cases where `ag-ask` is unavailable or fails

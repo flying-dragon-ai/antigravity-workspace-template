@@ -80,14 +80,12 @@ Print exactly:
 ✅ Antigravity 已为当前项目配置完成。
 
 Next / 下一步:
-  1. Restart Claude Code (Ctrl+C twice, then re-run claude) so ag-mcp picks up the new .env.
-     重启 Claude Code（按两次 Ctrl+C，然后重新运行 claude），让 ag-mcp 读取新的 .env。
-  2. /antigravity:ag-refresh        — build the knowledge base (one-time, a few minutes for small repos)
+  1. /antigravity:ag-refresh        — build the knowledge base (one-time, a few minutes for small repos)
      构建知识库（一次性操作；小仓库通常需要几分钟）。
-  3. /antigravity:ag-ask <question> — ask anything about the codebase
+  2. /antigravity:ag-ask <question> — ask anything about the codebase
      询问任何关于代码库的问题。
 ```
 
-Do NOT call `mcp__plugin_antigravity_antigravity__refresh_project` from this command — the engine subprocess that's running right now still has the old (empty) env. The user must restart Claude Code first.
+Do NOT call MCP tools from this command. The refresh and ask slash commands use the CLI (`ag-refresh` / `ag-ask`) directly and will read the `.env` file on each run.
 
-不要在本命令中调用 `mcp__plugin_antigravity_antigravity__refresh_project` —— 当前正在运行的 engine 子进程仍然使用旧的（空）env。用户必须先重启 Claude Code。
+不要在本命令中调用 MCP 工具。refresh 和 ask 斜杠命令会直接使用 CLI（`ag-refresh` / `ag-ask`），每次运行都会读取 `.env` 文件。

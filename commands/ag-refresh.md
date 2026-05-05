@@ -1,19 +1,35 @@
 ---
 description: Rebuild the antigravity project knowledge base after significant changes. / 在重要改动后重建 antigravity 项目知识库。
-allowed-tools: ["mcp__plugin_antigravity_antigravity__refresh_project"]
+allowed-tools: ["Bash"]
 ---
 
-Call `mcp__plugin_antigravity_antigravity__refresh_project` for the current workspace.
+Run the Antigravity CLI for the current workspace.
 
-调用 `mcp__plugin_antigravity_antigravity__refresh_project`，为当前工作区刷新项目知识库。
+通过 Antigravity CLI 刷新当前工作区知识库。
 
-If $ARGUMENTS contains "quick" → pass `quick=true`. Otherwise pass `quick=false`.
+Use Bash:
 
-如果 $ARGUMENTS 包含 "quick"，传入 `quick=true`；否则传入 `quick=false`。
+```bash
+ag-refresh --workspace "$PWD"
+```
 
-If the MCP tool is not available or not connected, do not diagnose this as an LLM key problem. Tell the user to restart Claude Code once so the Antigravity MCP server loads, then rerun `/antigravity:ag-refresh`. Point them to `docs/en/TROUBLESHOOTING.md` for the diagnostic log path.
+使用 Bash：
 
-如果 MCP 工具不可用或未连接，不要判断为 LLM API key 问题。请告诉用户完整重启 Claude Code 一次，让 Antigravity MCP server 加载完成，然后重新运行 `/antigravity:ag-refresh`。诊断日志路径见 `docs/en/TROUBLESHOOTING.md`。
+```bash
+ag-refresh --workspace "$PWD"
+```
+
+If $ARGUMENTS contains `quick`, add `--quick`. If $ARGUMENTS contains `failed-only`, add `--failed-only`.
+
+如果 $ARGUMENTS 包含 `quick`，追加 `--quick`。如果 $ARGUMENTS 包含 `failed-only`，追加 `--failed-only`。
+
+If `ag-refresh` is not found, tell the user the engine CLI is not installed and suggest:
+
+如果找不到 `ag-refresh`，说明 engine CLI 尚未安装，建议用户运行：
+
+```bash
+pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
+```
 
 Report progress concisely; full refresh can take several minutes.
 

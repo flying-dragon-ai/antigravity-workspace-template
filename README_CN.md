@@ -4,7 +4,7 @@
 
 # Antigravity 工作区模板 — Claude Code / Codex / Cursor 起手套件
 
-### 多智能体知识引擎 + MCP 服务。把任意代码库变成可问答的 AI 工作区。支持 Claude Code、Codex CLI、Cursor、Windsurf、Gemini CLI。
+### 多智能体知识引擎 + 可选 MCP 服务。把任意代码库变成可问答的 AI 工作区。支持 Claude Code、Codex CLI、Cursor、Windsurf、Gemini CLI。
 
 `ag-refresh` 构建知识库。`ag-ask` 回答问题。任意 LLM，任意 IDE。
 
@@ -67,24 +67,26 @@
 
 ## 快速开始
 
-**方案 A —— 作为 Claude Code / Codex CLI 插件一行安装（推荐）**
+**方案 A —— Claude Code / Codex CLI 插件安装**
 ```bash
-# Claude Code（首次会话由 SessionStart hook 自动安装 Python 引擎）
+# Claude Code（首次会话由 SessionStart hook 自动安装 Python 引擎 CLI）
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
 /antigravity:setup            # 交互式：选 LLM 提供商、贴 API key，自动写 .env
-/antigravity:ag-refresh       # 首次 refresh 会自动创建 .antigravity/
-/antigravity:ag-ask "这个项目是怎么工作的？"
+/antigravity:ag-refresh       # 直接运行 ag-refresh；首次 refresh 会自动创建 .antigravity/
+/antigravity:ag-ask "这个项目是怎么工作的？"  # 直接运行 ag-ask
 
 # Codex CLI（需手动先装引擎；Codex 暂不支持自动 hook）
 pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
 codex plugin marketplace add study8677/antigravity-workspace-template
-codex plugin install antigravity
+ag-refresh --workspace .
+ag-ask "这个项目是怎么工作的？"
 ```
 
-如果当前 Claude Code 会话提示 Antigravity MCP 工具未连接，请完全重启 Claude Code 一次，然后重新运行 `/antigravity:ag-refresh`。这是会话加载问题，不是 API key 问题。参见 [故障排查](docs/en/TROUBLESHOOTING.md)。
+Codex CLI 当前通过 `codex plugin marketplace add` 注册插件市场。
+refresh/ask 默认直接使用上面的 CLI 命令。如果你的 Codex 版本支持 MCP，并且你需要工具式集成，再单独注册 `ag-mcp --workspace <project>`。
 
-安装并 setup 后即可使用 `/antigravity:ag-ask <问题>`、`/antigravity:ag-refresh`、`/antigravity:ag-init <名字>` 斜杠命令，以及 `antigravity` MCP 服务（`ask_project` + `refresh_project`）。详见 [INSTALL.md](INSTALL.md) 的安装说明和故障排查。
+安装并 setup 后即可使用 `/antigravity:ag-ask <问题>`、`/antigravity:ag-refresh`、`/antigravity:ag-init <名字>` 斜杠命令。MCP 仍可选，可通过 `ag-mcp` 暴露 `ask_project` + `refresh_project`；示例配置见 [docs/examples/antigravity.mcp.json](docs/examples/antigravity.mcp.json)。详见 [INSTALL.md](INSTALL.md)。
 
 **方案 B —— 手动安装：通过 pip 安装引擎 + CLI**
 ```bash
@@ -130,7 +132,7 @@ ag init my-project && cd my-project
        │
        ├──► ag-refresh     动态多智能体自主学习 → 生成模块知识文档 + 结构图
        ├──► ag-ask         Router → ModuleAgent 路由问答，实时代码证据
-       └──► ag-mcp         MCP 服务端 → Claude Code 直接调用
+       └──► ag-mcp         可选 MCP 服务端 → IDE 工具集成
 ```
 
 **动态多智能体集群** —— `ag-refresh` 时，引擎使用**智能功能分组**：基于 import 关系、目录共位、文件名前缀将文件聚类。源码直接预加载进 agent 上下文（无需工具调用），构建产物自动过滤。每个 sub-agent 分析约 30K tokens 的聚焦代码，只需 1 次 LLM 调用，输出**全面的 Markdown 知识文档**（`agents/*.md`）。大模块由多个 sub-agent 并行分析——每个输出独立 agent.md（不合并、不压缩）。**Map Agent** 读取所有 agent 文档生成 `map.md` 路由索引。`ag-ask` 时，Router 读取 `map.md` 选择相关模块，将 agent 文档喂给 answer agent。对于结构性问题（调用链、依赖关系、影响分析），Router 自动查询 [GitNexus](https://github.com/abhigyanpatwari/GitNexus) 代码图谱获取精确关系。**完全语言无关** —— 模块检测使用纯目录结构，代码分析完全由 LLM 完成。支持任何编程语言。

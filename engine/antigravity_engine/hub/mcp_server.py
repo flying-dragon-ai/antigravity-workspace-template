@@ -29,6 +29,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from mcp.server.fastmcp import Context, FastMCP
+
 
 _SECRET_PATTERNS = (
     (
@@ -234,8 +236,6 @@ def serve(workspace: Path) -> None:
     global _active_workspace
     _active_workspace = workspace
     _log_mcp_event(f"starting ag-mcp workspace={workspace}")
-
-    from mcp.server.fastmcp import Context, FastMCP
 
     mcp = FastMCP(
         "Antigravity Knowledge Hub",

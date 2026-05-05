@@ -11,12 +11,13 @@
 ```
 
 1. **Marketplace add** — clones the plugin manifest into Claude Code's cache.
-2. **Install** — first session triggers `hooks/install_engine.py`, which auto-installs `ag-mcp` via `pipx` (preferred), `pip --user` fallback, or prints a manual command if both fail. Cross-platform (macOS / Linux / Windows).
+2. **Install** — first session triggers `hooks/install_engine.py`, which auto-installs the engine CLI (`ag-ask`, `ag-refresh`, `ag-mcp`) via `pipx` (preferred), `pip --user` fallback, or prints a manual command if both fail. Cross-platform (macOS / Linux / Windows).
 3. **Setup** — interactive: choose your LLM provider (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA / Ollama), paste your API key, writes a `.env` to the current project root and ensures it's git-ignored.
-4. **Refresh** — builds `.antigravity/` for the current project. The first refresh creates the project knowledge directory automatically.
-5. **Ask** — queries the refreshed project knowledge base.
+4. **Refresh** — runs `ag-refresh` directly and builds `.antigravity/` for the current project. The first refresh creates the project knowledge directory automatically.
+5. **Ask** — runs `ag-ask` directly and queries the refreshed project knowledge base.
 
-If the current session says the Antigravity MCP tool is not connected, restart Claude Code once and rerun `/antigravity:ag-refresh`. That means the plugin MCP server was not loaded in this session; it is not an API key failure. See [docs/en/TROUBLESHOOTING.md](docs/en/TROUBLESHOOTING.md).
+MCP is optional. If you want tool-style integration in an MCP-compatible host, register `ag-mcp --workspace <project>` separately.
+An example MCP config lives at `docs/examples/antigravity.mcp.json`.
 
 You can also add the marketplace from a local checkout:
 
@@ -30,20 +31,24 @@ Codex CLI does not auto-run install hooks (as of April 2026), so install the eng
 
 ```
 pipx install /absolute/path/to/antigravity-workspace-template/engine
-ag-mcp --help    # verify
+ag-refresh --help    # verify
 ```
 
 Then register and install the plugin:
 
 ```
 codex plugin marketplace add /absolute/path/to/antigravity-workspace-template
-codex plugin install antigravity
 ```
+
+Current Codex CLI builds register plugin marketplaces with `codex plugin marketplace add`.
+Use `ag-refresh --workspace <project>` and `ag-ask "question" --workspace <project>` for refresh/ask.
+If your Codex build supports MCP and you want tool-style integration, register
+`ag-mcp --workspace <project>` separately in your Codex MCP configuration.
 
 ## Verifying
 
-- **Claude Code**: `/antigravity:ag-ask "what does the engine do?"` should invoke `mcp__plugin_antigravity_antigravity__ask_project`.
-- **Codex CLI**: confirm the `antigravity` MCP server appears in your Codex MCP server list.
+- **Claude Code**: `/antigravity:ag-ask "what does the engine do?"` should run `ag-ask` and print a routed answer.
+- **Codex CLI**: `ag-ask "what does the engine do?" --workspace <project>` should print a routed answer.
 
 ## Available slash commands (Claude Code)
 
@@ -56,12 +61,14 @@ Slash commands are namespaced by plugin name — type `/antigravity:` to discove
 | `/antigravity:ag-ask <question>` | Routed Q&A on the current codebase |
 | `/antigravity:ag-init <name>` | Scaffold a new multi-agent repo from this template |
 
-## Bundled MCP tools
+## Optional MCP tools
 
-After install, the `antigravity` MCP server exposes:
+If you manually register `ag-mcp`, the `antigravity` MCP server exposes:
 
 - `ask_project(question)` — routed Q&A with file paths and line numbers
 - `refresh_project(quick=False)` — rebuild knowledge base
+
+Example config: [docs/examples/antigravity.mcp.json](docs/examples/antigravity.mcp.json)
 
 ## Uninstall
 
@@ -78,11 +85,11 @@ pipx uninstall antigravity-engine
 
 ## Troubleshooting
 
-**`ag-mcp` not found after install**
+**`ag-ask` / `ag-refresh` not found after install**
 The user-pip bin directory may not be on PATH. The installer prints the path; add it to your shell rc file (`~/.zshrc`, `~/.bashrc`, etc.).
 
-**Antigravity MCP tool is not connected**
-Restart Claude Code once so plugin-provided MCP servers are loaded. Then rerun `/antigravity:ag-refresh`. Do not rerun setup just for this error unless setup has never been completed.
+**Optional MCP tool is not connected**
+The default slash commands do not require MCP. If you manually enabled `ag-mcp`, restart the MCP host so it reloads server configuration.
 
 **Diagnostic log**
 `ag-mcp` writes startup and tool errors to `~/.claude/plugins/data/antigravity-antigravity/ag-mcp.log` unless Claude provides a plugin data directory.
@@ -93,5 +100,5 @@ No. `/antigravity:ag-refresh` initializes the current project's `.antigravity/` 
 **Hook timed out**
 Slow network during first install. Increase the `timeout` in `hooks/hooks.json` or run `pipx install <plugin-root>/engine` manually before restarting.
 
-**Codex CLI marketplace add fails**
-Codex's marketplace schema is partially undocumented. If `codex plugin marketplace add <path>` rejects the repo, you can still register the MCP server directly via your local Codex CLI MCP config and load skills from `<path>/skills/` manually.
+**Codex CLI marketplace add fails or does not auto-load the plugin**
+Codex's marketplace/plugin workflow varies by CLI build. If `codex plugin marketplace add <path>` rejects the repo, or if your build only registers the marketplace without installing plugins, register the MCP server directly via your local Codex CLI MCP config and load skills from `<path>/skills/` manually.

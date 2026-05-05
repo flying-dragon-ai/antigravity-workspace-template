@@ -4,7 +4,7 @@
 
 # Antigravity — Workspace Template for Claude Code, Codex CLI & Cursor
 
-### Multi-agent knowledge engine + MCP server that turns any repo into a queryable AI assistant. Works with Claude Code, Codex CLI, Cursor, Windsurf, and Gemini CLI.
+### Multi-agent knowledge engine + optional MCP server that turns any repo into a queryable AI assistant. Works with Claude Code, Codex CLI, Cursor, Windsurf, and Gemini CLI.
 
 `ag-refresh` builds a knowledge base. `ag-ask` answers questions. Any LLM, any IDE.
 
@@ -67,24 +67,27 @@ Architecture is **files + a live Q&A engine**, not plugins. Portable across any 
 
 ## Quick Start
 
-**Option A — One-line install as a Claude Code / Codex CLI plugin (recommended)**
+**Option A — Plugin install for Claude Code / Codex CLI**
 ```bash
-# Claude Code (auto-installs the Python engine on first session via SessionStart hook)
+# Claude Code (auto-installs the Python engine CLI on first session via SessionStart hook)
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
 /antigravity:setup            # interactive: pick LLM provider, paste API key, writes .env
-/antigravity:ag-refresh       # first refresh auto-creates .antigravity/
-/antigravity:ag-ask "How does this project work?"
+/antigravity:ag-refresh       # runs ag-refresh directly; first refresh auto-creates .antigravity/
+/antigravity:ag-ask "How does this project work?"  # runs ag-ask directly
 
 # Codex CLI (install the engine manually first; Codex hooks are not yet supported)
 pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
 codex plugin marketplace add study8677/antigravity-workspace-template
-codex plugin install antigravity
+ag-refresh --workspace .
+ag-ask "How does this project work?"
 ```
 
-If the current Claude Code session says the Antigravity MCP tool is not connected, restart Claude Code once and rerun `/antigravity:ag-refresh`. This is a session-load issue, not an API key issue. See [troubleshooting](docs/en/TROUBLESHOOTING.md).
+Codex CLI currently registers plugin marketplaces with `codex plugin marketplace add`.
+Use the CLI commands above for refresh/ask. If your Codex build supports MCP and
+you want tool-style integration, register `ag-mcp --workspace <project>` separately.
 
-After install + setup you get `/antigravity:ag-ask <question>`, `/antigravity:ag-refresh`, `/antigravity:ag-init <name>` slash commands plus the `antigravity` MCP server (`ask_project` + `refresh_project`). See [INSTALL.md](INSTALL.md) for details and troubleshooting.
+After install + setup you get `/antigravity:ag-ask <question>`, `/antigravity:ag-refresh`, and `/antigravity:ag-init <name>` slash commands. MCP remains optional (`ask_project` + `refresh_project`) via `ag-mcp`; see [docs/examples/antigravity.mcp.json](docs/examples/antigravity.mcp.json). See [INSTALL.md](INSTALL.md) for details and troubleshooting.
 
 **Option B — Manual install: engine + CLI via pip**
 ```bash
@@ -130,7 +133,7 @@ ag init my-project && cd my-project
        │
        ├──► ag-refresh     Dynamic multi-agent self-learning → module knowledge docs + structure map
        ├──► ag-ask         Router → ModuleAgent Q&A with live code evidence
-       └──► ag-mcp         MCP server → Claude Code calls directly
+       └──► ag-mcp         Optional MCP server → IDE tool integration
 ```
 
 **Dynamic Multi-Agent Cluster** — During `ag-refresh`, the engine uses **smart functional grouping**: files are grouped by import relationships, directory co-location, and filename prefixes. Source code is pre-loaded directly into agent context (no tool calls needed), and build artifacts are automatically filtered out. Each sub-agent analyzes ~30K tokens of focused, functionally related code in a single LLM call and outputs a **comprehensive Markdown knowledge document** (`agents/*.md`). For large modules, multiple sub-agents run in parallel — each produces its own agent.md (no merging, no information loss). A **Map Agent** reads all agent docs and generates `map.md` — a routing index. During `ag-ask`, Router reads `map.md` to select relevant modules, then feeds their agent docs to answer agents. For structural questions (call chains, dependencies, impact analysis), the Router automatically queries [GitNexus](https://github.com/abhigyanpatwari/GitNexus) code graph for precise relationships. **Fully language-agnostic** — module detection uses pure directory structure, code analysis is done entirely by LLMs. Works with any programming language.

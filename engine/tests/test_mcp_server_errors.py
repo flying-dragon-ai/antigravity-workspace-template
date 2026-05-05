@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+
+import pytest
 
 
 def test_redact_secrets_covers_common_token_patterns() -> None:
@@ -108,3 +111,34 @@ def test_generic_tool_error_includes_log_path(tmp_path: Path, monkeypatch) -> No
 
     assert "Diagnostic log:" in text
     assert str(tmp_path / "ag-mcp.log") in text
+
+
+@pytest.mark.asyncio
+async def test_ag_mcp_exposes_project_tools(tmp_path: Path, monkeypatch) -> None:
+    """The stdio MCP server should register the plugin tools successfully."""
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+
+    monkeypatch.setenv("CLAUDE_PLUGIN_DATA_DIR", str(tmp_path / "logs"))
+
+    params = StdioServerParameters(
+        command=sys.executable,
+        args=[
+            "-m",
+            "antigravity_engine.hub.mcp_server",
+            "--workspace",
+            str(tmp_path),
+        ],
+        env={
+            "CLAUDE_PLUGIN_DATA_DIR": str(tmp_path / "logs"),
+            "WORKSPACE_PATH": str(tmp_path),
+        },
+    )
+
+    async with stdio_client(params) as (read_stream, write_stream):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+            result = await session.list_tools()
+
+    names = {tool.name for tool in result.tools}
+    assert {"ask_project", "refresh_project"} <= names
