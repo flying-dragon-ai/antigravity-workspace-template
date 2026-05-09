@@ -45,7 +45,7 @@
 
 **与其给 Claude Code / Codex 一个仓库 `grep` 让它自己找，不如给它一个仓库版本的 ChatGPT。**
 
-**已在 [OpenClaw](https://github.com/openclaw/openclaw)（12K 文件，34.8 万 Star）上用 MiniMax2.7 测试——模块问答 10/10，111 个模块 43 分钟自学完成。** [查看完整评估](#大规模评估minimax27--openclaw12k-文件348-万-star)
+**与 Codex CLI 和 Claude Code 在三个真实 Python 仓库（`fastapi`、`requests`、`sqlmodel`）上做了 36 道题的三方对决——Antigravity 事实题 99%、审计题 97%，事实题速度比 Codex 快 2.1×。** [查看对比](#三方对决antigravity-vs-codex-cli-vs-claude-code2026-05-09)
 
 ```
 传统做法：                           Antigravity 做法：
@@ -467,101 +467,6 @@ Antigravity 在事实题上**比 Codex 快 2.1x**，在审计题上跟 Codex 速
 2. structured-facts 路径的 AnswerAgent / Reader 都绑上了 `search_code` / `read_file` / `list_directory` / `read_file_metadata` / `search_by_type` 等运行时工具——LLM 现在能直接 grep+读源码，不再靠 paraphrase。
 
 完整报告（数据、方法、每题分数、注意事项）：[`artifacts/benchmark-2026-05-09/REPORT.md`](artifacts/benchmark-2026-05-09/REPORT.md)。
-
----
-
-## 大规模评估：MiniMax2.7 + OpenClaw（12K 文件，34.8 万 Star）
-
-在 [OpenClaw](https://github.com/openclaw/openclaw) 上测试 —— 最热门的开源 AI 助手（TypeScript + Swift + Kotlin，12,133 文件）—— 使用 **MiniMax2.7** 免费 API。
-
-### Refresh 结果
-
-```
-$ ag-refresh --workspace /path/to/openclaw
-[7/8] ▶ 运行 154 个模块（并发=8）...
-      自动拆分：extensions/ → 50+ 子模块（slack, telegram, whatsapp, ...）
-      自动拆分：src/ → 40+ 子模块（agents, gateway, config, ...）
-
-总耗时：42分52秒 | 111 个模块文档 | 1.5MB 知识库
-```
-
-### Ask 评估矩阵（11 项测试）
-
-| 类别 | 问题 | 结果 | 质量 |
-|:-----|:-----|:----:|:----:|
-| 基础理解 | "What is this project?" | **通过** | 5/5 — sponsors、平台、功能、结构 |
-| 模块深度 | "Telegram 集成怎么工作？" | **通过** | **5/5** — 文件表 + 架构图 + 类型 + 常量 |
-| 模块深度 | "Discord 语音频道？" | **通过** | **5/5** — 音频管道 + 代码示例 + 设计模式 |
-| 模块深度 | "WhatsApp 集成？" | **通过** | **5/5** — 认证流 + 插件架构 + 依赖 |
-| 跨模块 | "Gateway 怎么工作？" | 超时 | 2/5 — 有文件列表，无深度分析 |
-| 跨模块 | "测试框架？" | 超时 | 2/5 — 列出 vitest 配置 |
-
-### 核心发现：自动拆分释放模块级卓越表现
-
-| 维度 | 得分 | 说明 |
-|:-----|:----:|:-----|
-| 基础问答 | **9/10** | 项目概述精准 |
-| 模块深度分析 | **10/10** | Telegram/Discord/WhatsApp — 架构图、类型、设计模式 |
-| 跨模块问题 | **3/10** | Gateway、Testing — 免费 API 超时 |
-| **总体** | **6.5/10** | **模块级问答：12K 文件项目也能 production-ready** |
-
-### 性能对比
-
-| 指标 | OpenCMO（374 文件） | OpenClaw（12K 文件） | 改进 |
-|:-----|:------------------:|:-------------------:|:----:|
-| Refresh 时间 | ~10 分钟 | **43 分钟** | 并行 + 自动拆分 |
-| 模块文档 | 9 | **111** | 12x |
-| 知识库 | 540KB | **1.5MB** | 2.8x |
-| 模块问答质量 | 7/10 | **10/10** | 自动拆分 = 聚焦知识 |
-
-> **关键优化：** 大模块（extensions/ 262 组、src/ 363 组）自动拆分为独立子模块，所有模块 8 并发执行。OpenClaw 的 refresh 从 **5 小时+未完成** 降至 **43 分钟完成**。
-
-### 最佳配置
-
-```bash
-# .env — 评估后的推荐配置
-OPENAI_BASE_URL=https://your-openai-compatible-endpoint/v1
-OPENAI_API_KEY=your-key
-OPENAI_MODEL=your-model
-
-AG_ASK_TIMEOUT_SECONDS=120
-AG_REFRESH_AGENT_TIMEOUT_SECONDS=180
-AG_MODULE_AGENT_TIMEOUT_SECONDS=300
-AG_API_CONCURRENCY=5           # 最大同时 LLM 调用数（防止限流）
-AG_MAX_GROUP_CHARS=800000      # 单组原始字符硬限（防止上下文溢出）
-```
-
-> 支持任何 OpenAI 兼容供应商：**NVIDIA**、**OpenAI**、**Ollama**、**vLLM**、**LM Studio**、**Groq**、**MiniMax** 等。
-
----
-
-<details>
-<summary><b>早期评估：MiniMax2.7 + OpenCMO（374 文件，29K 行）</b></summary>
-
-在 [OpenCMO](https://github.com/study8677/OpenCMO) 代码库（Python + React/TS，374 文件）上使用 **MiniMax2.7** 测试。
-
-### Ask 评估矩阵（18 项测试）
-
-| 类别 | 问题 | 结果 | 质量 |
-|:-----|:-----|:----:|:----:|
-| 基础理解 | "这个项目是什么？" | **通过** | 5/5 — 准确概括 |
-| 精确函数 | "llm.py 里 get_model() 的签名" | **通过** | 5/5 — **100% 准确** |
-| 幻觉测试 | "支持 GraphQL 吗？" | **通过** | 5/5 — 正确否定，4 维证据链 |
-| 数据库 Schema | "列出所有数据库表" | **通过** | 5/5 — 34 张表全列出 |
-| 审批流程 | "审批流程怎么工作？" | **通过** | 5/5 — 完整状态机，含行号 |
-| 复杂架构 | "多 Agent 系统怎么工作？" | **通过** | 5/5 — 20 个 Agent 详列 |
-
-### 评分
-
-| 维度 | 评分 | 说明 |
-|:-----|:----:|:-----|
-| 基础问答 | **9/10** | 项目、技术栈、模块——优秀 |
-| 幻觉控制 | **9/10** | 不会编造；能给否定证据 |
-| **综合** | **7/10** | **日常代码问答：生产就绪** |
-
-> 完整评估报告：[`artifacts/plan_20260404_opencmo_ask_boundary_eval.md`](artifacts/plan_20260404_opencmo_ask_boundary_eval.md)
-
-</details>
 
 ---
 

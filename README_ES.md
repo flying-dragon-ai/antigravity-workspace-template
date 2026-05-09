@@ -45,7 +45,7 @@ El motor es el núcleo: `ag-refresh` despliega un clúster multi-agente que lee 
 
 **En vez de darle a Claude Code / Codex un `grep` del repositorio para que busque por su cuenta, dale un ChatGPT para tu repositorio.**
 
-**Evaluado en [OpenClaw](https://github.com/openclaw/openclaw) (12K archivos, 348K stars) con MiniMax2.7 — Q&A por módulo 10/10, 111 módulos auto-aprendidos en 43 minutos.** [Ver evaluación completa.](#eval-a-gran-escala-minimax27-en-openclaw-12k-archivos-348k-stars)
+**Comparado de tú a tú con Codex CLI y Claude Code en 36 preguntas sobre 3 bases de código Python reales (`fastapi`, `requests`, `sqlmodel`) — Antigravity 99% en búsquedas factuales, 97% en auditoría/seguridad, 2.1× más rápido que Codex en factuales.** [Ver comparativa abajo.](#comparativa-directa-antigravity-vs-codex-cli-vs-claude-code-2026-05-09)
 
 ```
 Enfoque tradicional:                    Enfoque Antigravity:
@@ -444,99 +444,6 @@ auditoría pero pierde 7 puntos de precisión.
 
 Reporte completo (datos, metodología, tablas por celda, advertencias):
 [`artifacts/benchmark-2026-05-09/REPORT.md`](artifacts/benchmark-2026-05-09/REPORT.md).
-
----
-
-## Eval a gran escala: MiniMax2.7 en OpenClaw (12K archivos, 348K stars)
-
-Probado contra [OpenClaw](https://github.com/openclaw/openclaw) — el asistente IA open-source más popular (TypeScript + Swift + Kotlin, 12,133 archivos) — usando la API gratuita **MiniMax2.7**.
-
-### Resultados de Refresh
-
-```
-$ ag-refresh --workspace /path/to/openclaw
-[7/8] ▶ Ejecutando 154 módulos (concurrencia=8)...
-      Auto-split: extensions/ → 50+ sub-módulos (slack, telegram, whatsapp, ...)
-      Auto-split: src/ → 40+ sub-módulos (agents, gateway, config, ...)
-
-Tiempo total: 42m52s | 111 docs de módulo | 1.5MB base de conocimiento
-```
-
-### Matriz de evaluación Ask (11 tests)
-
-| Categoría | Pregunta | Resultado | Calidad |
-|:----------|:---------|:---------:|:-------:|
-| Comprensión básica | "What is this project?" | **OK** | 5/5 — sponsors, plataformas, features |
-| Módulo en detalle | "Telegram integration?" | **OK** | **5/5** — tabla de archivos + diagrama + tipos + constantes |
-| Módulo en detalle | "Discord voice channels?" | **OK** | **5/5** — pipeline de audio + código + patrones de diseño |
-| Módulo en detalle | "WhatsApp integration?" | **OK** | **5/5** — flujo de auth + arquitectura de plugins |
-| Cross-módulo | "How does Gateway work?" | Timeout | 2/5 — lista de archivos sin análisis |
-| Cross-módulo | "Testing frameworks?" | Timeout | 2/5 — listó configs de vitest |
-
-### Puntuaciones
-
-| Dimensión | Puntuación | Notas |
-|:----------|:----------:|:------|
-| Q&A básico | **9/10** | Resumen de proyecto excelente |
-| Análisis por módulo | **10/10** | Telegram/Discord/WhatsApp — diagramas, tipos, patrones |
-| Cross-módulo | **3/10** | Gateway, Testing — timeout con API gratuita |
-| **General** | **6.5/10** | **Q&A por módulo: production-ready incluso en proyectos de 12K archivos** |
-
-### Comparación de rendimiento
-
-| Métrica | OpenCMO (374 archivos) | OpenClaw (12K archivos) | Mejora |
-|:--------|:---------------------:|:----------------------:|:------:|
-| Tiempo de refresh | ~10 min | **43 min** | Paralelo + auto-split |
-| Docs de módulo | 9 | **111** | 12x |
-| Base de conocimiento | 540KB | **1.5MB** | 2.8x |
-| Calidad Q&A por módulo | 7/10 | **10/10** | Auto-split = conocimiento enfocado |
-
-> **Optimización clave:** Módulos grandes (extensions/ con 262 grupos, src/ con 363 grupos) se dividen automáticamente en sub-módulos independientes, todos ejecutados en paralelo (concurrencia 8). El refresh de OpenClaw pasó de **5+ horas (nunca terminó)** a **43 minutos (completado)**.
-
-### Configuración óptima
-
-```bash
-# .env — configuración recomendada post-evaluación
-OPENAI_BASE_URL=https://tu-endpoint-compatible-openai/v1
-OPENAI_API_KEY=tu-key
-OPENAI_MODEL=tu-modelo
-
-AG_ASK_TIMEOUT_SECONDS=120
-AG_REFRESH_AGENT_TIMEOUT_SECONDS=180
-AG_MODULE_AGENT_TIMEOUT_SECONDS=90
-```
-
-> Funciona con cualquier proveedor compatible con OpenAI: **NVIDIA**, **OpenAI**, **Ollama**, **vLLM**, **LM Studio**, **Groq**, **MiniMax**, etc.
-
----
-
-<details>
-<summary><b>Evaluación anterior: MiniMax2.7 en OpenCMO (374 archivos, 29K líneas)</b></summary>
-
-Evaluado contra [OpenCMO](https://github.com/study8677/OpenCMO) (Python + React/TS, 374 archivos) usando **MiniMax2.7**.
-
-### Matriz de evaluación Ask (18 tests)
-
-| Categoría | Pregunta | Resultado | Calidad |
-|:----------|:---------|:---------:|:-------:|
-| Comprensión básica | "¿Qué es este proyecto?" | **OK** | 5/5 — resumen preciso |
-| Función precisa | "firma de get_model() en llm.py" | **OK** | 5/5 — **100% preciso** |
-| Test de alucinación | "¿Soporta GraphQL?" | **OK** | 5/5 — correctamente dijo **No** |
-| Esquema de BD | "Lista todas las tablas" | **OK** | 5/5 — 34 tablas listadas |
-| Flujo de aprobación | "¿Cómo funciona la aprobación?" | **OK** | 5/5 — máquina de estados completa |
-| Arquitectura compleja | "¿Cómo funciona multi-agente?" | **OK** | 5/5 — 20 agentes listados |
-
-### Puntuaciones
-
-| Dimensión | Puntuación | Notas |
-|:----------|:----------:|:------|
-| Q&A básico | **9/10** | Proyecto, stack, módulos — excelente |
-| Control de alucinaciones | **9/10** | No fabrica; da evidencia negativa |
-| **Global** | **7/10** | **Q&A diario: listo para producción** |
-
-> Informe completo: [`artifacts/plan_20260404_opencmo_ask_boundary_eval.md`](artifacts/plan_20260404_opencmo_ask_boundary_eval.md)
-
-</details>
 
 ---
 
