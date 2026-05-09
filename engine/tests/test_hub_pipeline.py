@@ -181,6 +181,65 @@ def test_build_ask_context_includes_root_and_memory_docs(tmp_path: Path) -> None
     assert "Auth module needs cleanup" in context
 
 
+def test_load_project_context_includes_conventions_and_registry(tmp_path: Path) -> None:
+    """_load_project_context must surface project-wide docs to the agent-md path.
+
+    Regression guard: the new structured-facts path used to read only per-module
+    agent docs, so questions answerable from conventions.md got refusal answers.
+    """
+    from antigravity_engine.hub.ask_pipeline import _load_project_context
+
+    ag_dir = tmp_path / ".antigravity"
+    ag_dir.mkdir()
+    (ag_dir / "conventions.md").write_text(
+        "# Project Conventions\n\nLint: Ruff. Format: Black.",
+        encoding="utf-8",
+    )
+    (ag_dir / "module_registry.md").write_text(
+        "# Module Registry\n\n- core: business logic\n- api: HTTP layer\n",
+        encoding="utf-8",
+    )
+
+    map_content = "# Module Map\n\n## core\n- Path: src/core/\n"
+    section = _load_project_context(ag_dir, map_content=map_content)
+
+    assert "Project Context" in section
+    assert "Lint: Ruff" in section
+    assert "Module Registry" in section
+    assert "core: business logic" in section
+    assert "Module Map" in section
+    assert "src/core/" in section
+
+
+def test_load_project_context_returns_empty_when_no_sources(tmp_path: Path) -> None:
+    """No conventions/map/registry → empty string (callers skip the section)."""
+    from antigravity_engine.hub.ask_pipeline import _load_project_context
+
+    ag_dir = tmp_path / ".antigravity"
+    ag_dir.mkdir()
+    assert _load_project_context(ag_dir, map_content="") == ""
+
+
+def test_load_project_context_respects_total_budget(tmp_path: Path) -> None:
+    """Total budget caps overall section size; per-source cap prevents one big
+    file from starving the others."""
+    from antigravity_engine.hub.ask_pipeline import _load_project_context
+
+    ag_dir = tmp_path / ".antigravity"
+    ag_dir.mkdir()
+    big = "x" * 50_000
+    (ag_dir / "conventions.md").write_text(big, encoding="utf-8")
+    (ag_dir / "module_registry.md").write_text("REGISTRY_MARKER\n" + big, encoding="utf-8")
+
+    section = _load_project_context(ag_dir, map_content="", max_chars=3_000)
+
+    # Total stays roughly under the cap (header + per-source caps).
+    assert len(section) <= 4_000
+    # Conventions came first; registry should still get its share, so the marker
+    # must appear because per-source cap < total budget.
+    assert "REGISTRY_MARKER" in section
+
+
 # ---------------------------------------------------------------------------
 # Phase 1: config/entry/git in _format_scan_report
 # ---------------------------------------------------------------------------

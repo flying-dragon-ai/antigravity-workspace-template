@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 async def _run_with_optional_stream(
     agent: "Agent",
     prompt: str,
-    max_turns: int = 12,
+    max_turns: int = 30,
     timeout: float | None = None,
     stream_enabled: bool = False,
     progress_label: str | None = None,
@@ -246,7 +246,7 @@ async def _ask_with_legacy_swarm(workspace: Path, question: str) -> str:
             result_text = await _run_with_optional_stream(
                 agent=agent,
                 prompt=prompt,
-                max_turns=12,
+                max_turns=30,
                 timeout=ask_timeout if ask_timeout > 0 else None,
                 stream_enabled=settings.STREAM_ENABLED,
                 progress_label="Analyzing with multi-agent swarm...",
@@ -459,6 +459,78 @@ def _match_to_known_modules(
     return matched
 
 
+def _load_project_context(
+    ag_dir: Path,
+    map_content: str = "",
+    max_chars: int | None = None,
+) -> str:
+    """Load project-level docs (conventions, registry, map, etc.) into a single
+    labelled section to be injected alongside per-module knowledge.
+
+    Returns an empty string if no sources are present (callers should still
+    inject the section conditionally so the prompt stays clean).
+
+    Sources are read in priority order; each source has a per-source cap and
+    the function stops once the total budget is exhausted. ``map_content`` is
+    accepted directly so the caller can reuse the already-read map.md instead
+    of re-reading it from disk.
+    """
+    if max_chars is None:
+        try:
+            max_chars = int(os.environ.get("AG_ASK_PROJECT_CTX_MAX_CHARS", "15000"))
+        except ValueError:
+            max_chars = 15000
+    if max_chars <= 0:
+        return ""
+
+    per_source_cap = max(1000, max_chars // 3)
+    budget = max_chars
+    parts: list[str] = []
+
+    def _push(label: str, content: str) -> None:
+        nonlocal budget
+        if budget <= 0 or not content or not content.strip():
+            return
+        chunk = content[: min(per_source_cap, budget)]
+        parts.append(f"### {label}\n{chunk}")
+        budget -= len(chunk)
+
+    file_sources: list[tuple[str, Path]] = [
+        ("Project Conventions (.antigravity/conventions.md)", ag_dir / "conventions.md"),
+        ("Document Index (.antigravity/document_index.md)", ag_dir / "document_index.md"),
+    ]
+    for label, path in file_sources:
+        if budget <= 0:
+            break
+        if not path.is_file():
+            continue
+        try:
+            _push(label, path.read_text(encoding="utf-8"))
+        except OSError:
+            continue
+
+    if budget > 0 and map_content.strip():
+        _push("Module Map (.antigravity/map.md)", map_content)
+
+    file_sources_after_map: list[tuple[str, Path]] = [
+        ("Module Registry (.antigravity/module_registry.md)", ag_dir / "module_registry.md"),
+        ("Project Structure (.antigravity/structure.md)", ag_dir / "structure.md"),
+    ]
+    for label, path in file_sources_after_map:
+        if budget <= 0:
+            break
+        if not path.is_file():
+            continue
+        try:
+            _push(label, path.read_text(encoding="utf-8"))
+        except OSError:
+            continue
+
+    if not parts:
+        return ""
+    return "## Project Context (project-wide reference docs)\n\n" + "\n\n".join(parts)
+
+
 async def _ask_with_agent_md(workspace: Path, question: str) -> str | None:
     """Answer a question by routing through map.md → agent.md files.
 
@@ -586,6 +658,21 @@ Module Map:
         if graph_context:
             print(f"[2.5/4] Graph enrichment: {len(graph_context)} chars", file=sys.stderr)
 
+    # Step 2.6: Load project-level docs so the synthesizer can answer
+    # project-wide questions (conventions, CI, dependencies, module
+    # relationships) even when per-module agent docs don't carry them.
+    project_context = _load_project_context(ag_dir, map_content=map_content)
+    project_section = ""
+    if project_context:
+        project_section = f"""
+
+{project_context}
+
+NOTE: Use the project context above for project-wide questions about conventions,
+tooling, lint/format/type-check, CI, docs, dependencies, supported environments,
+or how modules relate to each other. If the project context already answers the
+question, answer from it even if the per-module knowledge does not."""
+
     # Step 3: Answer from agent.md content (+ optional graph context)
     print(f"[3/4] Reading {len(module_knowledge)} agent docs...", file=sys.stderr)
     ask_api_concurrency = int(os.environ.get("AG_API_CONCURRENCY", "5"))
@@ -607,11 +694,12 @@ Combine both sources for a complete answer. Prefer graph data for structural que
         # Single agent.md → one LLM call
         mod_name, knowledge = module_knowledge[0]
         answer_prompt = f"""\
-Answer this question using the module knowledge below.
+Answer this question using the project context AND module knowledge below.
 Be specific — cite file paths, function names, line numbers.
-If the knowledge doesn't cover the question, say so.
+If neither source covers the question, say so.
 
 Question: {question}
+{project_section}
 
 Module: {mod_name}
 Knowledge:
@@ -646,11 +734,12 @@ Knowledge:
             Note: streaming is disabled for parallel calls to avoid output interleaving.
             """
             prompt = f"""\
-Answer this question using ONLY the module knowledge below.
+Answer this question using the project context AND module knowledge below.
 Be specific — cite file paths, function names.
-If irrelevant to the question, respond with "(not relevant)".
+If neither source helps for this module, respond with exactly "(not relevant)".
 
 Question: {question}
+{project_section}
 
 Module: {mod_name}
 Knowledge:
@@ -680,10 +769,12 @@ Knowledge:
             *[_answer_from_doc(name, knowledge) for name, knowledge in module_knowledge]
         )
 
-        # Filter out failures and irrelevant answers
+        # Filter out failures and irrelevant answers (exact-match only — answers
+        # that mention "(not relevant)" inside a longer reply should not be
+        # dropped).
         valid_answers = [
             (name, ans) for name, ans in partial_answers
-            if ans and "(not relevant)" not in ans.lower()
+            if ans and ans.strip().lower() != "(not relevant)"
         ]
 
         if not valid_answers:
@@ -700,9 +791,11 @@ Knowledge:
         synth_prompt = f"""\
 Synthesize these partial answers into one coherent response.
 Keep all specific references (file paths, function names, line numbers).
-Be concise.
+Be concise. If the project context covers the question more directly than
+any per-module answer, prefer it.
 
 Question: {question}
+{project_section}
 
 Partial answers:
 {synth_parts}
