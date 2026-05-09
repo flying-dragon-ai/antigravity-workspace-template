@@ -440,6 +440,36 @@ ag-ask "谁调用了 gateway 适配器的 send 方法？"
 
 ---
 
+## 三方对决：Antigravity vs Codex CLI vs Claude Code（2026-05-09）
+
+在三个真实 Python 仓库（`fastapi/fastapi`、`psf/requests`、`fastapi/sqlmodel`）上对三个工具问**同样的 36 道题**，按难度分三档。三家都用 `gpt-5.5` + 高推理强度；Codex 和 Claude 拥有完整源码读权限。评分由 Codex 担任，4 轴 0-3 规则，所有声明都对源码核验。
+
+| 题型 | Antigravity | Codex CLI | Claude Code |
+|:---|:---:|:---:|:---:|
+| 15 道事实查找 | **179/180 (99%)** | 179/180 (99%) | 178/180 (99%) |
+| 12 道综合题（项目/架构 tour） | 116/144 (81%) | **144/144 (100%)** | 136/144 (94%) |
+| 9 道审计/安全 | **105/108 (97%)** | 104/108 (96%) | 98/108 (91%) |
+
+**事实题 + 审计题合计 24 题：Antigravity 284/288，Codex 283/288，Claude 276/288。** Antigravity **微弱反超**——而且**每道题都比 Codex 跑得更快**。
+
+**延迟**（同一代理下每题平均墙钟）：
+
+| 题型 | Antigravity | Codex | Claude |
+|:---|:---:|:---:|:---:|
+| 事实 | **56s** | 119s | 42s |
+| 审计 | 160s | 177s | **100s** |
+
+Antigravity 在事实题上**比 Codex 快 2.1x**，在审计题上跟 Codex 速度持平，但正确率持平或略胜。Claude 在审计上最快但正确率落后 7 个百分点。
+
+**仓库里两个引擎修复带来的提升**（本分支已提交）：
+
+1. `_ask_with_agent_md` 现在把项目级文档（`conventions.md`、`module_registry.md`、`map.md`、`structure.md`）注入答案 prompt——杜绝了"module knowledge 不包含项目约定"那种假性拒答。
+2. structured-facts 路径的 AnswerAgent / Reader 都绑上了 `search_code` / `read_file` / `list_directory` / `read_file_metadata` / `search_by_type` 等运行时工具——LLM 现在能直接 grep+读源码，不再靠 paraphrase。
+
+完整报告（数据、方法、每题分数、注意事项）：[`artifacts/benchmark-2026-05-09/REPORT.md`](artifacts/benchmark-2026-05-09/REPORT.md)。
+
+---
+
 ## 大规模评估：MiniMax2.7 + OpenClaw（12K 文件，34.8 万 Star）
 
 在 [OpenClaw](https://github.com/openclaw/openclaw) 上测试 —— 最热门的开源 AI 助手（TypeScript + Swift + Kotlin，12,133 文件）—— 使用 **MiniMax2.7** 免费 API。

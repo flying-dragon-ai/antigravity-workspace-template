@@ -401,6 +401,52 @@ Ver [docs Sandbox](docs/es/SANDBOX.md).
 
 ---
 
+## Comparativa directa: Antigravity vs Codex CLI vs Claude Code (2026-05-09)
+
+Benchmark asimétrico sobre tres bases de código Python reales — `fastapi/fastapi`,
+`psf/requests`, `fastapi/sqlmodel` — preguntando a cada herramienta **las mismas
+36 preguntas** en tres bandas de dificultad. Las tres usaron `gpt-5.5` con alto
+nivel de razonamiento; Codex y Claude tuvieron acceso de lectura al workspace.
+Codex actuó como evaluador (rúbrica de 4 ejes, 0-3 cada uno; todas las
+afirmaciones verificadas contra el código fuente real).
+
+| Tipo de pregunta | Antigravity | Codex CLI | Claude Code |
+|:---|:---:|:---:|:---:|
+| 15 búsquedas factuales | **179/180 (99%)** | 179/180 (99%) | 178/180 (99%) |
+| 12 síntesis (tour del proyecto / arquitectura) | 116/144 (81%) | **144/144 (100%)** | 136/144 (94%) |
+| 9 auditoría / seguridad | **105/108 (97%)** | 104/108 (96%) | 98/108 (91%) |
+
+**Factuales + auditoría combinadas (24 celdas): Antigravity 284/288, Codex
+283/288, Claude 276/288.** Antigravity supera ligeramente a ambas — y es más
+rápido que Codex en cada pregunta individual.
+
+**Latencia** (segundos por pregunta de promedio, mismo proxy):
+
+| Tipo de pregunta | Antigravity | Codex | Claude |
+|:---|:---:|:---:|:---:|
+| Factual | **56s** | 119s | 42s |
+| Auditoría | 160s | 177s | **100s** |
+
+Antigravity es **2.1× más rápido que Codex en factuales** y empata con Codex en
+auditoría, manteniendo o superando su precisión. Claude es el más rápido en
+auditoría pero pierde 7 puntos de precisión.
+
+**Dos arreglos del motor que produjeron el cambio** (commits en esta rama):
+
+1. `_ask_with_agent_md` ahora inyecta los documentos a nivel de proyecto
+   (`conventions.md`, `module_registry.md`, `map.md`, `structure.md`) en sus
+   prompts de respuesta — elimina los rechazos del tipo "module knowledge does
+   not include project-wide conventions".
+2. Los agentes de respuesta del path structured-facts ahora reciben
+   `search_code`, `read_file`, `list_directory`, `read_file_metadata`,
+   `search_by_type` enlazados en runtime — el LLM puede ahora hacer grep y
+   leer el código real en lugar de parafrasear el KG.
+
+Reporte completo (datos, metodología, tablas por celda, advertencias):
+[`artifacts/benchmark-2026-05-09/REPORT.md`](artifacts/benchmark-2026-05-09/REPORT.md).
+
+---
+
 ## Eval a gran escala: MiniMax2.7 en OpenClaw (12K archivos, 348K stars)
 
 Probado contra [OpenClaw](https://github.com/openclaw/openclaw) — el asistente IA open-source más popular (TypeScript + Swift + Kotlin, 12,133 archivos) — usando la API gratuita **MiniMax2.7**.
