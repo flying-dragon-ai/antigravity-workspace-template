@@ -220,6 +220,27 @@ def test_load_project_context_returns_empty_when_no_sources(tmp_path: Path) -> N
     assert _load_project_context(ag_dir, map_content="") == ""
 
 
+def test_ask_tools_can_be_wrapped_for_answer_agent() -> None:
+    """The structured-facts path binds code-exploration tools to its answer
+    agents at runtime. This test guards that the wiring exists and produces
+    the SDK FunctionTool objects the Agent constructor expects."""
+    from pathlib import Path
+    from antigravity_engine.hub.agents import _wrap_tools
+    from antigravity_engine.hub.ask_tools import create_ask_tools
+
+    tools = create_ask_tools(Path("/tmp"))
+    wrapped = _wrap_tools(tools)
+    # The minimal tool set the answer agent needs to verify claims and
+    # enumerate cross-file (search/read/list at minimum).
+    assert "search_code" in tools
+    assert "read_file" in tools
+    assert "list_directory" in tools
+    assert len(wrapped) == len(tools)
+    assert wrapped, "tool list must not be empty"
+    for t in wrapped:
+        assert type(t).__name__ == "FunctionTool"
+
+
 def test_load_project_context_respects_total_budget(tmp_path: Path) -> None:
     """Total budget caps overall section size; per-source cap prevents one big
     file from starving the others."""

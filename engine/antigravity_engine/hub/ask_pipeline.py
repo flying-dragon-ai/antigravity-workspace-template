@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 async def _run_with_optional_stream(
     agent: "Agent",
     prompt: str,
-    max_turns: int = 30,
+    max_turns: int = 50,
     timeout: float | None = None,
     stream_enabled: bool = False,
     progress_label: str | None = None,
@@ -240,13 +240,13 @@ async def _ask_with_legacy_swarm(workspace: Path, question: str) -> str:
 
     print("[2/3] Analyzing with multi-agent swarm...", file=sys.stderr)
 
-    ask_timeout = float(os.environ.get("AG_ASK_TIMEOUT_SECONDS", "45"))
+    ask_timeout = float(os.environ.get("AG_ASK_TIMEOUT_SECONDS", "240"))
     try:
         try:
             result_text = await _run_with_optional_stream(
                 agent=agent,
                 prompt=prompt,
-                max_turns=30,
+                max_turns=50,
                 timeout=ask_timeout if ask_timeout > 0 else None,
                 stream_enabled=settings.STREAM_ENABLED,
                 progress_label="Analyzing with multi-agent swarm...",
@@ -554,6 +554,20 @@ async def _ask_with_agent_md(workspace: Path, question: str) -> str | None:
 
     ag_dir = workspace / ".antigravity"
 
+    # Build code-exploration tools once so the AnswerAgent / Reader agents
+    # below can grep, read, and list inside the workspace at answer time
+    # (verifying KG claims and enumerating across files when the question
+    # demands it). This is the difference between an LLM that paraphrases
+    # the KG and one that actually inspects the source.
+    answer_tools_wrapped: list = []
+    try:
+        from antigravity_engine.hub.agents import _wrap_tools
+        from antigravity_engine.hub.ask_tools import create_ask_tools
+        answer_tools_wrapped = _wrap_tools(create_ask_tools(workspace))
+    except Exception as exc:
+        logger.warning("Could not bind ask tools to answer agents: %s", exc)
+        answer_tools_wrapped = []
+
     # Step 1: Read map.md and select modules
     try:
         map_content = (ag_dir / "map.md").read_text(encoding="utf-8")
@@ -593,7 +607,7 @@ Module Map:
         instructions="Output ONLY in the exact format: MODULES: ... and GRAPH: yes/no. No other text.",
         model=model,
     )
-    ask_timeout = float(os.environ.get("AG_ASK_TIMEOUT_SECONDS", "45"))
+    ask_timeout = float(os.environ.get("AG_ASK_TIMEOUT_SECONDS", "240"))
     try:
         router_output = await _run_with_optional_stream(
             agent=router_agent,
@@ -693,10 +707,27 @@ Combine both sources for a complete answer. Prefer graph data for structural que
     if len(module_knowledge) == 1:
         # Single agent.md → one LLM call
         mod_name, knowledge = module_knowledge[0]
+        tool_hint = ""
+        if answer_tools_wrapped:
+            tool_hint = """
+
+You ALSO have tools to inspect the actual source code at answer time:
+- search_code(query, file_pattern): grep across the workspace
+- read_file(file_path, start_line, end_line): read specific line ranges
+- list_directory(path): list files
+- read_file_metadata(file_path): file size + line count
+- search_by_type(file_type): list files of a type (e.g. "py")
+
+Use them when:
+- You need to verify or pin down an exact line number
+- The pre-computed knowledge is vague or summarized away
+- The question asks for an exhaustive list (audit, find every, compare across modules)
+- You're unsure whether a fact is current
+Prefer reading the actual code over guessing from the summary."""
         answer_prompt = f"""\
-Answer this question using the project context AND module knowledge below.
-Be specific — cite file paths, function names, line numbers.
-If neither source covers the question, say so.
+Answer this question using the project context AND module knowledge below.{tool_hint}
+Be specific — cite file paths, function names, and line numbers (verify with tools when possible).
+If neither the summary nor the source covers the question, say so.
 
 Question: {question}
 {project_section}
@@ -708,14 +739,17 @@ Knowledge:
 """
         answer_agent = Agent(
             name="AnswerAgent",
-            instructions="Answer concisely with specific code references. No preamble.",
+            instructions="Answer concisely with specific code references. Use the inspection tools to verify line numbers and enumerate items when the question demands it. No preamble.",
             model=model,
+            tools=answer_tools_wrapped,
         )
         try:
+            # Tool-using agent needs more turns: each tool call consumes one.
+            single_max_turns = 30 if answer_tools_wrapped else 1
             answer = await _run_with_optional_stream(
                 agent=answer_agent,
                 prompt=answer_prompt,
-                max_turns=1,
+                max_turns=single_max_turns,
                 timeout=ask_timeout if ask_timeout > 0 else None,
                 stream_enabled=settings.STREAM_ENABLED,
                 progress_label="Generating answer from agent.md...",
@@ -733,9 +767,19 @@ Knowledge:
 
             Note: streaming is disabled for parallel calls to avoid output interleaving.
             """
+            reader_tool_hint = ""
+            if answer_tools_wrapped:
+                reader_tool_hint = """
+
+You ALSO have inspection tools (search_code, read_file, list_directory,
+read_file_metadata, search_by_type) bound to this workspace. Use them to:
+- Verify line numbers in your answer
+- Pull in a few extra lines of code when the summary is vague
+- Enumerate matching items across files when the question is an audit
+Prefer concrete source over guessing."""
             prompt = f"""\
-Answer this question using the project context AND module knowledge below.
-Be specific — cite file paths, function names.
+Answer this question using the project context AND module knowledge below.{reader_tool_hint}
+Be specific — cite file paths, function names, line numbers.
 If neither source helps for this module, respond with exactly "(not relevant)".
 
 Question: {question}
@@ -748,15 +792,18 @@ Knowledge:
 """
             agent = Agent(
                 name=f"Reader_{mod_name}",
-                instructions="Answer concisely. Say '(not relevant)' if the knowledge doesn't help.",
+                instructions="Answer concisely with specific code references. Use the inspection tools when the summary is insufficient or you need to verify. Say '(not relevant)' if neither summary nor source helps.",
                 model=model,
+                tools=answer_tools_wrapped,
             )
+            # Per-doc readers also need more turns when tool-using.
+            reader_max_turns = 15 if answer_tools_wrapped else 1
             try:
                 async with _ask_api_sem:
                     answer = await _run_with_optional_stream(
                         agent=agent,
                         prompt=prompt,
-                        max_turns=1,
+                        max_turns=reader_max_turns,
                         timeout=ask_timeout if ask_timeout > 0 else None,
                         stream_enabled=False,
                         progress_label=None,
