@@ -1,6 +1,8 @@
 # 📚 Documentación de Antigravity Workspace
 
-Bienvenido a la documentación integral de la **Plantilla Antigravity Workspace** — un starter kit de nivel producción para construir agentes autónomos de IA en Google Antigravity.
+Bienvenido a la documentación de **Antigravity**: un motor de conocimiento de
+repositorios, portable entre IDEs, para preguntas sobre codebases con evidencia
+de archivos.
 
 ## 🎯 Navegación Rápida
 
@@ -11,6 +13,7 @@ Bienvenido a la documentación integral de la **Plantilla Antigravity Workspace*
 ### Características Principales
 - **[Características Zero-Config](ZERO_CONFIG.md)** — Descubrimiento automático de herramientas y contexto
 - **[Integración de MCP](MCP_INTEGRATION.md)** — Conexión a herramientas y fuentes de datos externas
+- **[Sandbox](SANDBOX.md)** — Frontera local confiable y opt-in a Microsandbox
 - **[Protocolo de Swarm](SWARM_PROTOCOL.md)** — Orquestación de agentes especialistas para tareas complejas
 
 ### Planificación y Visión
@@ -28,8 +31,8 @@ Patrón genérico ReAct. Solo registra cualquier función Python en `antigravity
 Usa la skill integrada `agent-repo-init` para crear un repositorio limpio desde esta plantilla.
 Soporta modos `quick` y `full`, y expone un script portable en `skills/agent-repo-init/scripts/init_project.py`.
 
-### ⚡️ Nativo de Gemini
-Optimizado para velocidad de Gemini 2.0 Flash y capacidades de function calling.
+### ⚡️ Soporte Multi-Modelo
+Usa el endpoint OpenAI-compatible elegido por `ag-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o personalizado).
 
 ### 🔌 Soporte de LLM Externo
 Llama cualquier API compatible con OpenAI mediante la herramienta integrada `call_openai_chat` (soporta OpenAI, Azure, Ollama).
@@ -47,18 +50,19 @@ Llama cualquier API compatible con OpenAI mediante la herramienta integrada `cal
 | Usar múltiples agentes | [Protocolo de Swarm](SWARM_PROTOCOL.md) |
 | Entender la arquitectura | [Filosofía del Proyecto](PHILOSOPHY.md) |
 | Ver qué viene | [Hoja de Ruta de Desarrollo](ROADMAP.md) |
-| Consultar contexto del proyecto | `ag ask "pregunta"` / `ag refresh` |
+| Consultar contexto del proyecto | `ag-ask "pregunta"` / `ag-refresh` |
 
 ## 📊 Estructura del Proyecto
 
 ```
 .
-├── .antigravity/        # 🛸 Configuración/reglas de Antigravity
-├── .context/            # 📚 Base de conocimiento auto-inyectada
+├── .antigravity/        # 🛸 Base de conocimiento generada
+├── .context/            # 📚 Contexto adicional opcional
 ├── artifacts/           # 📂 Outputs del agente (planes, logs, visuales)
 ├── antigravity_engine/  # 🧠 Código fuente del agente
-│   ├── agent.py         # Bucle principal del agente
-│   ├── memory.py        # Gestor de memoria JSON
+│   ├── hub/             # Knowledge Hub (escáner, agentes, pipeline)
+│   ├── mcp_server.py    # Servidor MCP (ag-mcp)
+│   ├── memory.py        # Memoria Markdown
 │   ├── mcp_client.py    # Integración de MCP
 │   ├── swarm.py         # Orquestación multi-agente
 │   ├── agents/          # Agentes especialistas
@@ -66,10 +70,8 @@ Llama cualquier API compatible con OpenAI mediante la herramienta integrada `cal
 │   │   ├── coder_agent.py
 │   │   ├── reviewer_agent.py
 │   │   └── researcher_agent.py
-│   ├── tools/           # Implementaciones de herramientas
-│   │   ├── demo_tool.py
-│   │   └── mcp_tools.py
-│   └── hub/             # Knowledge Hub (escáner, agentes, pipeline)
+│   ├── tools/           # Herramientas MCP y extensiones
+│   └── sandbox/         # Ejecución local / microsandbox
 ├── tests/               # ✅ Suite de pruebas
 ├── scripts/             # 🧪 Scripts de utilidad
 ├── docker-compose.yml   # Stack de desarrollo local
@@ -109,32 +111,32 @@ Llama cualquier API compatible con OpenAI mediante la herramienta integrada `cal
 
 ## ❓ Preguntas Frecuentes
 
-**P: ¿Puedo usar esto con OpenAI en lugar de Gemini?**  
-R: ¡Sí! Configura `OPENAI_BASE_URL` y `OPENAI_API_KEY` en `.env`. Ver detalles en [Inicio Rápido](QUICK_START.md).
+**P: ¿Qué proveedores LLM están soportados?**
+R: Ejecuta `ag-setup` y elige OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o un endpoint OpenAI-compatible personalizado. El comando escribe `OPENAI_BASE_URL`, `OPENAI_API_KEY` y `OPENAI_MODEL` en `.env`.
 
-**P: ¿Cómo agrego una herramienta personalizada?**  
+**P: ¿Cómo agrego una herramienta personalizada?**
 R: ¡Coloca un archivo Python en `antigravity_engine/tools/` con tus funciones. Sin registro necesario! Ver [Características Zero-Config](ZERO_CONFIG.md).
 
-**P: ¿Cómo inicializo un proyecto nuevo desde esta plantilla?**  
+**P: ¿Cómo inicializo un proyecto nuevo desde esta plantilla?**
 R: Usa la skill `agent-repo-init` en modo `quick` o `full`, o ejecuta `skills/agent-repo-init/scripts/init_project.py`. Ver [Características Zero-Config](ZERO_CONFIG.md).
 
-**P: ¿Cómo despliego a producción?**  
+**P: ¿Cómo despliego a producción?**
 R: ¡Usa Docker! Ver sección Docker en [Inicio Rápido](QUICK_START.md).
 
-**P: ¿Puedo usar múltiples agentes?**  
+**P: ¿Puedo usar múltiples agentes?**
 R: ¡Sí! Usa el sistema de swarm. Ver [Protocolo de Swarm](SWARM_PROTOCOL.md).
 
 **P: ¿Cómo agrego contexto/conocimiento?**
 R: ¡Crea archivos en directorio `.context/`. Se cargan automáticamente! Ver [Características Zero-Config](ZERO_CONFIG.md).
 
 **P: ¿Qué es el Knowledge Hub?**
-R: El Knowledge Hub (`ag ask`, `ag refresh`, `ag report`, `ag log-decision`) mantiene contexto del proyecto en `.antigravity/`, haciendo todos los IDEs de IA más inteligentes. Ver el [README](../../README.md) principal.
+R: El Knowledge Hub (`ag-ask`, `ag-refresh`, `ag report`, `ag log-decision`) mantiene contexto del proyecto en `.antigravity/`, haciendo todos los IDEs de IA más inteligentes. Ver el [README](../../README.md) principal.
 
 **P: ¿Qué lenguajes soporta la detección de módulos?**
 R: Python, TypeScript/JavaScript, Go, Rust, Java, Kotlin, Swift, C/C++ y C#. El escáner usa una lista unificada de extensiones para detectar módulos en todos los lenguajes soportados.
 
 **P: ¿Qué son los facts estructurados?**
-R: Desde abril 2026, `ag refresh` produce claims JSON estructurados con evidencia de fuente (ruta de archivo + rango de líneas) por módulo. `ag ask` verifica estos claims contra el fuente antes de responder, reduciendo alucinaciones y mejorando la trazabilidad.
+R: Desde abril 2026, `ag-refresh` produce claims JSON estructurados con evidencia de fuente (ruta de archivo + rango de líneas) por módulo. `ag-ask` verifica estos claims contra el fuente antes de responder, reduciendo alucinaciones y mejorando la trazabilidad.
 
 ## 🤝 Contribuyendo
 
@@ -144,7 +146,7 @@ Bienvenemos contribuciones en todos los niveles:
 ¿Encontraste un bug? [Abre un issue](https://github.com/study8677/antigravity-workspace-template/issues)
 
 ### Sugerir Ideas
-¿Tienes una idea arquitectónica? ¡Las ideas también son contribuciones!  
+¿Tienes una idea arquitectónica? ¡Las ideas también son contribuciones!
 [Propón tu pensamiento](https://github.com/study8677/antigravity-workspace-template/issues/new)
 
 ### Enviar Código
@@ -162,7 +164,7 @@ Bienvenemos contribuciones en todos los niveles:
 
 ## 👥 Contribuidores
 
-- [@devalexanderdaza](https://github.com/devalexanderdaza) — Primer contribuidor. Implementó herramientas de demo, mejoró la funcionalidad del agente, propuso la hoja de ruta "Agent OS" y completó la integración MCP.
+- [@devalexanderdaza](https://github.com/devalexanderdaza) — Primer contribuidor. Implementó herramientas de demo, mejoró la funcionalidad del agente, ayudó a definir la hoja de ruta inicial y completó la integración MCP.
 - [@Subham-KRLX](https://github.com/Subham-KRLX) — Añadió carga dinámica de herramientas y contexto (Fixes #4) y el protocolo de clúster multi‑agente (Fixes #6).
 - [@SunkenCost](https://github.com/SunkenCost) — Comando `ag clean` y protección de entrada `__main__` (#37).
 - [@aravindhbalaji04](https://github.com/aravindhbalaji04) — Superficie de instrucciones unificada en torno a `AGENTS.md` (#41).

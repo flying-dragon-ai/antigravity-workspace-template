@@ -38,9 +38,10 @@ engine: `ag-refresh`, `ag-ask`, and the artifacts they produce.
 
 ### Compatibility Without Vendor Lock-In
 
-The engine supports Gemini and OpenAI-compatible endpoints. The default external
-contract is an OpenAI-compatible `.env`, with Gemini kept as a supported provider
-rather than a requirement.
+The setup flow writes an OpenAI-compatible `.env` contract:
+`OPENAI_BASE_URL`, `OPENAI_API_KEY`, and `OPENAI_MODEL`. That keeps the engine
+portable across OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama, and custom
+providers without making any one model the product default.
 
 ## What Belongs Here
 

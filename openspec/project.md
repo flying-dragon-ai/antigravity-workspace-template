@@ -1,62 +1,94 @@
 # Project Context
 
 ## Purpose
-**Google Antigravity Workspace Template** is a production-grade starter kit for building autonomous AI agents.
-Its primary goals are to provide a minimal, transparent workspace where agents have:
-- **Infinite Memory** via recursive summarization.
-- **Auto-discovery** of tools and context.
-- **Seamless Connectivity** to external systems via the Model Context Protocol (MCP).
-- **Multi-Agent Coordination** using a Swarm (Router-Worker) pattern.
-- **Artifact-First Workflow** where every task produces plans, logs, and evidence.
+
+Antigravity is a portable, evidence-grounded repository knowledge engine. Its
+primary workflow is:
+
+- `ag-refresh` scans a workspace and builds `.antigravity/` knowledge artifacts.
+- `ag-ask` routes codebase questions to the relevant module context and answers
+  with source evidence.
+- Native plugins, raw CLI entrypoints, context files, and `ag-mcp` expose the
+  same knowledge layer to different AI development environments.
+
+Secondary features such as project bootstrapping, tools, MCP consumption, memory,
+and sandbox execution should support that repository knowledge layer rather than
+turn the repo into a generic agent platform.
 
 ## Tech Stack
+
 - **Language:** Python 3.10+
-- **AI Model:** Google GenAI (Optimized for Gemini 2.0 Flash), but architecture is LLM agnostic.
-- **Data Validation:** Pydantic (used for tool arguments and return values).
-- **Integration:** Model Context Protocol (MCP) `mcp[cli]`.
-- **Knowledge Hub:** `openai-agents[litellm]` for multi-agent project context pipelines.
-- **CLI:** `typer` + `rich` for the `ag` command-line tool.
+- **LLM providers:** OpenAI-compatible endpoints by default, Gemini supported
+  through `GOOGLE_API_KEY` / `GEMINI_MODEL_NAME`.
+- **Data Validation:** Pydantic for settings, contracts, and structured payloads.
+- **Knowledge Hub:** `openai-agents[litellm]` for multi-agent refresh and ask
+  pipelines.
+- **Integration:** Model Context Protocol (MCP) for optional server and consumer
+  flows.
+- **CLI:** `typer` + `rich` for `ag` and engine entrypoints.
 - **Testing:** Pytest.
-- **Environment:** `python-dotenv` for configuration.
+- **Environment:** `python-dotenv` / pydantic-settings for configuration.
 
 ## Project Conventions
 
 ### Code Style
-- **Python:**
-  - **Type Hints:** Mandatory for all function signatures (e.g., `def func(a: int) -> bool:`).
-  - **Docstrings:** Google-style docstrings are required for all tools to enable agent discovery (Must include `Args:`, `Returns:`, `Raises:`).
-  - **Pydantic:** Use Pydantic models for complex data structures.
+
+- Type hints are expected for public functions.
+- Tool functions should have clear docstrings so agent-facing discovery remains
+  understandable.
+- Use Pydantic models for complex structured data.
+- Prefer explicit, small modules over implicit magic.
 
 ### Architecture Patterns
-- **Tool Isolation:** All external interactions (API calls, I/O) must be encapsulated as functions in `antigravity_engine/tools/`.
-- **Statelessness:** Tools should generally be stateless; context is passed via arguments.
-- **Swarm Orchestrator:** Uses a Router-Worker pattern to delegate complex tasks to specialist agents (Coder, Reviewer, Researcher).
-- **Event-Driven:** The architecture supports event-driven workflows.
-- **Zero-Config:** Configuration is auto-loaded from `.antigravity/` (primary) and `.context/` (backward-compatible fallback).
+
+- The core product boundary is the knowledge workflow: refresh, ask, and the
+  `.antigravity/` artifacts they produce.
+- Local tools and MCP tools should be explicit delivery surfaces with documented
+  permissions.
+- Generated state belongs under `.antigravity/`, `memory/`, or `artifacts/` as
+  appropriate; do not hide persistent behavior in unrelated paths.
+- `ag init` / `agent-repo-init` is for scaffolding new repositories; it is not
+  required before `ag-refresh` on an existing repository.
 
 ### Testing Strategy
-- **Framework:** `pytest` is the standard testing framework.
-- **Scope:** Tests should cover agent logic (`tests/test_agent.py`), memory management (`tests/test_memory.py`), and MCP integration (`tests/test_mcp.py`).
-- **Safety:** Tools must fail gracefully with error messages rather than crashing the agent.
+
+- Use `pytest` for engine and CLI tests.
+- Add focused tests for user-visible contracts, safety boundaries, and docs drift.
+- Run `python scripts/check_repo_contract.py` after changing product metadata,
+  installation flows, or docs.
 
 ### Git Workflow
+
 - Standard feature-branch workflow.
 - Commits should be atomic and descriptive.
-- Documentation (in `docs/`) should be updated alongside code changes.
+- Documentation should be updated with code changes that alter public behavior.
 
-### Knowledge Hub
-- **Hub Module** (`antigravity_engine/hub/`): Multi-agent pipelines for project context management — scans the workspace, generates conventions docs, and answers project questions via LLM.
-- **CLI Commands:** `ag refresh` scans the project and updates `.antigravity/conventions.md`. `ag ask` answers questions about the project. `ag report` and `ag log-decision` append to memory/decision logs.
+## Knowledge Hub
 
-## Domain Context
-- **Infinite Memory:** The system uses recursive summarization to compress interaction history, allowing long-running contexts without hitting token limits.
-- **Model Context Protocol (MCP):** A standard for connecting AI assistants to systems (databases, GitHub, filesystems). The agent acts as an MCP client.
-- **Swarm Protocol:** A method for coordinating multiple specialized agents to solve complex problems by breaking them down into sub-tasks.
+- **Hub module** (`engine/antigravity_engine/hub/`): scans the workspace,
+  generates conventions and module knowledge, builds routing indexes, and answers
+  project questions via LLM.
+- **CLI commands:** `ag-refresh` builds or refreshes `.antigravity/`; `ag-ask`
+  answers grounded project questions; `ag-mcp` exposes `ask_project` and
+  `refresh_project` to MCP hosts. The wrapper `ag refresh` / `ag ask` commands
+  are also available when both CLI and engine packages are installed.
 
-## Important Constraints
-- **Gemini Optimization:** While LLM agnostic, the prompt engineering and memory structures are currently optimized for Gemini 2.0 Flash.
-- **Security:** Tools must not expose secrets. All environment variables should be managed via `.env`.
+## Security Boundaries
+
+- The default local sandbox is for trusted local workspaces, not untrusted-code
+  isolation.
+- If opt-in sandbox runtimes are unavailable, the engine warns before falling
+  back to local execution.
+- `AG_RETRIEVAL_MODE=compact` is the default. `full` keeps richer artifacts;
+  common secrets are redacted before write, but source snippets can still be
+  captured.
+- External MCP server consumption requires explicit opt-in via `MCP_ENABLED=true`
+  and `AG_ALLOW_MCP=true`. Stdio MCP servers inherit the process environment plus
+  configured `env` values.
 
 ## External Dependencies
-- **Google Gemini API:** Primary intelligence provider.
-- **MCP Servers:** External servers (e.g., `@modelcontextprotocol/server-github`) that the agent connects to for extended capabilities.
+
+- **LLM endpoint:** OpenAI-compatible endpoint or Gemini provider credentials.
+- **MCP servers:** Optional external servers, enabled only when trusted.
+- **Microsandbox:** Optional runtime for stronger code execution isolation than
+  the local subprocess fallback.

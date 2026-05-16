@@ -1,41 +1,52 @@
-# 🌟 项目理念
+# 项目理念
 
-## Antigravity Workspace 的愿景
+## 产品主张
 
-在 AI IDE 已经很强的时代，目标是让企业级架构变成 **Clone → Rename → Prompt** 的简单体验。通过以 `AGENTS.md` 作为权威行为规则，并配合 IDE 引导文件与 `.antigravity/*` 动态上下文，把完整的**认知架构**写进仓库，让 IDE 变成“懂行的架构师”，而不是空白编辑器。
+AI 编程工具最需要的不是一次性塞满整个仓库，而是能围绕当前问题读取一个新鲜、
+可验证的仓库模型。Antigravity 就是这层 repository knowledge layer。
 
-## 为什么要有“会思考”的脚手架？
+核心工作流刻意保持很小：
 
-用 Google Antigravity 或 Cursor 做 AI 开发时，痛点在于：**IDE 和模型都强，但空项目太弱。** 每次新项目都要重复：
-- 代码放 `src` 还是 `app`？
-- 工具函数如何写才能被 Gemini 识别？
-- 如何让 AI 记住上下文？
+1. `ag-refresh` 扫描 workspace，构建 `.antigravity/` 知识产物。
+2. `ag-ask` 将问题路由到正确模块上下文，并用源码证据回答。
+3. 插件、CLI、上下文文件与 MCP 把同一层知识暴露给不同 AI 开发环境。
 
-理想流程是：**git clone 之后 IDE 已经知道该做什么。** 这就是本模板诞生的原因。
+## 设计原则
 
-## 🧠 核心理念：Artifact-First
+### 一份知识库，多种宿主
 
-工作区遵循 **Artifact-First** 协议，复杂任务不仅写代码，还要产出可审计的产物：
-1) **计划**：先在 `artifacts/plan_[task_id].md` 写计划  
-2) **证据**：日志、测试输出放入 `artifacts/logs/`  
-3) **可视化**：UI 变更需有截图等视觉产物  
+生成的 `.antigravity/` 是可移植项目状态。Claude Code、Codex CLI、Cursor、
+Windsurf、Gemini CLI、Cline、Aider 和其他宿主都应该读取同一份仓库模型，
+而不是各自维护割裂的上下文系统。
 
-每个任务都有“证据链”，便于复盘与改进。
+### 有证据的回答优于宽泛上下文
 
-## 🛸 运行方式
+大段 prompt 很容易创建，但很难信任。Antigravity 偏向模块级知识、源码路径、
+行号证据和可选图谱上下文支撑的路由式回答。
 
-Agent 遵循严格的“Think-Act-Reflect”循环，模拟 Gemini 2.0 Flash 的认知流程：
+### 插件只是交付渠道
 
-```
-用户 → Agent（思考与策略）→ 工具执行 → 产出 artifacts → 返回报告
-```
+Claude Code 与 Codex CLI 有原生 slash commands，是因为这对这些宿主最顺手。
+产品边界仍然是知识引擎：`ag-refresh`、`ag-ask`，以及它们生成的产物。
 
-## 🔥 关键特性
+### 兼容而不锁定供应商
 
-- 🧠 **无限记忆引擎**：递归摘要自动压缩历史，缓解上下文限制。  
-- 🛠️ **通用工具协议**：通用 ReAct 模式；将 Python 函数注册到 `available_tools` 即可被调用。  
-- ⚡️ **Gemini 原生**：针对 Gemini 2.0 Flash 的速度与函数调用优化。  
-- 🔌 **外部 LLM（OpenAI 兼容）**：用内置 `call_openai_chat` 工具调用任何 OpenAI 格式接口（支持 OpenAI/Azure/Ollama）。  
+`ag-setup` 写入 OpenAI-compatible `.env` 契约：`OPENAI_BASE_URL`、
+`OPENAI_API_KEY`、`OPENAI_MODEL`。这样可以覆盖 OpenAI、DeepSeek、Groq、
+DashScope、NVIDIA NIM、Ollama 和自定义 provider，而不把任何一个模型写成产品默认值。
+
+## 什么应该留在这里
+
+Antigravity 应优先改进：
+
+- 更好的仓库扫描和模块分组
+- 更可靠的带证据问答和事实验证
+- 原生插件用户的清晰安装路径
+- 稳定的 CLI 与 MCP 契约
+- 让产品叙事保持一致的文档和 CI 检查
+
+把仓库变成泛用 agent OS、工作流管理器或无关 scaffold 的功能，除非能明确提升
+repository knowledge engine，否则应拆到产品边界之外。
 
 ---
 

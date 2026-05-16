@@ -19,7 +19,7 @@ pip install -e ./cli -e './engine[dev]'
 
 ### 2. Build the Knowledge Base
 ```bash
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 This command scans the project, builds `.antigravity/`, and prepares the
@@ -27,7 +27,7 @@ repository knowledge base for routed project Q&A.
 
 ### 3. Ask Project Questions
 ```bash
-ag ask "How does authentication work in this project?" --workspace .
+ag-ask "How does authentication work in this project?" --workspace .
 ```
 
 The ask pipeline reads the generated structure map, routes to the right module
@@ -40,8 +40,9 @@ agent, and returns grounded answers with file evidence.
 docker-compose up --build
 ```
 
-This builds the published runtime image and starts the knowledge-hub MCP server
-against the mounted workspace.
+This builds the image from the current checkout and starts the knowledge-hub MCP
+server against `/app` inside the container. Rebuild after source changes, or edit
+`docker-compose.yml` if you want a bind-mounted development checkout.
 
 ### Customizing Docker
 Edit `docker-compose.yml` to:
@@ -62,6 +63,11 @@ OPENAI_MODEL=your-model
 
 # MCP Configuration
 MCP_ENABLED=true
+# Required before ag-ask auto-connects external MCP servers
+AG_ALLOW_MCP=true
+
+# Retrieval graph: off, compact, or full
+AG_RETRIEVAL_MODE=compact
 
 # Custom settings
 LOG_LEVEL=INFO
@@ -70,6 +76,16 @@ ARTIFACTS_DIR=artifacts
 
 `ARTIFACTS_DIR` supports absolute or relative paths. Relative values are
 resolved from the repository root so outputs do not drift into IDE default paths.
+
+This project is optimized for trusted local workspaces. `AG_RETRIEVAL_MODE`
+defaults to `compact`; `full` keeps richer evidence artifacts. Common secrets are
+redacted before retrieval graph files are written, but snippets can still include
+repository content, so do not enable rich retrieval logging for untrusted or
+shared workspaces.
+
+The default sandbox is local developer convenience, not an untrusted-code
+isolation boundary. `SANDBOX_TYPE=microsandbox` is opt-in; if the runtime is not
+available, the engine warns and falls back to local execution.
 
 ### Memory Management
 The agent automatically manages memory via markdown files:
@@ -80,7 +96,7 @@ To reset:
 
 ```bash
 rm -f memory/agent_memory.md memory/agent_summary.md
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 ## 📁 Project Structure Reference
@@ -103,14 +119,11 @@ pytest engine/tests cli/tests
 
 # Run a specific engine test
 pytest engine/tests/test_hub_pipeline.py -v
-
-# With coverage
-pytest --cov=antigravity_engine engine/tests/
 ```
 
 ## 🐛 Troubleshooting
 
-### Agent doesn't start
+### Knowledge commands don't start
 ```bash
 # Check if the engine CLI is installed
 ag-ask --help
@@ -143,10 +156,13 @@ rm -f memory/agent_memory.md memory/agent_summary.md
 To enable MCP servers:
 
 1. Set `MCP_ENABLED=true` in `.env`
-2. Configure servers in `mcp_servers.json`
-3. Restart the agent
+2. Set `AG_ALLOW_MCP=true` only when you trust the configured servers
+3. Configure servers in `mcp_servers.json`
+4. Restart the command
 
-See [MCP Integration Guide](MCP_INTEGRATION.md) for detailed setup.
+MCP stdio servers inherit the process environment plus any configured `env`
+values. Treat every enabled server as code with local permissions. See
+[MCP Integration Guide](MCP_INTEGRATION.md) for detailed setup.
 
 ## 📚 Next Steps
 

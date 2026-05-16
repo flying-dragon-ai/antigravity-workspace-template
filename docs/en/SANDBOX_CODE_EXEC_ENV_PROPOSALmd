@@ -456,8 +456,10 @@ Extensible: Enables adding E2BSandbox or KubernetesSandbox in the future
 Better DX: For simple tasks (testing a function, mathematical computation),
 local execution is milliseconds faster than spinning up a container.
 
-Progressive Security: Enterprise users can set `SANDBOX_TYPE=docker` in their
-CI/CD or production environment without changing agent logic.
+Historical note: This RFC discussed a Docker runtime before the supported
+runtime list converged on `local`, `microsandbox`, and future `e2b`. Docker is
+not selected through `SANDBOX_TYPE`; `Dockerfile.sandbox` is only a helper asset
+for external experiments.
 
 ### Disadvantages (Cons)
 

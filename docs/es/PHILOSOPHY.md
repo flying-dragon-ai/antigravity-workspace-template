@@ -1,77 +1,61 @@
-# 🌟 Filosofía del Proyecto
+# Filosofía del Proyecto
 
-## La Visión Detrás de Antigravity Workspace
+## Tesis del Producto
 
-En una era rica de IDEs de IA, el objetivo era lograr una arquitectura de nivel empresarial con simplemente **Clonar -> Renombrar -> Solicitar**.
+Las herramientas de programación con IA funcionan mejor cuando pueden hacer
+preguntas enfocadas contra un modelo fresco del repositorio, en lugar de releer
+todo el árbol para cada tarea. Antigravity es esa capa de conocimiento del
+repositorio.
 
-Este proyecto aprovecha la conciencia contextual del IDE con `AGENTS.md` como rulebook de comportamiento autoritativo, mientras los archivos bootstrap por IDE y los artefactos dinámicos en `.antigravity/*` mantienen un contexto portable y mantenible.
+El flujo principal es deliberadamente pequeño:
 
-Cuando abres este proyecto, tu IDE ya no es solo un editor; se transforma en un **"Arquitecto Conocedor"**.
+1. `ag-refresh` escanea el workspace y construye artefactos en `.antigravity/`.
+2. `ag-ask` enruta una pregunta al contexto de módulo correcto y responde con
+   evidencia de código.
+3. Plugins, comandos CLI, archivos de contexto y MCP exponen la misma capa de
+   conocimiento a distintos entornos de desarrollo con IA.
 
-## ¿Por qué necesitamos un "Scaffold de Pensamiento"?
+## Principios de Diseño
 
-Al usar Google Antigravity o Cursor para desarrollo de IA, hay un punto de dolor:
+### Una Base de Conocimiento, Muchos Hosts
 
-**Los IDEs y modelos son poderosos, pero los "proyectos vacíos" son débiles.**
+El directorio generado `.antigravity/` es estado portable del proyecto. Claude
+Code, Codex CLI, Cursor, Windsurf, Gemini CLI, Cline, Aider y otros hosts deben
+beneficiarse del mismo modelo del repositorio, sin sistemas de contexto
+separados.
 
-Cada vez que comenzamos un nuevo proyecto, repetimos configuraciones aburridas:
-- "¿Debería mi código ir en src o en app?"
-- "¿Cómo defino funciones de herramienta para que Gemini las reconozca?"
-- "¿Cómo hago que la IA recuerde el contexto?"
+### Respuestas Fundamentadas Sobre Contexto Amplio
 
-Este trabajo repetitivo es un desperdicio de creatividad. El flujo de trabajo ideal es: **Git Clone -> El IDE ya sabe qué hacer.**
+Los prompts enormes son fáciles de crear y difíciles de confiar. Antigravity
+prefiere respuestas enrutadas con conocimiento por módulo, rutas de archivo,
+evidencia de líneas y contexto de grafo opcional.
 
-Por eso se creó este proyecto: **Antigravity Workspace Template**.
+### Los Plugins Son Canales de Entrega
 
-## 🧠 Filosofía Central: Artifact-First
+Claude Code y Codex CLI reciben comandos slash nativos porque es la forma más
+ergonómica para esos hosts. El límite del producto sigue siendo el motor de
+conocimiento: `ag-refresh`, `ag-ask` y los artefactos que producen.
 
-Este workspace aplica el protocolo **Artifact-First**. El Agente no solo escribe código; produce outputs tangibles (Artefactos) para cada tarea compleja.
+### Compatibilidad Sin Bloqueo de Proveedor
 
-### Los Tres Pilares
+`ag-setup` escribe un contrato `.env` OpenAI-compatible: `OPENAI_BASE_URL`,
+`OPENAI_API_KEY` y `OPENAI_MODEL`. Esto cubre OpenAI, DeepSeek, Groq, DashScope,
+NVIDIA NIM, Ollama y proveedores personalizados sin convertir ningún modelo en
+el valor por defecto del producto.
 
-1. **Planificación**: Se crea `artifacts/plan_[task_id].md` antes de codificar.
-2. **Evidencia**: Logs y outputs de pruebas se guardan en `artifacts/logs/`.
-3. **Visuales**: Los cambios de UI generan artefactos de captura de pantalla.
+## Qué Pertenece Aquí
 
-Esto garantiza que cada tarea produce un rastro de evidencia que puede ser revisado, auditado y mejorado.
+Antigravity debe priorizar:
 
-## 🛸 Cómo Funciona
+- mejor escaneo de repositorios y agrupación de módulos
+- Q&A más fundamentado y validación de evidencia
+- rutas de instalación claras para usuarios de plugins nativos
+- contratos estables de CLI y MCP
+- documentación y checks de CI que mantengan consistente la historia del producto
 
-El agente sigue un estricto bucle "Think-Act-Reflect", simulando el proceso cognitivo de Gemini 2.0 Flash.
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Agent as 🤖 GeminiAgent
-    participant Memory as 🧠 Memory
-    participant Tools as 🛠️ Tools
-    participant Artifacts as 📂 Artifacts
-
-    User->>Agent: "Refactorizar Autenticación"
-    activate Agent
-    
-    Agent->>Artifacts: Crear Plan de Implementación
-    
-    Note over Agent: <thought> Deep Think Process </thought>
-    Agent->>Agent: Formular Estrategia
-    
-    Agent->>Tools: Ejecutar Herramienta (code_edit)
-    activate Tools
-    Tools-->>Agent: Resultado
-    deactivate Tools
-    
-    Agent->>Artifacts: Guardar Logs/Evidencia
-    
-    Agent-->>User: Reporte Final (Walkthrough)
-    deactivate Agent
-```
-
-## 🔥 Características Destacadas
-
-- 🧠 **Motor de Memoria Infinita**: La resumización recursiva comprime automáticamente el historial. Los límites de contexto se acabaron.
-- 🛠️ **Protocolo Universal de Herramientas**: Patrón genérico ReAct. Solo registra cualquier función Python en `available_tools`, y el Agente aprende a usarla.
-- ⚡️ **Nativo de Gemini**: Optimizado para la velocidad de Gemini 2.0 Flash y capacidades de function calling.
-- 🔌 **Soporte de LLM Externo (formato OpenAI)**: Llama cualquier API compatible con OpenAI mediante la herramienta `call_openai_chat` (soporta OpenAI, Azure, Ollama).
+Funcionalidades que conviertan el repositorio en un agent OS genérico, gestor de
+workflows o scaffold no relacionado deben mantenerse separadas salvo que mejoren
+claramente el motor de conocimiento del repositorio.
 
 ---
 

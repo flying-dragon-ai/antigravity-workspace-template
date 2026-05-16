@@ -16,7 +16,10 @@
 4. **Refresh** — runs `ag-refresh` directly and builds `.antigravity/` for the current project. The first refresh creates the project knowledge directory automatically.
 5. **Ask** — runs `ag-ask` directly and queries the refreshed project knowledge base.
 
-MCP is optional. If you want tool-style integration in an MCP-compatible host, register `ag-mcp --workspace <project>` separately.
+MCP is optional. If you want tool-style integration in an MCP-compatible host,
+register `ag-mcp --workspace <project>` separately. To let `ag-ask` consume
+external MCP servers, set both `MCP_ENABLED=true` and `AG_ALLOW_MCP=true` only
+for servers you trust.
 An example MCP config lives at `docs/examples/antigravity.mcp.json`.
 
 You can also add the marketplace from a local checkout:
@@ -92,6 +95,16 @@ pipx uninstall antigravity-engine
 - Python 3.10+ on PATH (`python3` / `python`)
 - `pipx` recommended (`brew install pipx`, `apt install pipx`, or `python3 -m pip install --user pipx`)
 - Network access on first launch (for the auto-installer)
+
+## Safety Boundaries
+
+- Default local execution is intended for trusted local workspaces, not
+  untrusted-code isolation.
+- `AG_RETRIEVAL_MODE=compact` is the default. `full` keeps richer retrieval
+  artifacts; common secrets are redacted before write, but source snippets can
+  still be captured.
+- MCP stdio servers inherit process environment plus configured `env` values.
+  Treat enabled servers as local-permission code.
 
 ## Troubleshooting
 

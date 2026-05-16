@@ -14,7 +14,13 @@ El [Protocolo de Contexto del Modelo (MCP)](https://modelcontextprotocol.io/) es
 ### 1. Habilitar MCP en `.env`
 ```bash
 MCP_ENABLED=true
+AG_ALLOW_MCP=true
 ```
+
+`MCP_ENABLED=true` hace visibles los servidores configurados para el engine.
+`AG_ALLOW_MCP=true` es el opt-in explícito que permite a `ag-ask` conectar
+servidores MCP externos automáticamente. Déjalo sin configurar salvo que confíes
+en esos servidores.
 
 ### 2. Configurar Servidores en `mcp_servers.json`
 
@@ -40,7 +46,7 @@ MCP_ENABLED=true
 ag-ask "What MCP tools are available?" --workspace .
 ```
 
-El pipeline de preguntas:
+Cuando ambas variables están habilitadas, el pipeline de preguntas:
 - 🔌 Se conectará a todos los servidores MCP habilitados
 - 🔍 Descubrirá herramientas disponibles
 - 📦 Las fusionará con herramientas locales
@@ -50,7 +56,7 @@ El pipeline de preguntas:
 
 ```mermaid
 graph TD
-    Agent[🤖 GeminiAgent] --> LocalTools[🛠️ Local Tools]
+    Agent[🤖 Antigravity Agent] --> LocalTools[🛠️ Local Tools]
     Agent --> MCPManager[🔌 MCP Client Manager]
     MCPManager --> Server1[📡 GitHub MCP]
     MCPManager --> Server2[📡 Database MCP]
@@ -127,6 +133,9 @@ Regístralo en `mcp_servers.json`:
 - Usa variables de entorno para credenciales sensibles.
 - La implementación actual pasa los valores de `env` tal como están en `mcp_servers.json`.
   No hay interpolación automática de placeholders tipo `${VAR}`.
+- Los servidores MCP por stdio heredan el entorno del proceso padre y los valores
+  `env` configurados. Trata cada servidor habilitado como código con permisos
+  sobre el workspace local.
 
 ## 🧪 Prueba Rápida de Integración
 

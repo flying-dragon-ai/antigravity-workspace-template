@@ -29,7 +29,7 @@ def analyze_sentiment(text: str) -> dict:
 
 2. **Refresca el Knowledge Hub** (una sola vez):
 ```bash
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 3. **Úsala Inmediatamente** en prompts:
@@ -82,7 +82,7 @@ POST /api/users - crear nuevo usuario" > .context/api_docs.md
 
 2. **Refresca el Knowledge Hub** (una sola vez):
 ```bash
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 3. **Inyección Automática**:

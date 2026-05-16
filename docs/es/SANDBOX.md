@@ -1,16 +1,20 @@
-# Especificaciones de Ejecución en Sandbox
+# Ejecución de Código en Sandbox
 
 ## Descripción General
 
-El módulo sandbox proporciona entornos seguros y configurables para ejecutar código generado por el agente. Permite diferentes niveles de aislamiento y control de recursos.
+El módulo sandbox ofrece entornos configurables para ejecutar código Python
+generado por agentes.
 
-**Principio clave:** Zero-Config por defecto (ejecución local), con opt-in para Docker si se requiere mayor aislamiento.
+- `local` (por defecto): ejecución por subprocess, sin configuración.
+- `microsandbox` (opt-in): ejecución mediante un servidor Microsandbox.
+- `e2b` (futuro): runtime placeholder.
+
+La postura por defecto prioriza comodidad de desarrollo en un workspace local
+confiable. El sandbox local no es una frontera para ejecutar código no confiable.
 
 ## Inicio Rápido
 
 ### Ejecución Local (Por Defecto)
-
-Sin configuración adicional. El código se ejecuta en un subprocess aislado:
 
 ```python
 from antigravity_engine.sandbox.factory import get_sandbox
@@ -20,103 +24,99 @@ result = sandbox.execute(code="print(2 + 2)", language="python", timeout=30)
 print(result.stdout)
 ```
 
-El agente:
-- Genera código Python
-- Lo ejecuta de forma segura en un subprocess aislado
-- Devuelve el resultado
+### Ejecución Microsandbox (Opt-In)
 
-### Ejecución Docker (Opt-In)
-
-Para mayor aislamiento (filesystem, red, recursos):
+Instala e inicia el servidor Microsandbox:
 
 ```bash
-export SANDBOX_TYPE=docker
-export DOCKER_IMAGE=antigravity-sandbox:latest
-
-# Primero, construye la imagen (opcional; usa python:3.11-slim por defecto)
-docker build -f Dockerfile.sandbox -t antigravity-sandbox:latest .
-
-# Luego usa la misma API de Python mostrada arriba
-# para ejecutar código dentro del runtime Microsandbox
+curl -sSL https://get.microsandbox.dev | sh
+msb server start --dev
 ```
 
-## Configuración
+Después usa el runtime Microsandbox:
 
-Todas las variables de entorno se controlan mediante variables de entorno.
+```bash
+export SANDBOX_TYPE=microsandbox
+export MSB_SERVER_URL=http://127.0.0.1:5555
+export MSB_IMAGE=microsandbox/python
+```
+
+`Dockerfile.sandbox` es una imagen auxiliar para experimentos externos. No se
+selecciona mediante `SANDBOX_TYPE`.
+
+## Configuración
 
 ### Variables Principales
 
 | Variable | Defecto | Descripción |
 |----------|---------|-------------|
-| `SANDBOX_TYPE` | `local` | Entorno: `local`, `docker`, `e2b` (futuro) |
+| `SANDBOX_TYPE` | `local` | Runtime: `local`, `microsandbox`, `e2b` (futuro) |
 | `SANDBOX_TIMEOUT_SEC` | `30` | Tiempo máximo de ejecución (segundos) |
-| `SANDBOX_MAX_OUTPUT_KB` | `10` | Tamaño máximo de salida antes de truncado (KB) |
+| `SANDBOX_MAX_OUTPUT_KB` | `10` | Máximo stdout/stderr antes de truncar (KB) |
 
-### Variables Específicas de Docker
+### Variables de Microsandbox
+
+Solo se usan cuando `SANDBOX_TYPE=microsandbox`.
 
 | Variable | Defecto | Descripción |
 |----------|---------|-------------|
-| `DOCKER_IMAGE` | `python:3.11-slim` | Imagen base Docker |
-| `DOCKER_NETWORK_ENABLED` | `false` | Permitir acceso a red |
-| `DOCKER_CPU_LIMIT` | `0.5` | Límite de CPU (cores) |
-| `DOCKER_MEMORY_LIMIT` | `256m` | Límite de memoria |
+| `MSB_SERVER_URL` | `http://127.0.0.1:5555` | URL del servidor Microsandbox |
+| `MSB_API_KEY` | (vacío) | Token opcional de autenticación |
+| `MSB_IMAGE` | `microsandbox/python` | Imagen usada al iniciar el sandbox |
+| `MSB_CPU_LIMIT` | `1.0` | Sugerencia de CPU |
+| `MSB_MEMORY_MB` | `512` | Sugerencia de memoria (MB) |
+| `MSB_START_TIMEOUT_SEC` | `30` | Timeout de inicio |
 
 ## Modelo de Seguridad
 
-### Local Sandbox
+### Sandbox Local
 
-**Nivel de Aislamiento:** Proceso (subprocess)
+- Solo aislamiento a nivel de proceso.
+- Rápido y sin configuración para desarrollo.
+- Pensado solo para workspaces locales confiables.
+- No es adecuado para workloads no confiables o aislamiento multiusuario.
 
-**Uso Previsto:**
-- Desarrollo e iteración rápida
-- Código confiable del LLM
-- Entornos locales controlados
+### Microsandbox
 
-**Lo que Protege:**
-- Procesos descontrolados (enforcement timeout)
-- Agotamiento de recursos (truncado de salida)
-- Contaminación del directorio (directorio temporal)
+- Ejecuta código en un runtime administrado por Microsandbox.
+- Proporciona fronteras más fuertes que un subprocess local.
+- Requiere disponibilidad del servidor Microsandbox.
 
-**Lo que NO Protege:**
-- Código malicioso con acceso OS
-- **Recomendación:** Usar Docker para código no confiable
+Si se solicita `SANDBOX_TYPE=microsandbox` o `SANDBOX_TYPE=e2b` y el runtime no
+está disponible, el engine muestra un warning y vuelve a ejecución local para no
+bloquear flujos de desarrollo. Trata esa caída como ejecución local confiable.
 
-### Docker Sandbox
+## Uso desde Código
 
-**Nivel de Aislamiento:** Contenedor
+```python
+from antigravity_engine.sandbox.factory import get_sandbox
 
-**Uso Previsto:**
-- Producción
-- Código no confiado
-- Sistemas multi-usuario
+sandbox = get_sandbox()
+result = sandbox.execute(code="print('Hello')", language="python", timeout=30)
 
-**Lo que Protege:**
-- Acceso al filesystem
-- Ataques basados en red
-- Agotamiento de recursos
-- Escalada de privilegios
+print(result.exit_code)
+print(result.stdout)
+print(result.stderr)
+print(result.meta)
+```
 
 ## Solución de Problemas
 
-### "Docker daemon no disponible"
+### "Microsandbox server unavailable"
 
-**Solución:**
 ```bash
-sudo systemctl start docker  # Linux
-# o usar Docker Desktop (macOS/Windows)
-docker ps  # Verificar
+msb server start --dev
+export MSB_SERVER_URL=http://127.0.0.1:5555
 ```
 
-### "Permiso denegado en Docker"
+### Timeouts
 
-**Solución:**
 ```bash
-sudo usermod -aG docker $USER
-newgrp docker
-docker ps
+export SANDBOX_TIMEOUT_SEC=120
 ```
 
-## Referencias
+## Pruebas
 
-- [Sandbox Spec (Inglés)](../../openspec/changes/2026-01-09-add-sandbox-execution/specs/sandbox/spec.md)
-- [Propuesta OpenSpec](../../openspec/changes/2026-01-09-add-sandbox-execution/proposal.md)
+```bash
+pytest engine/tests/test_local_sandbox.py engine/tests/test_microsandbox_sandbox.py engine/tests/test_factory.py -v
+```

@@ -2,11 +2,12 @@
 
 <img src="docs/assets/logo.png" alt="Antigravity Workspace" width="200"/>
 
-# Antigravity 工作区模板 — Claude Code / Codex / Cursor 起手套件
+# Antigravity
 
-### 多智能体知识引擎 + 可选 MCP 服务。把任意代码库变成可问答的 AI 工作区。支持 Claude Code、Codex CLI、Cursor、Windsurf、Gemini CLI。
+### 跨 IDE 的代码库知识引擎，面向带源码证据的 repository Q&A。
 
-`ag-refresh` 构建知识库。`ag-ask` 回答问题。任意 LLM，任意 IDE。
+`ag-refresh` 构建可移植知识层；`ag-ask` 将问题路由到正确模块上下文并返回源码证据。
+插件、CLI 与 MCP 都只是围绕这条主流程的交付渠道。
 
 语言: [English](README.md) | **中文** | [Español](README_ES.md)
 
@@ -264,7 +265,7 @@ antigravity-workspace-template/
 
 **CLI**（`pip install .../cli`）—— 零 LLM 依赖。注入模板，离线记录报告和决策。
 
-**Engine**（`pip install .../engine`）—— 多智能体运行时。驱动 `ag-ask`、`ag-refresh`、`ag-mcp`。支持 Gemini、OpenAI、Ollama 或任何 OpenAI 兼容 API。
+**Engine**（`pip install .../engine`）—— 代码库知识运行时。驱动 `ag-ask`、`ag-refresh`、`ag-mcp`。使用 `ag-setup` 写入的 OpenAI-compatible endpoint（OpenAI、DeepSeek、Groq、DashScope、NVIDIA NIM、Ollama 或自定义端点）。
 
 **新增 skill 封装更新：**
 - `engine/antigravity_engine/skills/graph-retrieval/` —— 面向结构与调用路径推理的图谱检索工具。
@@ -409,7 +410,7 @@ ag report "认证模块需要重构"
 ag log-decision "使用 PostgreSQL" "团队有丰富经验"
 ```
 
-支持 Gemini、OpenAI、Ollama 或任何 OpenAI 兼容端点。基于 OpenAI Agent SDK + LiteLLM。
+使用 `ag-setup` 选择并写入的 OpenAI-compatible endpoint。基于 OpenAI Agent SDK + LiteLLM。
 </details>
 
 <details>
@@ -430,7 +431,10 @@ ag log-decision "使用 PostgreSQL" "团队有丰富经验"
 }
 ```
 
-在 `.env` 中设置 `MCP_ENABLED=true`。详见 [MCP 文档](docs/zh/MCP_INTEGRATION.md)。
+设置 `MCP_ENABLED=true` 让配置的 server 对 engine 可见；只有希望 `ag-ask`
+自动连接外部 server 且信任这些 server 时，才设置 `AG_ALLOW_MCP=true`。
+Stdio MCP server 会继承进程环境变量和配置中的 `env` 值，因此应把它们视为拥有本地权限的代码。
+详见 [MCP 文档](docs/zh/MCP_INTEGRATION.md)。
 </details>
 
 <details>
@@ -497,7 +501,9 @@ ag-ask "谁调用了 gateway 适配器的 send 方法？"
 }
 ```
 
-在 `.env` 中设置 `MCP_ENABLED=true`。
+设置 `MCP_ENABLED=true` 让配置的 server 对 engine 可见；只有希望 `ag-ask`
+自动连接外部 server 且信任这些 server 时，才设置 `AG_ALLOW_MCP=true`。
+Stdio MCP server 会继承进程环境变量和配置中的 `env` 值，因此应把它们视为拥有本地权限的代码。
 </details>
 
 <details>
@@ -507,7 +513,10 @@ ag-ask "谁调用了 gateway 适配器的 send 方法？"
 |:-----|:------|:-----|
 | `SANDBOX_TYPE` | `local` | `local` · `microsandbox` |
 | `SANDBOX_TIMEOUT_SEC` | `30` | 秒 |
+| `AG_RETRIEVAL_MODE` | `compact` | `off` · `compact` · `full` |
 
+默认 sandbox 只面向可信本地 workspace，不是执行不可信代码的隔离边界。
+Retrieval graph 写盘前会脱敏常见 secret，但 `full` 模式仍可能保留源码片段。
 详见 [沙盒文档](docs/zh/SANDBOX.md)。
 </details>
 

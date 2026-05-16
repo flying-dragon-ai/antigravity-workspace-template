@@ -30,7 +30,7 @@ def analyze_sentiment(text: str) -> dict:
 
 2. **Refresh the Knowledge Hub** (one-time):
 ```bash
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 3. **Use Immediately** in prompts:
@@ -151,7 +151,7 @@ POST /api/users - create new user" > .context/api_docs.md
 
 2. **Refresh the Knowledge Hub** (one-time):
 ```bash
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 3. **Automatic Injection**:
@@ -268,7 +268,7 @@ python -m py_compile antigravity_engine/tools/my_tool.py
 python -c "import antigravity_engine.tools.my_tool"
 
 # 4. Refresh the knowledge hub
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 ### Context not loading
@@ -283,7 +283,7 @@ cat .context/your_file.md
 du -sh .context/
 
 # 4. Refresh the knowledge hub
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 ### Agent performance issues
@@ -295,7 +295,7 @@ du -sh .context/
 rm .context/old_documentation.md
 
 # Refresh the knowledge hub
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 ## 📚 Examples

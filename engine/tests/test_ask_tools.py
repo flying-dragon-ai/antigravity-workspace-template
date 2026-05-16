@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 
 from antigravity_engine.hub.ask_tools import create_ask_tools
+from antigravity_engine.hub.retrieval_graph import record_retrieval_graph
 
 
 def _make_tools(tmp_path: Path) -> dict:
@@ -185,3 +186,74 @@ def test_search_code_records_retrieval_graph_artifacts(tmp_path: Path, monkeypat
 
     retrieval_dir = tmp_path / ".antigravity" / "retrieval_graphs"
     assert list(retrieval_dir.glob("*.json"))
+
+
+def test_retrieval_graph_redacts_common_secrets(tmp_path: Path, monkeypatch) -> None:
+    """Retrieval graph artifacts should keep tool evidence without leaking keys."""
+    monkeypatch.setenv("AG_RETRIEVAL_MODE", "full")
+    secret_text = (
+        "OPENAI_API_KEY=sk-test-123456789\n"
+        "CUSTOM_TOKEN=custom-token-123\n"
+        "Authorization: Bearer auth-token-123\n"
+        "Bearer standalone-token-456\n"
+        "GOOGLE_API_KEY=AIzaSyTestSecret123456789\n"
+    )
+    (tmp_path / ".env").write_text(secret_text, encoding="utf-8")
+
+    tools = _make_tools(tmp_path)
+    result = tools["read_file"](".env")
+    assert "OPENAI_API_KEY" in result
+
+    graph_dir = tmp_path / ".antigravity" / "graph"
+    latest_text = (graph_dir / "latest_graph_context.md").read_text(encoding="utf-8")
+    nodes_text = (graph_dir / "nodes.jsonl").read_text(encoding="utf-8")
+    retrieval_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (tmp_path / ".antigravity" / "retrieval_graphs").glob("*.json")
+    )
+
+    combined = latest_text + nodes_text + retrieval_text
+    for raw_secret in (
+        "sk-test-123456789",
+        "custom-token-123",
+        "auth-token-123",
+        "standalone-token-456",
+        "AIzaSyTestSecret123456789",
+    ):
+        assert raw_secret not in combined
+    assert "OPENAI_API_KEY=<redacted>" in combined
+    assert "CUSTOM_TOKEN=<redacted>" in combined
+    assert "Authorization: <redacted>" in combined
+
+
+def test_retrieval_graph_redacts_secret_input_fields(tmp_path: Path, monkeypatch) -> None:
+    """Secret-looking JSON input keys should be redacted even if values are opaque."""
+    monkeypatch.setenv("AG_RETRIEVAL_MODE", "full")
+
+    record_retrieval_graph(
+        tmp_path,
+        "external_query",
+        {"api_key": "opaque-value", "nested": {"password": "hunter2"}, "query": "safe"},
+        "ok",
+    )
+
+    combined = "\n".join(
+        [
+            (tmp_path / ".antigravity" / "graph" / "latest_graph_context.md").read_text(
+                encoding="utf-8"
+            ),
+            (tmp_path / ".antigravity" / "graph" / "nodes.jsonl").read_text(
+                encoding="utf-8"
+            ),
+            *[
+                path.read_text(encoding="utf-8")
+                for path in (tmp_path / ".antigravity" / "retrieval_graphs").glob("*.json")
+            ],
+        ]
+    )
+
+    assert "opaque-value" not in combined
+    assert "hunter2" not in combined
+    assert '"api_key": "<redacted>"' in combined
+    assert '"password": "<redacted>"' in combined
+    assert '"query": "safe"' in combined

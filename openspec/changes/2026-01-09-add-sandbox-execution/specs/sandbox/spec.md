@@ -1,8 +1,8 @@
 # Spec: Sandbox Code Execution
 
-**Capability:** sandbox  
-**Status:** Proposed  
-**Version:** 1.0.0  
+**Capability:** sandbox
+**Status:** Proposed
+**Version:** 1.0.0
 **Last Updated:** 2026-01-09
 
 ## Purpose
@@ -15,7 +15,7 @@ Provide safe, configurable code execution environments for agent-generated scrip
 The system MUST work immediately after `git clone` + `pip install` without requiring Docker or any daemon setup.
 
 ### R2: Progressive Security
-Users MUST be able to opt into stronger isolation (Docker, cloud) via configuration without code changes.
+Users MUST be able to opt into stronger isolation (Microsandbox, cloud) via configuration without code changes.
 
 ### R3: Consistent Interface
 All execution environments MUST return results with identical structure (`ExecutionResult`) regardless of runtime.
@@ -35,11 +35,11 @@ Failures (timeout, syntax error, blocked import, runtime error) MUST produce cle
 
 ### Scenario 1: Local Execution (Default)
 
-**Given** the user has cloned the repo and installed dependencies  
-**When** the agent calls `run_python_code("print('Hello')")`  
-**Then** the code executes in a subprocess  
-**And** the result contains `stdout="Hello\n"`, `exit_code=0`, `duration < 1s`  
-**And** no Docker daemon is required
+**Given** the user has cloned the repo and installed dependencies
+**When** the agent calls `run_python_code("print('Hello')")`
+**Then** the code executes in a subprocess
+**And** the result contains `stdout="Hello\n"`, `exit_code=0`, `duration < 1s`
+**And** no external sandbox service is required
 
 **Acceptance Criteria:**
 - ✓ Execution completes successfully
@@ -49,35 +49,35 @@ Failures (timeout, syntax error, blocked import, runtime error) MUST produce cle
 
 ---
 
-### Scenario 2: Docker Execution (Opt-In)
+### Scenario 2: Microsandbox Execution (Opt-In)
 
-**Given** the user sets `SANDBOX_TYPE=docker`  
-**And** Docker daemon is running  
-**When** the agent calls `run_python_code("import os; print(os.uname())")`  
-**Then** the code executes inside a container  
-**And** network access is disabled by default  
-**And** the result contains isolated execution metadata  
+**Given** the user sets `SANDBOX_TYPE=microsandbox`
+**And** Microsandbox server is reachable
+**When** the agent calls `run_python_code("import os; print(os.uname())")`
+**Then** the code executes through Microsandbox
+**And** the configured Microsandbox runtime is used
+**And** the result contains isolated execution metadata
 
 **Acceptance Criteria:**
-- ✓ Code runs in container
-- ✓ Network isolated (`--network=none`)
+- ✓ Code runs through Microsandbox
+- ✓ Runtime is selected through Microsandbox
 - ✓ Result structure identical to local mode
-- ✓ Container cleaned up after execution
+- ✓ Microsandbox session is cleaned up after execution
 
 ---
 
 ### Scenario 3: Timeout Enforcement
 
-**Given** any execution environment (local or docker)  
+**Given** any execution environment (local or microsandbox)
 **When** the agent executes code with an infinite loop:
 ```python
 while True:
     pass
 ```
-**And** timeout is set to 5 seconds  
-**Then** execution terminates after 5 seconds  
-**And** `exit_code=-1` or timeout-specific code  
-**And** `stderr` contains "timed out" message  
+**And** timeout is set to 5 seconds
+**Then** execution terminates after 5 seconds
+**And** `exit_code=-1` or timeout-specific code
+**And** `stderr` contains "timed out" message
 
 **Acceptance Criteria:**
 - ✓ Process killed after timeout
@@ -89,15 +89,15 @@ while True:
 
 ### Scenario 4: Output Truncation
 
-**Given** any execution environment  
+**Given** any execution environment
 **When** the agent executes code that prints >10KB of output (configurable):
 ```python
 for i in range(100000):
     print(f"Line {i}: " + "X" * 100)
 ```
-**Then** output is truncated to configured limit (default 10KB)  
-**And** `meta.truncated=true`  
-**And** result includes "... (output truncated)" message  
+**Then** output is truncated to configured limit (default 10KB)
+**And** `meta.truncated=true`
+**And** result includes "... (output truncated)" message
 
 **Acceptance Criteria:**
 - ✓ Output size limited to configuration
@@ -109,14 +109,14 @@ for i in range(100000):
 
 ### Scenario 5: Non-Zero Exit Code
 
-**Given** any execution environment  
+**Given** any execution environment
 **When** the agent executes code that raises an exception:
 ```python
 raise ValueError("Something went wrong")
 ```
-**Then** `exit_code=1`  
-**And** `stderr` contains the traceback  
-**And** the tool returns formatted error message  
+**Then** `exit_code=1`
+**And** `stderr` contains the traceback
+**And** the tool returns formatted error message
 
 **Acceptance Criteria:**
 - ✓ Exit code captured correctly
@@ -128,15 +128,15 @@ raise ValueError("Something went wrong")
 
 ### Scenario 6: Dangerous Import Blocking (Optional)
 
-**Given** `SANDBOX_BLOCK_DANGEROUS_IMPORTS=true`  
+**Given** `SANDBOX_BLOCK_DANGEROUS_IMPORTS=true`
 **When** the agent attempts to execute:
 ```python
 import subprocess
 subprocess.run(["rm", "-rf", "/"])
 ```
-**Then** execution is blocked before running  
-**And** error message indicates blocked import: `subprocess`  
-**And** suggested imports are logged  
+**Then** execution is blocked before running
+**And** error message indicates blocked import: `subprocess`
+**And** suggested imports are logged
 
 **Acceptance Criteria:**
 - ✓ Code analyzed with AST before execution
@@ -147,14 +147,14 @@ subprocess.run(["rm", "-rf", "/"])
 
 ---
 
-### Scenario 7: Missing Docker Daemon
+### Scenario 7: Missing Microsandbox Service
 
-**Given** `SANDBOX_TYPE=docker`  
-**And** Docker daemon is NOT running  
-**When** the agent attempts to execute code  
-**Then** system detects missing daemon  
-**And** returns clear error: "Docker daemon not available"  
-**And** suggests fallback: "Set SANDBOX_TYPE=local or start Docker daemon"  
+**Given** `SANDBOX_TYPE=microsandbox`
+**And** Microsandbox server is NOT reachable
+**When** the agent attempts to execute code
+**Then** system detects unavailable service
+**And** returns clear error: "Microsandbox server not available"
+**And** suggests fallback: "Set SANDBOX_TYPE=local or start Microsandbox server"
 
 **Acceptance Criteria:**
 - ✓ Graceful error handling (no crash)
@@ -166,15 +166,15 @@ subprocess.run(["rm", "-rf", "/"])
 
 ### Scenario 8: Working Directory Isolation
 
-**Given** local execution mode  
+**Given** local execution mode
 **When** the agent executes code that creates a file:
 ```python
 with open("test.txt", "w") as f:
     f.write("data")
 ```
-**Then** the file is created in an isolated temp directory  
-**And** NOT in the project root  
-**And** temp directory is cleaned up after execution  
+**Then** the file is created in an isolated temp directory
+**And** NOT in the project root
+**And** temp directory is cleaned up after execution
 
 **Acceptance Criteria:**
 - ✓ Isolated working directory created
@@ -186,18 +186,18 @@ with open("test.txt", "w") as f:
 
 ### Scenario 9: Execution Artifact Storage
 
-**Given** `SANDBOX_STORE_CODE=on_error`  
-**When** the agent executes code that fails  
-**Then** an artifact is saved to `artifacts/executions/<timestamp>_<hash>.json`  
-**And** artifact contains: code, result, timestamp, metadata  
+**Given** `SANDBOX_STORE_CODE=on_error`
+**When** the agent executes code that fails
+**Then** an artifact is saved to `artifacts/executions/<timestamp>_<hash>.json`
+**And** artifact contains: code, result, timestamp, metadata
 
-**Given** `SANDBOX_STORE_CODE=always`  
-**When** any code executes (success or failure)  
-**Then** artifact is always saved  
+**Given** `SANDBOX_STORE_CODE=always`
+**When** any code executes (success or failure)
+**Then** artifact is always saved
 
-**Given** `SANDBOX_STORE_CODE=never`  
-**When** any code executes  
-**Then** no artifact is saved (privacy mode)  
+**Given** `SANDBOX_STORE_CODE=never`
+**When** any code executes
+**Then** no artifact is saved (privacy mode)
 
 **Acceptance Criteria:**
 - ✓ Policy respected correctly
@@ -209,11 +209,11 @@ with open("test.txt", "w") as f:
 
 ### Scenario 10: Multi-Language Support (Future)
 
-**Status:** Not implemented in MVP  
-**Given** `SANDBOX_SUPPORTED_LANGUAGES=python,javascript`  
-**When** the agent calls `run_code("console.log('Hi')", language="javascript")`  
-**Then** code executes in Node.js runtime  
-**And** result structure is identical to Python execution  
+**Status:** Not implemented in MVP
+**Given** `SANDBOX_SUPPORTED_LANGUAGES=python,javascript`
+**When** the agent calls `run_code("console.log('Hi')", language="javascript")`
+**Then** code executes in Node.js runtime
+**And** result structure is identical to Python execution
 
 **Note:** Initial implementation is Python-only. This scenario documents future extensibility.
 
@@ -223,7 +223,7 @@ with open("test.txt", "w") as f:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SANDBOX_TYPE` | `local` | Runtime: `local`, `docker`, `e2b` |
+| `SANDBOX_TYPE` | `local` | Runtime: `local`, `microsandbox`, `e2b` |
 | `SANDBOX_TIMEOUT_SEC` | `30` | Maximum execution time (seconds) |
 | `SANDBOX_MAX_OUTPUT_KB` | `10` | Output truncation limit (KB) |
 | `SANDBOX_BLOCK_DANGEROUS_IMPORTS` | `false` | Enable AST import blocking |
@@ -247,7 +247,7 @@ class ExecutionResult:
     exit_code: int        # Exit code (0 = success, -1 = timeout, 1 = error)
     duration: float       # Execution time in seconds
     meta: dict           # Additional metadata
-        # meta.runtime: str           # "local" | "docker" | "e2b"
+        # meta.runtime: str           # "local" | "microsandbox" | "e2b"
         # meta.truncated: bool        # Output truncation flag
         # meta.timed_out: bool        # Timeout flag
         # meta.blocked_imports: list  # AST-blocked modules (if any)
@@ -260,14 +260,14 @@ class ExecutionResult:
 def run_python_code(code: str, timeout: int = 30) -> str:
     """
     Execute Python code using the configured sandbox.
-    
+
     Args:
         code: Python source code to execute
         timeout: Maximum execution time (seconds), default from config
-        
+
     Returns:
         Compact string with stdout or formatted error
-        
+
     Raises:
         Never raises; all errors returned as strings
     """
@@ -305,7 +305,7 @@ def run_python_code(code: str, timeout: int = 30) -> str:
 All implementations MUST pass:
 - Unit tests for each scenario
 - Integration tests (agent → tool → sandbox)
-- Performance benchmarks (execution overhead <100ms local, <2s docker)
+- Performance benchmarks (execution overhead <100ms local, <2s microsandbox)
 - Security tests (timeout kill, AST blocking, container escape prevention)
 
 ---

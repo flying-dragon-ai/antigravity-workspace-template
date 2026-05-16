@@ -19,7 +19,7 @@ pip install -e ./cli -e './engine[dev]'
 
 ### 2. Construir la Base de Conocimiento
 ```bash
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 Este comando escanea el proyecto, construye `.antigravity/` y prepara la base
@@ -27,7 +27,7 @@ de conocimiento del repositorio para preguntas enrutadas sobre el codebase.
 
 ### 3. Hacer Preguntas sobre el Proyecto
 ```bash
-ag ask "¿Cómo funciona la autenticación en este proyecto?" --workspace .
+ag-ask "¿Cómo funciona la autenticación en este proyecto?" --workspace .
 ```
 
 El pipeline de preguntas lee el mapa estructural, enruta al agente de módulo
@@ -40,8 +40,10 @@ correcto y devuelve respuestas fundamentadas con evidencia de archivos.
 docker-compose up --build
 ```
 
-Esto construye la imagen de runtime publicada e inicia el servidor MCP del
-knowledge hub sobre el workspace montado.
+Esto construye la imagen desde el checkout actual e inicia el servidor MCP del
+knowledge hub contra `/app` dentro del contenedor. Reconstruye después de cambios
+de código, o edita `docker-compose.yml` si quieres montar el repositorio durante
+el desarrollo.
 
 ### Personalizar Docker
 Edita `docker-compose.yml` para:
@@ -62,6 +64,11 @@ OPENAI_MODEL=tu-modelo
 
 # Configuración de MCP
 MCP_ENABLED=true
+# Requerido antes de que ag-ask conecte servidores MCP externos
+AG_ALLOW_MCP=true
+
+# Retrieval graph: off, compact o full
+AG_RETRIEVAL_MODE=compact
 
 # Configuración personalizada
 LOG_LEVEL=INFO
@@ -70,6 +77,15 @@ ARTIFACTS_DIR=artifacts
 
 `ARTIFACTS_DIR` admite rutas absolutas o relativas. Las rutas relativas se
 resuelven desde la raíz del repositorio.
+
+El proyecto está optimizado para workspaces locales confiables. `AG_RETRIEVAL_MODE`
+usa `compact` por defecto; `full` conserva artefactos de evidencia más ricos. Los
+secretos comunes se redactan antes de escribir archivos del retrieval graph, pero
+los fragmentos aún pueden incluir contenido del repositorio.
+
+El sandbox por defecto es una comodidad de desarrollo local, no una frontera para
+código no confiable. `SANDBOX_TYPE=microsandbox` es opt-in; si el runtime no está
+disponible, el engine muestra un warning y vuelve a ejecución local.
 
 ### Gestión de Memoria
 El agente gestiona la memoria con archivos markdown:
@@ -80,7 +96,7 @@ Para reiniciar:
 
 ```bash
 rm -f memory/agent_memory.md memory/agent_summary.md
-ag refresh --workspace .
+ag-refresh --workspace .
 ```
 
 ## 📁 Referencia de Estructura del Proyecto
@@ -103,14 +119,11 @@ pytest engine/tests cli/tests
 
 # Ejecutar una prueba específica del engine
 pytest engine/tests/test_hub_pipeline.py -v
-
-# Con cobertura
-pytest --cov=antigravity_engine engine/tests/
 ```
 
 ## 🐛 Solución de Problemas
 
-### El agente no se inicia
+### Los comandos de conocimiento no se inician
 ```bash
 # Verifica que el CLI del engine esté instalado
 ag-ask --help
@@ -143,9 +156,12 @@ rm -f memory/agent_memory.md memory/agent_summary.md
 Para habilitar servidores MCP:
 
 1. Configura `MCP_ENABLED=true` en `.env`
-2. Configura servidores en `mcp_servers.json`
-3. Reinicia el agente
+2. Configura `AG_ALLOW_MCP=true` solo cuando confíes en los servidores
+3. Configura servidores en `mcp_servers.json`
+4. Vuelve a ejecutar el comando
 
+Los servidores MCP por stdio heredan el entorno del proceso y los valores `env`
+configurados. Trata cada servidor habilitado como código con permisos locales.
 Consulta [Guía de Integración de MCP](MCP_INTEGRATION.md) para configuración detallada.
 
 ## 📚 Próximos Pasos

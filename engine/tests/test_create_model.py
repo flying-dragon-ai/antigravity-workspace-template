@@ -1,7 +1,5 @@
 """Tests for hub.agents.create_model() LLM backend resolution."""
-import os
 import pytest
-from unittest.mock import patch
 
 from antigravity_engine.hub.agents import create_model
 
@@ -9,8 +7,6 @@ from antigravity_engine.hub.agents import create_model
 def _make_settings(**overrides):
     """Build a minimal Settings-like object for create_model."""
     defaults = {
-        "GOOGLE_API_KEY": "",
-        "GEMINI_MODEL_NAME": "gemini-2.0-flash-exp",
         "OPENAI_API_KEY": "",
         "OPENAI_BASE_URL": "",
         "OPENAI_MODEL": "gpt-4o-mini",
@@ -24,14 +20,6 @@ def _make_settings(**overrides):
     for k, v in defaults.items():
         setattr(s, k, v)
     return s
-
-
-def test_google_key_returns_litellm_gemini():
-    settings = _make_settings(GOOGLE_API_KEY="goog-key-123")
-    result = create_model(settings)
-    assert result.startswith("litellm/gemini/")
-    assert "gemini-2.0-flash-exp" in result
-    assert os.environ.get("GOOGLE_API_KEY") == "goog-key-123"
 
 
 def test_openai_key_only_returns_model_name():
@@ -58,6 +46,17 @@ def test_base_url_with_key_routes_through_litellm():
     )
     result = create_model(settings)
     assert result == "litellm/openai/moonshotai/kimi-k2.5"
+
+
+def test_ag_setup_openai_config_ignores_unrelated_provider_attrs():
+    settings = _make_settings(
+        GOOGLE_API_KEY="goog-key-123",
+        OPENAI_BASE_URL="https://api.deepseek.com/v1",
+        OPENAI_API_KEY="deepseek-key",
+        OPENAI_MODEL="deepseek-chat",
+    )
+    result = create_model(settings)
+    assert result == "litellm/openai/deepseek-chat"
 
 
 def test_no_config_raises_value_error():

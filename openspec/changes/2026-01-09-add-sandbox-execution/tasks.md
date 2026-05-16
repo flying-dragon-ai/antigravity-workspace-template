@@ -66,7 +66,7 @@
   - [ ] Overview and motivation
   - [ ] Configuration guide
   - [ ] Security model explanation
-  - [ ] Examples (local vs docker)
+  - [ ] Examples (local vs microsandbox)
 - [ ] Add docstrings to all sandbox classes/functions
 
 ## Phase 2: Hardening (Priority: Medium)
@@ -96,7 +96,7 @@
   - [ ] Respect `SANDBOX_STORE_CODE` policy
 
 - [ ] Add metadata to ExecutionResult:
-  - [ ] `meta.runtime` (local/docker/e2b)
+  - [ ] `meta.runtime` (local/microsandbox/e2b)
   - [ ] `meta.blocked_imports` (if AST enabled)
   - [ ] `meta.truncated` (bool)
   - [ ] `meta.resource_limits` (timeout, max_output)
@@ -162,11 +162,11 @@
 ### Documentation
 - [ ] Document Docker setup:
   - [ ] Installation instructions
-  - [ ] Permissions (docker group)
+  - [ ] Microsandbox service permissions
   - [ ] Image building
   - [ ] Troubleshooting
 - [ ] Update security model docs
-- [ ] Add examples comparing local vs docker performance
+- [ ] Add examples comparing local vs microsandbox performance
 
 ## Phase 4: Cloud/E2B (Priority: Low - Future)
 
@@ -198,12 +198,12 @@
   - [ ] Timeout enforcement
   - [ ] Output truncation
   - [ ] Error handling
-  - [ ] Missing Docker daemon
+  - [ ] Missing Microsandbox service
   - [ ] AST blocking (if enabled)
 
 ## Pre-Release Checklist
 
-- [ ] All tests passing (local + docker)
+- [ ] All tests passing (local + microsandbox)
 - [ ] Documentation complete and reviewed
 - [ ] Security model documented clearly
 - [ ] Configuration guide validated

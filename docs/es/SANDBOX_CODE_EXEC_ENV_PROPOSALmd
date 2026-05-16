@@ -429,7 +429,10 @@ Extensible: Permite añadir E2BSandbox o KubernetesSandbox en el futuro (Fase 9 
 
 DX Superior: Para tareas sencillas (testear una función, cálculo matemático), la ejecución local es milisegundos más rápida que levantar un contenedor.
 
-Seguridad Progresiva: Los usuarios empresariales pueden activar SANDBOX_TYPE=docker en su CI/CD o entorno de producción sin cambiar la lógica del agente.
+Nota histórica: este RFC consideraba un runtime Docker antes de que la lista
+soportada convergiera en `local`, `microsandbox` y futuro `e2b`. Docker no se
+selecciona mediante `SANDBOX_TYPE`; `Dockerfile.sandbox` es solo un asset auxiliar
+para experimentos externos.
 
 ### Desventajas (Cons)
 

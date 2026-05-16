@@ -91,8 +91,8 @@ def test_no_llm_error_points_to_setup_and_restart(
     text = _format_tool_error(
         "refresh_project",
         ValueError(
-            "No LLM configured. Set GOOGLE_API_KEY, OPENAI_API_KEY, "
-            "or OPENAI_BASE_URL in .env"
+            "No LLM configured. Run ag-setup or set OPENAI_BASE_URL, "
+            "OPENAI_API_KEY, and OPENAI_MODEL in .env"
         ),
     )
 

@@ -21,10 +21,9 @@ def create_model(settings: "Settings") -> str:
     """Resolve an LLM model identifier from settings.
 
     Priority:
-    1. GOOGLE_API_KEY              → litellm/gemini/<model_name>
-    2. OPENAI_BASE_URL (any key)   → litellm/openai/<model> (custom endpoint)
-    3. OPENAI_API_KEY (no base)    → <OPENAI_MODEL> (standard OpenAI)
-    4. None                        → raise ValueError
+    1. OPENAI_BASE_URL (any key)   → litellm/openai/<model> (custom endpoint)
+    2. OPENAI_API_KEY (no base)    → <OPENAI_MODEL> (standard OpenAI)
+    3. None                        → raise ValueError
 
     When a custom OPENAI_BASE_URL is provided (e.g. NVIDIA, Ollama), the
     model is routed through litellm so that the Agent SDK can reach the
@@ -44,10 +43,6 @@ def create_model(settings: "Settings") -> str:
     """
     import os
 
-    if settings.GOOGLE_API_KEY:
-        os.environ["GOOGLE_API_KEY"] = settings.GOOGLE_API_KEY
-        return f"litellm/gemini/{settings.GEMINI_MODEL_NAME}"
-
     # Custom endpoint (NVIDIA, Ollama, etc.) — route through litellm.
     # Use os.environ[…] = … (not setdefault) so settings always win.
     if settings.OPENAI_BASE_URL:
@@ -61,8 +56,8 @@ def create_model(settings: "Settings") -> str:
         return settings.OPENAI_MODEL
 
     raise ValueError(
-        "No LLM configured. Set GOOGLE_API_KEY, OPENAI_API_KEY, "
-        "or OPENAI_BASE_URL in .env"
+        "No LLM configured. Run ag-setup or set OPENAI_BASE_URL, "
+        "OPENAI_API_KEY, and OPENAI_MODEL in .env"
     )
 
 

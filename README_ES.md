@@ -2,11 +2,13 @@
 
 <img src="docs/assets/logo.png" alt="Antigravity Workspace" width="200"/>
 
-# Antigravity — Plantilla de Workspace para Claude Code, Codex CLI y Cursor
+# Antigravity
 
-### Motor de conocimiento multi-agente + servidor MCP que convierte cualquier repositorio en un asistente de IA consultable. Compatible con Claude Code, Codex CLI, Cursor, Windsurf y Gemini CLI.
+### Motor de conocimiento de repositorios, portable entre IDEs, para Q&A de codebases con evidencia.
 
-`ag-refresh` construye la base de conocimiento. `ag-ask` responde preguntas. Cualquier LLM, cualquier IDE.
+`ag-refresh` construye la capa de conocimiento portable; `ag-ask` enruta preguntas
+al contexto de módulo correcto y responde con evidencia de código. Plugins, CLI y
+MCP son canales de entrega alrededor de ese flujo.
 
 Idioma: [English](README.md) | [中文](README_CN.md) | **Español**
 
@@ -266,7 +268,7 @@ antigravity-workspace-template/
 
 **CLI** (`pip install .../cli`) — Cero deps de LLM. Inyecta plantillas, registra reportes y decisiones offline.
 
-**Engine** (`pip install .../engine`) — Runtime multi-agente. Alimenta `ag-ask`, `ag-refresh`, `ag-mcp`. Soporta Gemini, OpenAI, Ollama, o cualquier API compatible con OpenAI.
+**Engine** (`pip install .../engine`) — Runtime de conocimiento del repositorio. Alimenta `ag-ask`, `ag-refresh`, `ag-mcp`. Usa el endpoint OpenAI-compatible escrito por `ag-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o personalizado).
 
 **Nuevas actualizaciones de empaquetado de skills:**
 - `engine/antigravity_engine/skills/graph-retrieval/` — herramientas de recuperación orientadas a grafo para razonamiento de estructura y rutas de llamadas.
@@ -411,7 +413,7 @@ ag report "El módulo de auth necesita refactoring"
 ag log-decision "Usar PostgreSQL" "El equipo tiene experiencia profunda"
 ```
 
-Funciona con Gemini, OpenAI, Ollama, o cualquier endpoint compatible con OpenAI. Basado en OpenAI Agent SDK + LiteLLM.
+Funciona con el endpoint OpenAI-compatible seleccionado por `ag-setup`. Basado en OpenAI Agent SDK + LiteLLM.
 </details>
 
 <details>
@@ -434,7 +436,11 @@ Funciona con Gemini, OpenAI, Ollama, o cualquier endpoint compatible con OpenAI.
 }
 ```
 
-Configura `MCP_ENABLED=true` en `.env`.
+Configura `MCP_ENABLED=true` para hacer visibles los servidores y
+`AG_ALLOW_MCP=true` solo cuando quieras que `ag-ask` conecte servidores externos
+automáticamente. Los servidores MCP por stdio heredan el entorno del proceso y
+los valores `env` configurados, así que trátalos como código con permisos
+locales.
 </details>
 
 <details>
@@ -472,8 +478,12 @@ ag-ask "¿Cómo funciona el flujo de autenticación?"
 |:---------|:--------|:---------|
 | `SANDBOX_TYPE` | `local` | `local` · `microsandbox` |
 | `SANDBOX_TIMEOUT_SEC` | `30` | segundos |
+| `AG_RETRIEVAL_MODE` | `compact` | `off` · `compact` · `full` |
 
-Ver [docs Sandbox](docs/es/SANDBOX.md).
+El sandbox por defecto es para workspaces locales confiables, no para aislar
+código no confiable. El retrieval graph redacta secretos comunes antes de
+escribir a disco, pero `full` aún puede conservar fragmentos de código. Ver
+[docs Sandbox](docs/es/SANDBOX.md).
 </details>
 
 ---

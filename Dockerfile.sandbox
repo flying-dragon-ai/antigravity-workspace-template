@@ -1,6 +1,6 @@
 # Dockerfile.sandbox
-# Minimal sandbox runtime for code execution
-# Used as default for SANDBOX_TYPE=docker
+# Optional helper image for external sandbox experiments.
+# It is not selected by SANDBOX_TYPE; supported runtime values are documented in docs/en/SANDBOX.md.
 
 FROM python:3.12-slim
 

@@ -8,6 +8,9 @@ The sandbox module provides configurable code execution environments for agent-g
 - `microsandbox` (opt-in): execution via Microsandbox server.
 - `e2b` (future): placeholder runtime.
 
+The default posture is developer convenience in a trusted local workspace. The
+local sandbox is not a boundary for untrusted code.
+
 ## Quick Start
 
 ### Local Execution (Default)
@@ -66,13 +69,19 @@ These are only used when `SANDBOX_TYPE=microsandbox`.
 
 - Process-level isolation only.
 - Fast and zero-config for development.
-- Not suitable for untrusted production workloads.
+- Intended for trusted local workspaces only.
+- Not suitable for untrusted production workloads or multi-user isolation.
 
 ### Microsandbox Sandbox
 
 - Runs code in Microsandbox-managed isolated runtime.
 - Supports stronger isolation boundaries than local subprocess mode.
 - Requires Microsandbox server availability.
+
+If `SANDBOX_TYPE=microsandbox` or `SANDBOX_TYPE=e2b` is requested but the runtime
+is unavailable, the engine prints a warning and falls back to local execution so
+developer workflows do not fail silently. Treat that fallback as trusted-local
+execution.
 
 ## Using the Sandbox in Code
 

@@ -1,8 +1,8 @@
 # Proposal: Sandbox Code Execution Environment
 
-**Date:** 2026-01-09  
-**Status:** Proposed  
-**Related Issue:** #9 — Sandbox Environment Dilemma  
+**Date:** 2026-01-09
+**Status:** Superseded by `update-sandbox-runtime-to-microsandbox`
+**Related Issue:** #9 — Sandbox Environment Dilemma
 **Phase:** 9A (Enterprise Core - Sandbox)
 
 ## Problem Statement
@@ -13,14 +13,14 @@ The project currently lacks safe code execution capabilities:
 - Risk of filesystem/network/resource abuse
 - Blocks enterprise adoption for security-sensitive use cases
 
-However, forcing Docker as a mandatory dependency would break the Zero-Config philosophy that defines this project.
+However, forcing any external sandbox daemon as a mandatory dependency would break the Zero-Config philosophy that defines this project.
 
 ## Proposed Solution
 
 Introduce an **execution environment abstraction** using the Strategy Pattern:
 
 - **Default:** `LocalSandbox` (subprocess) — preserves Zero-Config
-- **Opt-in:** `DockerSandbox` — strong isolation for production
+- **Opt-in:** `MicrosandboxSandbox` — stronger isolation when a Microsandbox server is available
 - **Future:** `E2BSandbox` / cloud providers — multi-tenant enterprise
 
 The agent remains agnostic; runtime selection happens via configuration (`SANDBOX_TYPE`).
@@ -28,13 +28,13 @@ The agent remains agnostic; runtime selection happens via configuration (`SANDBO
 ## Why This Approach
 
 ### Preserves Zero-Config
-- `git clone` + `pip install` + `python src/agent.py` still works immediately
+- `git clone` + `pip install` + `ag-refresh` still works immediately
 - No daemon requirements, no image pulls by default
-- Docker becomes optional for users who need stronger isolation
+- Microsandbox is optional for users who need stronger isolation
 
 ### Enables Progressive Security
 - Local mode: fast iteration, acceptable for trusted/local development
-- Docker mode: production-grade isolation for CI/CD and enterprise
+- Microsandbox mode: stronger isolation for trusted teams that run the service
 - Cloud mode: future multi-tenant support (Phase 9 vision)
 
 ### Clean Architecture
@@ -63,7 +63,7 @@ class ExecutionResult:
 
 ### 3. Configuration-Driven
 ```bash
-SANDBOX_TYPE=local|docker|e2b
+SANDBOX_TYPE=local|microsandbox|e2b
 SANDBOX_TIMEOUT_SEC=30
 SANDBOX_BLOCK_DANGEROUS_IMPORTS=true
 SANDBOX_STORE_CODE=on_error|always|never
@@ -78,12 +78,11 @@ SANDBOX_STORE_CODE=on_error|always|never
 - Basic AST import blocking (optional)
 - Tool: `src/tools/execution_tool.py` → `run_python_code()`
 
-### Phase 2 — Docker Sandbox
-- Container-based isolation
-- Network isolation (`--network=none`)
-- Resource limits (CPU/mem)
-- Filesystem read-only mounts
-- Graceful fallback if daemon unavailable
+### Phase 2 — Microsandbox Runtime
+- Microsandbox-managed execution
+- Server URL and image configuration
+- Resource hints where supported
+- Clear warning and local fallback if unavailable
 
 ### Phase 3 — Cloud Sandbox
 - E2B/K8s integration
@@ -94,7 +93,7 @@ SANDBOX_STORE_CODE=on_error|always|never
 ## Security Model
 
 ### LocalSandbox (Default)
-**Risk:** Code runs on host with agent's privileges  
+**Risk:** Code runs on host with agent's privileges
 **Mitigations:**
 - Strict timeout + process kill
 - Output size limits
@@ -102,17 +101,16 @@ SANDBOX_STORE_CODE=on_error|always|never
 - Isolated temp working directory
 - **Not RCE-proof** — documented limitation
 
-### DockerSandbox (Opt-in)
-**Risk:** Container escape (low but not zero)  
+### MicrosandboxSandbox (Opt-in)
+**Risk:** Service availability and runtime configuration gaps
 **Mitigations:**
-- `--network=none` by default
-- Drop capabilities (`--cap-drop=ALL`)
-- Read-only filesystem + minimal mounts
-- CPU/memory limits
-- Non-root user inside container
+- Explicit `SANDBOX_TYPE=microsandbox` opt-in
+- Clear warning before local fallback when unavailable
+- Server URL and optional API key configuration
+- Same `ExecutionResult` shape as local mode
 
 ### Future Cloud Sandbox
-**Risk:** Credential leaks, quota abuse  
+**Risk:** Credential leaks, quota abuse
 **Mitigations:**
 - API key rotation
 - Per-execution quotas
@@ -153,7 +151,7 @@ Every execution produces:
 
 ### Integration Tests
 - Agent → tool → sandbox → result flow
-- Error handling (missing Docker daemon)
+- Error handling (missing Microsandbox service)
 - Memory persistence of execution results
 
 ### Smoke Tests
@@ -204,7 +202,7 @@ Every execution produces:
 
 1. Should AST import blocking be default-on or opt-in?
    - **Recommendation:** Opt-in with clear warning when disabled
-   
+
 2. How to handle code that needs specific packages (numpy, pandas)?
    - **Recommendation:** Document requirement to install in venv for local mode, pre-build Docker image with common libs
 

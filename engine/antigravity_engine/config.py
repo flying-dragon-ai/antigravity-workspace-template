@@ -30,10 +30,6 @@ class MCPServerConfig(BaseSettings):
 class Settings(BaseSettings):
     """Application settings managed by Pydantic."""
 
-    # Google GenAI Configuration
-    GOOGLE_API_KEY: str = ""
-    GEMINI_MODEL_NAME: str = "gemini-2.0-flash-exp"  # Default to latest
-
     # Agent Configuration
     AGENT_NAME: str = "AntigravityAgent"
     # Stream Configuration

@@ -88,7 +88,7 @@ def test_refresh_initialization_refuses_blocking_file(tmp_path: Path) -> None:
 async def test_refresh_pipeline_creates_conventions(tmp_path: Path, monkeypatch) -> None:
     """refresh_pipeline writes conventions.md."""
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
-    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
     from antigravity_engine.config import reset_settings
     reset_settings()
@@ -127,7 +127,7 @@ async def test_refresh_pipeline_creates_conventions(tmp_path: Path, monkeypatch)
 async def test_ask_pipeline_returns_answer(tmp_path: Path, monkeypatch) -> None:
     """ask_pipeline returns an answer string."""
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
-    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
     from antigravity_engine.config import reset_settings
     reset_settings()

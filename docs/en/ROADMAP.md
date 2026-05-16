@@ -1,8 +1,11 @@
 # 🗺️ Development Roadmap
 
-## Vision: From Workspace to Enterprise "Agent OS"
+## Vision: Evidence-Grounded Repository Knowledge Layer
 
-The Antigravity Workspace Template is evolving toward a comprehensive **Agent Operating System** that abstracts away infrastructure complexity and enables enterprises to build, deploy, and manage AI agents at scale.
+Antigravity is converging on a portable repository knowledge engine: refresh a
+workspace into `.antigravity/`, ask grounded questions with source evidence, and
+expose the same knowledge through plugins, CLI, and MCP without locking users to
+one IDE.
 
 ## 📊 Current Status
 
@@ -16,7 +19,7 @@ The Antigravity Workspace Template is evolving toward a comprehensive **Agent Op
 | 6️⃣ **Dynamic Discovery** | ✅ Complete | Auto tool & context loading |
 | 7️⃣ **Multi-Agent Swarm** | ✅ Complete | Router-Worker orchestration |
 | 8️⃣ **MCP Integration** | ✅ Complete | Model Context Protocol support |
-| 9️⃣ **Enterprise Core** | 🚀 In Progress | Sandbox, orchestration, agent OS |
+| 9️⃣ **Enterprise Core** | 🚀 In Progress | Safety boundaries, observability, deployment polish |
 | 🔟 **Knowledge Hub** | ✅ Complete | Multi-agent project context system |
 
 ## ✅ Completed Phases
@@ -215,27 +218,27 @@ steps:
 ## 🎯 How to Contribute
 
 ### For Ideas (No Code Required!)
-The Agent OS vision is ambitious and evolving. **Ideas are as valuable as code.**
+The repository knowledge layer is still evolving. **Ideas are as valuable as code.**
 
-Have thoughts on sandbox design, workflow orchestration, or observability? 
+Have thoughts on sandbox boundaries, retrieval evidence, MCP safety, or observability?
 - **Open an Issue** with your proposal
 - **Discuss tradeoffs** and feasibility
 - **Get added as a contributor** for adoptable architectures!
 
 ### For Implementation
-Ready to code? Pick a Phase 9 component:
+Ready to code? Pick a product-hardening component:
 
-1. **Identify a component** (Sandbox, Flows, Fleet, Observability)
+1. **Identify a component** (Sandbox, Retrieval, MCP, Observability)
 2. **Propose architecture** (open an issue first!)
 3. **Submit PR** with implementation
 4. **Become a contributor!**
 
 ### Focus Areas for Contributors
-- 🔒 Sandbox integration (E2B, Docker)
-- 🔀 DAG execution engine
+- 🔒 Sandbox integration (Microsandbox, E2B)
+- 🔎 Retrieval graph quality and redaction
 - 📊 Observability stack
-- 🔗 Enterprise connectors
-- 🌍 Distributed architecture
+- 🔗 MCP server boundaries
+- 📚 Documentation and install-contract drift checks
 
 ## ✅ Phase 10: Knowledge Hub ✅
 **Goal**: Multi-agent project context system — automated conventions extraction and Q&A
@@ -244,62 +247,47 @@ Ready to code? Pick a Phase 9 component:
 
 **Achievements:**
 - Hub module (`antigravity_engine/hub/`) with scanner, agents, and pipeline
-- `ag refresh` — scans project and generates `.antigravity/conventions.md` via LLM
-- `ag ask` — answers project questions using reviewer agent
+- `ag-refresh` — scans project and generates `.antigravity/conventions.md` via LLM
+- `ag-ask` — answers project questions using reviewer agent
 - `ag report` / `ag log-decision` — local memory and decision logging
 - OpenAI Agent SDK integration with LiteLLM for model flexibility
 
 ## 📈 Adoption Timeline
 
 - **2024 H2**: Foundation through MCP Integration (Phases 1–8) — completed
-- **2025**: Enterprise Core (Phase 9) — sandbox MVP, orchestration engine
+- **2025**: Enterprise Core (Phase 9) — sandbox MVP, safety docs, observability
 - **2026 Q1**: Knowledge Hub (Phase 10) — completed
-- **2026+**: Agent OS v1.0
+- **2026+**: public repository knowledge engine hardening
 
 *(Timeline is aspirational and dependent on community adoption)*
 
-## 💡 Enterprise Use Cases
+## 💡 Product Use Cases
 
-Once Phase 9 is complete:
-
-**Scenario 1: Autonomous Data Pipeline**
+**Scenario 1: Faster Codebase Onboarding**
 ```
-User: "Build a daily data ingestion that validates, transforms, 
-       and reports on customer metrics"
+User: "How does authentication work here?"
 
-Agent OS:
-├─ Fetch raw data (Sandbox: safe scraping)
-├─ Validate schema (Sandbox: isolated validation)
-├─ Transform (Sandboxed parallel processing)
-├─ Generate reports
-└─ Alert stakeholders
-  
-All orchestrated, monitored, and recoverable.
+Antigravity:
+├─ Reads map.md to select auth-related modules
+├─ Pulls the relevant agent docs and source evidence
+├─ Adds graph context when structural relationships matter
+└─ Answers with concrete file paths and line references
 ```
 
-**Scenario 2: Multi-Team Coordination**
+**Scenario 2: Shared Knowledge Across IDEs**
 ```
-Executive: "Analyze competitor market position and recommend 
-           pricing strategy"
-
-Agent OS delegates:
-├─ Researcher Agent (gathers market data)
-├─ Analyst Agent (statistical analysis)
-├─ Strategy Agent (competitive positioning)
-└─ Report Agent (synthesis)
-
-Results coordinated, traced, and audited.
+Team:
+├─ Runs ag-refresh after meaningful source changes
+├─ Commits or shares the appropriate .antigravity/ artifacts
+├─ Uses ag-ask, slash commands, or ag-mcp from different hosts
+└─ Gets one consistent repository model instead of host-specific docs drift
 ```
 
 ## 🔮 The Vision
 
-Imagine a world where:
-- 🏗️ Complex workflows are specified in YAML
-- 🤖 Agents execute them safely, in parallel, across the globe
-- 📊 Every action is observable, traceable, and recoverable
-- 🎯 Humans focus on strategy; agents handle execution
-
-**That's the Antigravity Agent OS.**
+Antigravity should make repository knowledge portable, grounded, and easy to
+refresh. Advanced runtime features are useful only when they make that core
+workflow safer or more accurate.
 
 ---
 
@@ -309,5 +297,5 @@ Imagine a world where:
 
 ## 👥 Contributors
 
-- [@devalexanderdaza](https://github.com/devalexanderdaza) — First contributor. Implemented demo tools, enhanced agent functionality, proposed the "Agent OS" roadmap, and completed MCP integration.
+- [@devalexanderdaza](https://github.com/devalexanderdaza) — First contributor. Implemented demo tools, enhanced agent functionality, helped shape the early roadmap and completed MCP integration.
 - [@Subham-KRLX](https://github.com/Subham-KRLX) — Added dynamic tools and context loading (Fixes #4) and the multi-agent cluster protocol (Fixes #6).

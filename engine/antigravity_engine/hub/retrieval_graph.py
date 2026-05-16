@@ -33,6 +33,22 @@ from antigravity_engine.hub._utils import env_int
 
 _RETRIEVAL_MODE_DEFAULT = "compact"
 _RETRIEVAL_MODE_VALUES = {"off", "compact", "full"}
+_SECRET_PATTERNS = (
+    (
+        re.compile(
+            r"(?i)\b([A-Z0-9_]*(?:API_KEY|TOKEN|SECRET|PASSWORD|PASS))\s*=\s*([^\s,;]+)"
+        ),
+        r"\1=<redacted>",
+    ),
+    (
+        re.compile(r"(?i)(Authorization\s*:\s*)(?:Bearer\s+)?([^\s,;]+)"),
+        r"\1<redacted>",
+    ),
+    (re.compile(r"(?i)\bBearer\s+([A-Za-z0-9._~+/=-]+)"), "Bearer <redacted>"),
+    (re.compile(r"\bsk-[A-Za-z0-9][A-Za-z0-9._-]{6,}"), "sk-<redacted>"),
+    (re.compile(r"\bAIza[0-9A-Za-z_-]{6,}"), "AIza<redacted>"),
+)
+_SECRET_KEY_RE = re.compile(r"(?i)(api_?key|token|secret|password|pass|authorization)")
 
 
 def _get_retrieval_mode() -> str:
@@ -42,6 +58,33 @@ def _get_retrieval_mode() -> str:
     if mode in _RETRIEVAL_MODE_VALUES:
         return mode
     return _RETRIEVAL_MODE_DEFAULT
+
+
+def _redact_secrets(value: object) -> str:
+    """Redact common credentials before retrieval data is written to disk."""
+    text = str(value)
+    for pattern, replacement in _SECRET_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
+
+
+def _redact_jsonable(value: object) -> object:
+    """Redact common credentials from a JSON-serializable payload."""
+    if isinstance(value, dict):
+        redacted: dict[str, object] = {}
+        for key, item in value.items():
+            key_text = str(key)
+            redacted[key_text] = (
+                "<redacted>"
+                if _SECRET_KEY_RE.search(key_text)
+                else _redact_jsonable(item)
+            )
+        return redacted
+    if isinstance(value, (list, tuple, set)):
+        return [_redact_jsonable(v) for v in value]
+    if isinstance(value, str):
+        return _redact_secrets(value)
+    return value
 
 
 def _trim_file_to_last_lines(path: Path, max_lines: int) -> None:
@@ -219,7 +262,15 @@ def record_retrieval_graph(
         {"from": tool_id, "to": output_id, "type": "produces"},
     ]
 
-    for key, value in raw_input.items():
+    redacted_input = _redact_jsonable(jsonable(raw_input))
+    redacted_output = _redact_secrets(raw_output)
+
+    if isinstance(redacted_input, dict):
+        graph_raw_input = redacted_input
+    else:
+        graph_raw_input = {"value": redacted_input}
+
+    for key, value in graph_raw_input.items():
         input_id = f"input:{retrieval_id}:{key}"
         nodes.append(
             {
@@ -236,8 +287,8 @@ def record_retrieval_graph(
         "created_at_utc": created_at,
         "workspace": str(workspace),
         "tool_name": tool_name,
-        "raw_input": jsonable(raw_input),
-        "raw_output": raw_output,
+        "raw_input": graph_raw_input,
+        "raw_output": redacted_output,
         "nodes": nodes,
         "edges": edges,
     }
