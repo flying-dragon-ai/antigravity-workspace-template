@@ -33,6 +33,31 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _get_ask_retry_config() -> tuple[int, float]:
+    """Return retry settings for transient ask-time model failures."""
+    try:
+        max_retries = max(0, int(os.environ.get("AG_ASK_RETRY_COUNT", "3")))
+    except (TypeError, ValueError):
+        max_retries = 3
+    try:
+        base_delay = max(0.0, float(os.environ.get("AG_ASK_RETRY_DELAY", "5.0")))
+    except (TypeError, ValueError):
+        base_delay = 5.0
+    return max_retries, base_delay
+
+
+def _is_retryable_ask_error(exc: Exception) -> bool:
+    """Return true for transient model/provider failures.
+
+    Delegates to the shared classifier in ``_providers`` so the same-provider
+    retry path and the cross-provider failover path agree on what counts as
+    transient.
+    """
+    from antigravity_engine.hub._providers import is_retryable_provider_error
+
+    return is_retryable_provider_error(exc)
+
+
 async def _run_with_optional_stream(
     agent: "Agent",
     prompt: str,
@@ -44,32 +69,48 @@ async def _run_with_optional_stream(
     """Execute agent with optional streaming support."""
     from agents import Runner
 
-    if not stream_enabled:
-        # Non-streaming: use existing pattern
-        if timeout and timeout > 0:
-            result = await asyncio.wait_for(
-                Runner.run(agent, prompt, max_turns=max_turns),
-                timeout=timeout,
-            )
-        else:
-            result = await Runner.run(agent, prompt, max_turns=max_turns)
-        return str(result.final_output)
+    async def _run_once() -> str:
+        if not stream_enabled:
+            if timeout and timeout > 0:
+                result = await asyncio.wait_for(
+                    Runner.run(agent, prompt, max_turns=max_turns),
+                    timeout=timeout,
+                )
+            else:
+                result = await Runner.run(agent, prompt, max_turns=max_turns)
+            return str(result.final_output)
 
-    # Streaming mode
-    stream_result = Runner.run_streamed(agent, prompt, max_turns=max_turns)
-
-    # For timeout with streaming, wrap the event consumption
-    try:
-        if timeout and timeout > 0:
-            return await asyncio.wait_for(
-                _consume_stream_events(stream_result, progress_label),
-                timeout=timeout,
-            )
-        else:
+        stream_result = Runner.run_streamed(agent, prompt, max_turns=max_turns)
+        try:
+            if timeout and timeout > 0:
+                return await asyncio.wait_for(
+                    _consume_stream_events(stream_result, progress_label),
+                    timeout=timeout,
+                )
             return await _consume_stream_events(stream_result, progress_label)
-    except TimeoutError:
-        stream_result.cancel()
-        raise
+        except Exception:
+            stream_result.cancel()
+            raise
+
+    max_retries, base_delay = _get_ask_retry_config()
+    for attempt in range(max_retries + 1):
+        try:
+            return await _run_once()
+        except Exception as exc:
+            if attempt >= max_retries or not _is_retryable_ask_error(exc):
+                raise
+            delay = base_delay * (2 ** attempt)
+            label = f" ({progress_label})" if progress_label else ""
+            raw_msg = str(exc).replace("\n", " ").replace("\r", "")[:150]
+            error_msg = raw_msg or type(exc).__name__
+            print(
+                f"  ⚠ Ask attempt {attempt + 1} failed{label}: "
+                f"{error_msg}. Retrying in {delay}s...",
+                file=sys.stderr,
+            )
+            await asyncio.sleep(delay)
+
+    raise RuntimeError("unreachable ask retry state")
 
 
 async def _consume_stream_events(
@@ -138,7 +179,33 @@ async def ask_pipeline(workspace: Path, question: str) -> str:
     Notes:
         MCP servers are only auto-connected when both ``MCP_ENABLED=true`` and
         ``AG_ALLOW_MCP=true`` are set in the runtime environment.
+
+        When ``AG_LLM_FALLBACKS`` configures backup providers, a sustained
+        provider outage on the active endpoint transparently fails over to
+        the next provider and re-runs the answer. With no fallbacks the call
+        is unchanged.
     """
+    from antigravity_engine.config import get_settings
+    from antigravity_engine.hub._providers import (
+        get_provider_chain,
+        run_with_provider_failover,
+    )
+
+    providers = get_provider_chain(get_settings())
+
+    async def _once() -> str:
+        return await _ask_pipeline_once(workspace, question)
+
+    return await run_with_provider_failover(
+        _once,
+        providers=providers,
+        is_retryable=_is_retryable_ask_error,
+        label="ask",
+    )
+
+
+async def _ask_pipeline_once(workspace: Path, question: str) -> str:
+    """Run one ask attempt: structured path first, then legacy swarm."""
     from agents import set_tracing_disabled
 
     set_tracing_disabled(True)

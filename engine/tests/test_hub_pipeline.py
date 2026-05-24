@@ -261,6 +261,21 @@ def test_load_project_context_respects_total_budget(tmp_path: Path) -> None:
     assert "REGISTRY_MARKER" in section
 
 
+def test_ask_retry_classifier_handles_litellm_service_unavailable() -> None:
+    """LiteLLM wraps provider 503s without always preserving the numeric code."""
+    from antigravity_engine.hub.ask_pipeline import _is_retryable_ask_error
+
+    class ServiceUnavailableError(Exception):
+        pass
+
+    exc = ServiceUnavailableError(
+        "litellm.ServiceUnavailableError: OpenAIException - "
+        "Service temporarily unavailable"
+    )
+
+    assert _is_retryable_ask_error(exc)
+
+
 # ---------------------------------------------------------------------------
 # Phase 1: config/entry/git in _format_scan_report
 # ---------------------------------------------------------------------------
