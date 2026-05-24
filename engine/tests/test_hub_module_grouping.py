@@ -4,7 +4,12 @@ from pathlib import Path
 import pytest
 
 from antigravity_engine.hub._constants import WORKSPACE_ROOT_MODULE_ID
-from antigravity_engine.hub.module_grouping import group_files, load_module_files
+from antigravity_engine.hub.module_grouping import (
+    MAX_FILES_PER_GROUP,
+    format_group_context,
+    group_files,
+    load_module_files,
+)
 from antigravity_engine.hub.scanner import detect_modules, resolve_module_path
 
 
@@ -122,3 +127,35 @@ def _write_text(path: Path, content: str) -> None:
     """Write a text fixture file, creating parent directories as needed."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def test_group_files_chunks_all_test_modules(tmp_path: Path) -> None:
+    """All-test modules should not bypass group chunking."""
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    for idx in range(MAX_FILES_PER_GROUP + 5):
+        (tests_dir / f"test_feature_{idx}.py").write_text(
+            "def test_feature():\n"
+            "    assert True\n"
+            + ("# padding\n" * 250),
+            encoding="utf-8",
+        )
+
+    loaded = load_module_files(tests_dir, tmp_path)
+    groups = group_files(loaded, tmp_path, token_budget=100_000)
+
+    assert len(groups) == 2
+    assert all(group.name.startswith("tests") for group in groups)
+    assert all(0 < len(group.files) <= MAX_FILES_PER_GROUP for group in groups)
+    assert all(len(format_group_context(group)) < 1_048_576 for group in groups)
+
+
+def test_resolve_module_path_handles_underscore_parent_names(tmp_path: Path) -> None:
+    """Auto-split module ids should resolve when the parent has underscores."""
+    target = tmp_path / "docs_src" / "additional_responses"
+    target.mkdir(parents=True)
+    (target / "tutorial.py").write_text("def example():\n    return None\n", encoding="utf-8")
+
+    resolved = resolve_module_path(tmp_path, "docs_src_additional_responses")
+
+    assert resolved == target

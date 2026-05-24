@@ -779,21 +779,28 @@ def resolve_module_path(root: Path, module_id: str) -> Path:
         return direct
 
     # Two-level case: "parent_child" → root/parent/<inner>/child
-    # OR direct auto-split: "parent_child" → root/parent/child
+    # OR direct auto-split: "parent_child" → root/parent/child.
+    # Parent directory names can themselves contain underscores
+    # (e.g. ``docs_src_additional_responses`` → ``docs_src/additional_responses``),
+    # so try the longest existing parent prefix first instead of splitting once.
     if "_" in module_id:
-        parts = module_id.split("_", 1)
-        parent_dir = root / parts[0]
-        if parent_dir.is_dir():
-            venv_dirs = _find_venv_dirs(root)
-            skip = _MODULE_SKIP_DIRS | venv_dirs
+        parts = module_id.split("_")
+        venv_dirs = _find_venv_dirs(root)
+        skip = _MODULE_SKIP_DIRS | venv_dirs
+        for split_at in range(len(parts) - 1, 0, -1):
+            parent_name = "_".join(parts[:split_at])
+            child_name = "_".join(parts[split_at:])
+            parent_dir = root / parent_name
+            if not parent_dir.is_dir():
+                continue
             # First try: single code-bearing inner dir
             inner = _find_single_code_child(parent_dir, venv_dirs, skip)
             if inner is not None:
-                child_dir = inner / parts[1]
+                child_dir = inner / child_name
                 if child_dir.is_dir():
                     return child_dir
             # Second try: direct child (extensions_slack → extensions/slack)
-            child_dir = parent_dir / parts[1]
+            child_dir = parent_dir / child_name
             if child_dir.is_dir():
                 return child_dir
 

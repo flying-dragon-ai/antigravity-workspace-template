@@ -374,12 +374,14 @@ def group_files(
     test_files = [f for f in files if f.category == "test"]
     non_test_files = [f for f in files if f.category != "test"]
 
-    # If everything fits in one group, don't split
+    # If non-test files fit in one group, keep them together, but still route
+    # tests through chunking. Large all-test modules can otherwise produce a
+    # single agent instruction string that exceeds provider limits.
     total_eff = sum(f.effective_tokens for f in non_test_files)
     if total_eff <= token_budget and len(non_test_files) <= MAX_FILES_PER_GROUP:
-        groups = [_make_group("main", non_test_files)]
+        groups = [_make_group("main", non_test_files)] if non_test_files else []
         if test_files:
-            groups.append(_make_group("tests", test_files))
+            groups.extend(_chunk_files("tests", test_files, token_budget))
         return groups
 
     # Signal 1: Import graph connected components
@@ -592,7 +594,10 @@ def _chunk_files(
         would_exceed_chars = (
             current_raw_chars + raw_chars > _MAX_RAW_CHARS_PER_GROUP
         )
-        if current.files and (would_exceed_budget or would_exceed_chars):
+        would_exceed_files = len(current.files) >= MAX_FILES_PER_GROUP
+        if current.files and (
+            would_exceed_budget or would_exceed_chars or would_exceed_files
+        ):
             groups.append(current)
             idx += 1
             current = FileGroup(name=f"{base_name}_{idx}", files=[])
