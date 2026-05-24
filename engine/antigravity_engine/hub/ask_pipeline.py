@@ -47,33 +47,15 @@ def _get_ask_retry_config() -> tuple[int, float]:
 
 
 def _is_retryable_ask_error(exc: Exception) -> bool:
-    """Return true for transient model/provider failures."""
-    if isinstance(exc, (TimeoutError, asyncio.TimeoutError)):
-        return True
-    msg = f"{type(exc).__module__}.{type(exc).__name__}: {exc}".lower()
-    retryable_keywords = (
-        "timeout",
-        "gateway time-out",
-        "504",
-        "connection",
-        "network",
-        "unreachable",
-        "refused",
-        "rate limit",
-        "ratelimit",
-        "429",
-        "502",
-        "503",
-        "500",
-        "serviceunavailable",
-        "service unavailable",
-        "service temporarily unavailable",
-        "temporarily unavailable",
-        "bad gateway",
-        "internalservererror",
-        "internal server error",
-    )
-    return any(keyword in msg for keyword in retryable_keywords)
+    """Return true for transient model/provider failures.
+
+    Delegates to the shared classifier in ``_providers`` so the same-provider
+    retry path and the cross-provider failover path agree on what counts as
+    transient.
+    """
+    from antigravity_engine.hub._providers import is_retryable_provider_error
+
+    return is_retryable_provider_error(exc)
 
 
 async def _run_with_optional_stream(
@@ -197,7 +179,33 @@ async def ask_pipeline(workspace: Path, question: str) -> str:
     Notes:
         MCP servers are only auto-connected when both ``MCP_ENABLED=true`` and
         ``AG_ALLOW_MCP=true`` are set in the runtime environment.
+
+        When ``AG_LLM_FALLBACKS`` configures backup providers, a sustained
+        provider outage on the active endpoint transparently fails over to
+        the next provider and re-runs the answer. With no fallbacks the call
+        is unchanged.
     """
+    from antigravity_engine.config import get_settings
+    from antigravity_engine.hub._providers import (
+        get_provider_chain,
+        run_with_provider_failover,
+    )
+
+    providers = get_provider_chain(get_settings())
+
+    async def _once() -> str:
+        return await _ask_pipeline_once(workspace, question)
+
+    return await run_with_provider_failover(
+        _once,
+        providers=providers,
+        is_retryable=_is_retryable_ask_error,
+        label="ask",
+    )
+
+
+async def _ask_pipeline_once(workspace: Path, question: str) -> str:
+    """Run one ask attempt: structured path first, then legacy swarm."""
     from agents import set_tracing_disabled
 
     set_tracing_disabled(True)
