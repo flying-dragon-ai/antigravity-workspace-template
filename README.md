@@ -1,53 +1,68 @@
 <div align="center">
 
-<img src="docs/assets/logo.png" alt="Antigravity Workspace" width="200"/>
+<img src="docs/assets/logo.png" alt="Antigravity" width="140"/>
 
 # Antigravity
 
-### Cross-IDE repository knowledge engine for grounded codebase Q&A.
+### ChatGPT for your codebase — works in Claude Code, Cursor, Codex, Windsurf & 4 more.
 
-`ag-refresh` builds the repository knowledge base. `ag-ask` routes questions to
-the right module context with source evidence. Plugins, CLI commands, and MCP are
-delivery channels around that core workflow.
-
-Language: **English** | [中文](README_CN.md) | [Español](README_ES.md)
-
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
-[![CI](https://img.shields.io/github/actions/workflow/status/study8677/antigravity-workspace-template/test.yml?style=for-the-badge&label=CI)](https://github.com/study8677/antigravity-workspace-template/actions)
-[![DeepWiki](https://img.shields.io/badge/DeepWiki-Docs-blue?style=for-the-badge&logo=gitbook&logoColor=white)](https://deepwiki.com/study8677/antigravity-workspace-template)
-[![NLPM](https://img.shields.io/badge/NLPM-audited-7C3AED?style=for-the-badge)](https://github.com/xiaolai/nlpm-for-claude)
+[![License](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org/)
+[![CI](https://img.shields.io/github/actions/workflow/status/study8677/antigravity-workspace-template/test.yml?style=flat-square&label=CI)](https://github.com/study8677/antigravity-workspace-template/actions)
+[![DeepWiki](https://img.shields.io/badge/DeepWiki-Docs-3B82F6?style=flat-square&logo=gitbook&logoColor=white)](https://deepwiki.com/study8677/antigravity-workspace-template)
+[![NLPM](https://img.shields.io/badge/NLPM-audited-7C3AED?style=flat-square)](https://github.com/xiaolai/nlpm-for-claude)
+[![Stars](https://img.shields.io/github/stars/study8677/antigravity-workspace-template?style=flat-square&color=F59E0B)](https://github.com/study8677/antigravity-workspace-template/stargazers)
 
 <br/>
 
-<img src="https://img.shields.io/badge/Cursor-✓-000000?style=flat-square" alt="Cursor"/>
 <img src="https://img.shields.io/badge/Claude_Code-✓-D97757?style=flat-square" alt="Claude Code"/>
+<img src="https://img.shields.io/badge/Codex_CLI-✓-412991?style=flat-square" alt="Codex"/>
+<img src="https://img.shields.io/badge/Cursor-✓-000000?style=flat-square" alt="Cursor"/>
 <img src="https://img.shields.io/badge/Windsurf-✓-06B6D4?style=flat-square" alt="Windsurf"/>
 <img src="https://img.shields.io/badge/Gemini_CLI-✓-4285F4?style=flat-square" alt="Gemini CLI"/>
 <img src="https://img.shields.io/badge/VS_Code_+_Copilot-✓-007ACC?style=flat-square" alt="VS Code"/>
-<img src="https://img.shields.io/badge/Codex-✓-412991?style=flat-square" alt="Codex"/>
 <img src="https://img.shields.io/badge/Cline-✓-FF6B6B?style=flat-square" alt="Cline"/>
 <img src="https://img.shields.io/badge/Aider-✓-8B5CF6?style=flat-square" alt="Aider"/>
+
+<sub>**English** · [中文](README_CN.md) · [Español](README_ES.md)</sub>
 
 </div>
 
 <br/>
 
 <div align="center">
+<img src="docs/assets/demo.gif" alt="ag-ask demo" width="820" onerror="this.style.display='none'"/>
 <img src="docs/assets/before_after.png" alt="Before vs After Antigravity" width="800"/>
 </div>
 
 <br/>
 
+```bash
+# 1 — Install (Claude Code plugin marketplace)
+/plugin marketplace add study8677/antigravity-workspace-template
+/plugin install antigravity@antigravity
+
+# 2 — Pick LLM provider, build the knowledge base
+/antigravity:ag-setup
+/antigravity:ag-refresh
+
+# 3 — Ask anything, grounded in real code with file paths + line numbers
+/antigravity:ag-ask "How does auth work?"
+```
+
+> **99% factual · 2.1× faster than Codex CLI · works in any AI IDE.**
+> [Head-to-head benchmark ↓](#head-to-head-eval-antigravity-vs-codex-cli-vs-claude-code-2026-05-09)
+> Codex CLI users — drop the `antigravity:` prefix; the same four slash commands ship there too.
+
+---
+
 ## Why Antigravity?
 
 > An AI Agent's capability ceiling = **the quality of context it can read.**
 
-The engine is the core: `ag-refresh` deploys a multi-agent cluster that autonomously reads your code — each module gets its own Agent that generates a knowledge doc. `ag-ask` routes questions to the right Agent, grounded in real code with file paths and line numbers.
+`ag-refresh` deploys a multi-agent cluster that autonomously reads your code — each module gets its own Agent that generates a knowledge doc. `ag-ask` routes questions to the right Agent, grounded in real code with file paths and line numbers.
 
 **Instead of handing Claude Code / Codex a repo-wide `grep` and making it hunt on its own, give it a ChatGPT for your repository.**
-
-**Benchmarked head-to-head against Codex CLI and Claude Code on 36 questions across 3 real-world Python codebases (`fastapi`, `requests`, `sqlmodel`) — Antigravity 99% on factual lookups, 97% on audit/security, 2.1× faster than Codex on factual.** [See eval below.](#head-to-head-eval-antigravity-vs-codex-cli-vs-claude-code-2026-05-09)
 
 ```
 Traditional approach:              Antigravity approach:
@@ -55,6 +70,9 @@ Traditional approach:              Antigravity approach:
   Agent reads it all, forgets most   Router → ModuleAgent reads actual source, returns exact answer
   Hallucination rate stays high      Grounded in real code, file paths, and git history
 ```
+
+<details>
+<summary><b>Four concrete failure modes Antigravity fixes</b> — click to expand</summary>
 
 | Problem | Without Antigravity | With Antigravity |
 |:--------|:-------------------|:-----------------|
@@ -65,120 +83,84 @@ Traditional approach:              Antigravity approach:
 
 Architecture is **files + a live Q&A engine**, not plugins. Portable across any IDE, any LLM, zero vendor lock-in.
 
----
-
-## Slash Commands
-
-Same four slash commands ship to both **Claude Code** and **Codex CLI**. Claude namespaces them as `/antigravity:<name>`; Codex auto-discovers `commands/` and surfaces the bare `/<name>` form. No retraining — same flow on both hosts.
-
-| Claude Code | Codex CLI | Purpose |
-|---|---|---|
-| `/antigravity:ag-setup` | `/ag-setup` | First-time setup — pick LLM provider, write `.env` |
-| `/antigravity:ag-refresh [quick]` | `/ag-refresh [quick]` | Build / incrementally refresh the project knowledge base |
-| `/antigravity:ag-ask <question>` | `/ag-ask <question>` | Routed Q&A on the current codebase |
-| `/antigravity:ag-init <name>` | `/ag-init <name>` | Scaffold a new multi-agent repo from this template |
-
-A typical first session is **ag-setup → ag-refresh → ag-ask**. Details below.
-
-### `ag-setup` — first-time configuration
-
-Run this **once per project**, right after installing the plugin. Interactive picker for the LLM provider (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA NIM / Ollama local / any OpenAI-compatible endpoint), then writes `.env` to the project root with `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `AG_ASK_TIMEOUT_SECONDS`. Also ensures `.env` is in `.gitignore`. Skip it if you already have a working `.env`.
-
-```
-# Claude Code
-/antigravity:ag-setup
-
-# Codex CLI
-/ag-setup
-```
-
-### `ag-refresh` — build / refresh the knowledge base
-
-Deploys the multi-agent cluster to read your code: each module gets its own Agent that produces a knowledge doc under `.antigravity/agents/*.md`, plus a `map.md` routing index. Run after install, after significant code changes, or when `ag-ask` returns stale answers. The first refresh auto-creates `.antigravity/` — no separate init step needed. Pass `quick` for an incremental update, `failed-only` to rerun only previously failed modules.
-
-```
-# Claude Code
-/antigravity:ag-refresh
-/antigravity:ag-refresh quick
-
-# Codex CLI
-/ag-refresh
-/ag-refresh quick
-```
-
-Time: a few minutes for small repos, longer for large ones. Requires `ag-setup` to have completed.
-
-### `ag-ask` — routed Q&A on the codebase
-
-The **main reason this plugin exists**. Routes your question to the right ModuleAgent (and GitAgent / GitNexus when applicable), then returns an answer grounded in actual source with file paths and line numbers. Use it **before** manually grepping or reading files — it's faster and more accurate. Good question shapes: "where is X defined/handled?", "why was Y done this way?", "how does the auth flow work?", "what depends on module Z?".
-
-```
-# Claude Code
-/antigravity:ag-ask "How does authentication work?"
-
-# Codex CLI
-/ag-ask "How does authentication work?"
-```
-
-Requires a knowledge base — if you see "no index" or empty answers, run `ag-refresh` first.
-
-### `ag-init` — scaffold a new multi-agent repo
-
-Creates a **new** project from the Antigravity template. Two modes: `quick` (fast scaffold, clean copy) and `full` (adds runtime profile, `.env`, mission file, sandbox config, optional `git init`). This is for **starting a new repo** — you do **not** need it before `ag-refresh` on an existing project.
-
-```
-# Claude Code
-/antigravity:ag-init my-agent
-/antigravity:ag-init my-agent full
-
-# Codex CLI
-/ag-init my-agent
-/ag-init my-agent full
-```
-
-> The plugin also bundles the `agent-repo-init` skill (the same backend that `ag-init` invokes — Codex / Claude can also match it by description) and the optional `ag-mcp` MCP server (`ask_project` + `refresh_project`) for tool-style integration.
+</details>
 
 ---
 
-## Support Matrix
+## Head-to-Head Eval: Antigravity vs Codex CLI vs Claude Code (2026-05-09)
 
-| Layer | Channels | Contract |
-|:------|:---------|:---------|
-| Native plugins | Claude Code, Codex CLI | Bundled slash commands for `ag-setup`, `ag-refresh`, `ag-ask`, and `ag-init`. |
-| Compatible IDEs | Cursor, Windsurf, Gemini CLI, VS Code + Copilot, Cline, Aider | Use shared context files, the `ag`/`ag-*` CLI entrypoints, or an MCP client. |
-| Advanced tool integration | `ag-mcp` | Exposes `ask_project` and `refresh_project` for hosts that can call MCP tools. |
-| Workspace bootstrapping | `ag-init`, `ag init` | Starts a new repo or injects portable agent context into an existing one. |
+Asymmetric benchmark on three real-world Python codebases — `fastapi/fastapi`,
+`psf/requests`, `fastapi/sqlmodel` — asking each tool **the same 36 questions**
+across three difficulty bands. All three tools used `gpt-5.5` with high
+reasoning effort; Codex and Claude had full read access to the workspace.
+Codex was the grader (4-axis 0–3 rubric, scores verified against actual source).
 
-The native plugins are the first-class install path today. Other environments are
-supported through the same repository knowledge artifacts rather than separate
-host-specific plugin packages.
+| Question type | Antigravity | Codex CLI | Claude Code |
+|:---|:---:|:---:|:---:|
+| 15 factual lookups | **179/180 (99%)** | 179/180 (99%) | 178/180 (99%) |
+| 12 synthesis (project / arch tour) | 116/144 (81%) | **144/144 (100%)** | 136/144 (94%) |
+| 9 audit / security | **105/108 (97%)** | 104/108 (96%) | 98/108 (91%) |
+
+**Combined factual + audit (24 cells): Antigravity 284/288, Codex 283/288,
+Claude 276/288.** Antigravity edges out both — at lower latency than Codex on
+every single question.
+
+**Latency** (mean wall-clock per question, same proxy):
+
+| Question type | Antigravity | Codex | Claude |
+|:---|:---:|:---:|:---:|
+| Factual | **56s** | 119s | 42s |
+| Audit | 160s | 177s | **100s** |
+
+Antigravity is **2.1× faster than Codex on factual** and on par with Codex on
+audit, while matching or beating it on correctness. Claude is fastest on
+audit but loses 7 percentage points of correctness.
+
+<details>
+<summary><b>What changed in this repo to get there</b> — engine fixes that drove the numbers</summary>
+
+Two engine fixes landed during the benchmark, both committed in this branch:
+
+1. `_ask_with_agent_md` now surfaces project-level docs (`conventions.md`,
+   `module_registry.md`, `map.md`, `structure.md`) into its answer prompts.
+   Removes the "module knowledge does not include project-wide conventions"
+   refusal pattern.
+2. The structured-facts answer agents now have `search_code`, `read_file`,
+   `list_directory`, `read_file_metadata`, `search_by_type` bound at runtime,
+   so the LLM can grep and read actual source instead of paraphrasing the KG.
+
+Full report (data, methodology, per-cell tables, caveats):
+[`artifacts/benchmark-2026-05-09/REPORT.md`](artifacts/benchmark-2026-05-09/REPORT.md).
+
+</details>
 
 ---
 
 ## Quick Start
 
-**Option A — Plugin install for Claude Code / Codex CLI**
+**Plugin install for Claude Code / Codex CLI** (recommended — the engine CLI auto-installs on first session via SessionStart hook):
+
 ```bash
-# Claude Code (auto-installs the Python engine CLI on first session via SessionStart hook)
+# Claude Code
 /plugin marketplace add study8677/antigravity-workspace-template
 /plugin install antigravity@antigravity
 /antigravity:ag-setup            # interactive: pick LLM provider, paste API key, writes .env
-/antigravity:ag-refresh          # runs ag-refresh directly; first refresh auto-creates .antigravity/
-/antigravity:ag-ask "How does this project work?"  # runs ag-ask directly
+/antigravity:ag-refresh          # first refresh auto-creates .antigravity/
+/antigravity:ag-ask "How does this project work?"
 
-# Codex CLI (install the engine manually first; Codex hooks are not yet supported)
+# Codex CLI (manual engine install — Codex hooks are not yet supported)
 pipx install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=engine"
 codex plugin marketplace add study8677/antigravity-workspace-template
-/ag-setup                        # same flow, no antigravity: prefix in Codex
+/ag-setup
 /ag-refresh
 /ag-ask "How does this project work?"
 ```
 
-Codex CLI auto-discovers slash commands from the plugin's `commands/` directory, so the same four commands work without the `antigravity:` namespace prefix (`/ag-setup`, `/ag-refresh`, `/ag-ask`, `/ag-init`). The raw CLI calls (`ag-refresh --workspace .`, `ag-ask "..." --workspace .`) also still work. If your Codex build supports MCP and you want tool-style integration, register `ag-mcp --workspace <project>` separately.
+Codex auto-discovers slash commands from the plugin's `commands/` directory, so the same four commands work without the `antigravity:` namespace prefix. The raw CLI calls (`ag-refresh --workspace .`, `ag-ask "..." --workspace .`) also still work. If your Codex build supports MCP, register `ag-mcp --workspace <project>` separately.
 
-After install + setup you get `ag-ask <question>`, `ag-refresh`, and `ag-init <name>` slash commands in both hosts. MCP remains optional (`ask_project` + `refresh_project`) via `ag-mcp`; see [docs/examples/antigravity.mcp.json](docs/examples/antigravity.mcp.json). See [INSTALL.md](INSTALL.md) for details and troubleshooting.
+<details>
+<summary><b>Option B — Manual install: engine + CLI via pip</b></summary>
 
-**Option B — Manual install: engine + CLI via pip**
 ```bash
 # 1. Install engine + CLI
 pip install "git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli"
@@ -203,16 +185,79 @@ ag-ask "How does auth work in this project?"
 claude mcp add antigravity ag-mcp -- --workspace $(pwd)
 ```
 
-**Option C — Context files only (any IDE, no LLM needed)**
+</details>
+
+<details>
+<summary><b>Option C — Context files only (any IDE, no LLM needed)</b></summary>
+
 ```bash
 pip install git+https://github.com/study8677/antigravity-workspace-template.git#subdirectory=cli
 ag init my-project && cd my-project
 # IDE entry files bootstrap into AGENTS.md; dynamic knowledge is in .antigravity/
 ```
 
+</details>
+
+See [INSTALL.md](INSTALL.md) for full details and troubleshooting.
+
 ---
 
-## Features at a Glance
+## Slash Commands
+
+Same four slash commands ship to both **Claude Code** and **Codex CLI**. Claude namespaces them as `/antigravity:<name>`; Codex auto-discovers `commands/` and surfaces the bare `/<name>` form. No retraining — same flow on both hosts.
+
+| Claude Code | Codex CLI | Purpose |
+|---|---|---|
+| `/antigravity:ag-setup` | `/ag-setup` | First-time setup — pick LLM provider, write `.env` |
+| `/antigravity:ag-refresh [quick]` | `/ag-refresh [quick]` | Build / incrementally refresh the project knowledge base |
+| `/antigravity:ag-ask <question>` | `/ag-ask <question>` | Routed Q&A on the current codebase |
+| `/antigravity:ag-init <name>` | `/ag-init <name>` | Scaffold a new multi-agent repo from this template |
+
+A typical first session is **ag-setup → ag-refresh → ag-ask**.
+
+<details>
+<summary><b>What each slash command actually does</b></summary>
+
+### `ag-setup` — first-time configuration
+
+Run this **once per project**, right after installing the plugin. Interactive picker for the LLM provider (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA NIM / Ollama local / any OpenAI-compatible endpoint), then writes `.env` to the project root with `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `AG_ASK_TIMEOUT_SECONDS`. Also ensures `.env` is in `.gitignore`. Skip it if you already have a working `.env`.
+
+### `ag-refresh` — build / refresh the knowledge base
+
+Deploys the multi-agent cluster to read your code: each module gets its own Agent that produces a knowledge doc under `.antigravity/agents/*.md`, plus a `map.md` routing index. Run after install, after significant code changes, or when `ag-ask` returns stale answers. The first refresh auto-creates `.antigravity/` — no separate init step needed. Pass `quick` for an incremental update, `failed-only` to rerun only previously failed modules.
+
+Time: a few minutes for small repos, longer for large ones. Requires `ag-setup` to have completed.
+
+### `ag-ask` — routed Q&A on the codebase
+
+The **main reason this plugin exists**. Routes your question to the right ModuleAgent (and GitAgent / GitNexus when applicable), then returns an answer grounded in actual source with file paths and line numbers. Use it **before** manually grepping or reading files — it's faster and more accurate. Good question shapes: "where is X defined/handled?", "why was Y done this way?", "how does the auth flow work?", "what depends on module Z?".
+
+Requires a knowledge base — if you see "no index" or empty answers, run `ag-refresh` first.
+
+### `ag-init` — scaffold a new multi-agent repo
+
+Creates a **new** project from the Antigravity template. Two modes: `quick` (fast scaffold, clean copy) and `full` (adds runtime profile, `.env`, mission file, sandbox config, optional `git init`). This is for **starting a new repo** — you do **not** need it before `ag-refresh` on an existing project.
+
+> The plugin also bundles the `agent-repo-init` skill (the same backend that `ag-init` invokes — Codex / Claude can also match it by description) and the optional `ag-mcp` MCP server (`ask_project` + `refresh_project`) for tool-style integration.
+
+</details>
+
+---
+
+## Support Matrix
+
+| Layer | Channels | Contract |
+|:------|:---------|:---------|
+| Native plugins | Claude Code, Codex CLI | Bundled slash commands for `ag-setup`, `ag-refresh`, `ag-ask`, and `ag-init`. |
+| Compatible IDEs | Cursor, Windsurf, Gemini CLI, VS Code + Copilot, Cline, Aider | Use shared context files, the `ag`/`ag-*` CLI entrypoints, or an MCP client. |
+| Advanced tool integration | `ag-mcp` | Exposes `ask_project` and `refresh_project` for hosts that can call MCP tools. |
+| Workspace bootstrapping | `ag-init`, `ag init` | Starts a new repo or injects portable agent context into an existing one. |
+
+The native plugins are the first-class install path today. Other environments are supported through the same repository knowledge artifacts rather than separate host-specific plugin packages.
+
+---
+
+## Architecture (TL;DR)
 
 ```
   ag init             Inject context files into any project (--force to overwrite)
@@ -225,107 +270,23 @@ ag init my-project && cd my-project
        └──► ag-mcp         Optional MCP server → IDE tool integration
 ```
 
-**Dynamic Multi-Agent Cluster** — During `ag-refresh`, the engine uses **smart functional grouping**: files are grouped by import relationships, directory co-location, and filename prefixes. Source code is pre-loaded directly into agent context (no tool calls needed), and build artifacts are automatically filtered out. Each sub-agent analyzes ~30K tokens of focused, functionally related code in a single LLM call and outputs a **comprehensive Markdown knowledge document** (`agents/*.md`). For large modules, multiple sub-agents run in parallel — each produces its own agent.md (no merging, no information loss). A **Map Agent** reads all agent docs and generates `map.md` — a routing index. During `ag-ask`, Router reads `map.md` to select relevant modules, then feeds their agent docs to answer agents. For structural questions (call chains, dependencies, impact analysis), the Router automatically queries [GitNexus](https://github.com/abhigyanpatwari/GitNexus) code graph for precise relationships. **Fully language-agnostic** — module detection uses pure directory structure, code analysis is done entirely by LLMs. Works with any programming language.
+**Dynamic Multi-Agent Cluster** — During `ag-refresh`, files are grouped by import graph, directory co-location, and filename prefix. Each sub-agent gets ~30K tokens of focused, related code pre-loaded (no tool calls needed) and writes a **comprehensive Markdown knowledge doc** to `agents/*.md`. Large modules → multiple agent docs in parallel (no merging, no information loss). A **Map Agent** indexes everything into `map.md`. During `ag-ask`, the Router reads `map.md` to pick modules, then feeds their agent docs to answer agents. For structural questions (call chains, dependencies, impact), it automatically queries [GitNexus](https://github.com/abhigyanpatwari/GitNexus). **Fully language-agnostic** — pure directory-structure module detection, LLM-driven code analysis.
 
-**GitAgent** — A dedicated agent for analyzing git history — understands who changed what and why.
+**GitAgent** — Dedicated agent for analyzing git history — who changed what and why.
 
-**GitNexus Graph Enrichment (optional)** — Install [GitNexus](https://github.com/abhigyanpatwari/GitNexus) to auto-unlock graph-enriched answers. The Router LLM decides when a question needs structural analysis (call chains, dependencies, impact) and queries GitNexus automatically — combining precise graph data with semantic understanding from agent docs.
+**GitNexus Graph Enrichment (optional)** — Install [GitNexus](https://github.com/abhigyanpatwari/GitNexus) to auto-unlock graph-enriched answers. The Router LLM decides when a question needs structural analysis and queries GitNexus automatically.
 
-**NLPM Audit Feedback** — This repository has benefited from [NLPM](https://github.com/xiaolai/nlpm-for-claude), a natural-language programming linter for Claude Code plugins, skills, and agent definitions by [xiaolai](https://github.com/xiaolai). Its audit helped identify useful improvements in skill frontmatter and dependency hygiene.
+**NLPM Audit Feedback** — Improved by [NLPM](https://github.com/xiaolai/nlpm-for-claude), a natural-language programming linter by [xiaolai](https://github.com/xiaolai).
 
----
+<details>
+<summary><b>Detailed pipeline & internals</b></summary>
 
-## CLI Commands
-
-| Command | What it does | LLM needed? |
-|:--------|:-------------|:-----------:|
-| `ag init <dir>` | Inject cognitive architecture templates | No |
-| `ag init <dir> --force` | Re-inject, overwriting existing files | No |
-| `ag refresh --workspace <dir>` | CLI convenience wrapper around the knowledge-hub refresh pipeline | Yes |
-| `ag ask "question" --workspace <dir>` | CLI convenience wrapper around the routed project Q&A flow | Yes |
-| `ag-refresh` | Multi-agent self-learning of codebase, generates module knowledge docs + `conventions.md` + `structure.md` | Yes |
-| `ag-ask "question"` | Router → ModuleAgent/GitAgent routed Q&A | Yes |
-| `ag-mcp --workspace <dir>` | **Start MCP server** — exposes `ask_project` + `refresh_project` to Claude Code | Yes |
-| `ag report "message"` | Log a finding to `.antigravity/memory/` | No |
-| `ag log-decision "what" "why"` | Log an architectural decision | No |
-
-`ag ask` / `ag refresh` are available when both `cli/` and `engine/` are installed. `ag-ask` / `ag-refresh` are the engine-only entrypoints.
-
----
-
-## Two Packages, One Workflow
-
-```
-antigravity-workspace-template/
-├── cli/                     # ag CLI — lightweight, pip-installable
-│   └── templates/           # .cursorrules, CLAUDE.md, .antigravity/, ...
-└── engine/                  # Multi-agent engine + Knowledge Hub
-    └── antigravity_engine/
-        ├── _cli_entry.py    # ag-ask / ag-refresh / ag-mcp + python -m dispatch
-        ├── config.py        # Pydantic configuration
-        ├── hub/             # ★ Core: multi-agent cluster
-        │   ├── agents.py    #   Router + ModuleAgent + GitAgent
-        │   ├── contracts.py #   Pydantic models: claims, evidence, refresh status
-        │   ├── ask_pipeline.py    # agent.md + graph-enriched ask
-        │   ├── refresh_pipeline.py # LLM-driven refresh → agents/*.md + map.md
-        │   ├── ask_tools.py
-        │   ├── scanner.py   #   multi-language project scanning
-        │   ├── module_grouping.py # smart functional file grouping
-        │   ├── structure.py
-        │   ├── knowledge_graph.py
-        │   ├── retrieval_graph.py
-        │   └── mcp_server.py
-        ├── mcp_client.py    # MCP consumer (connects external tools)
-        ├── memory.py        # Persistent interaction memory
-        ├── tools/           # MCP query tools + extensions
-        ├── skills/          # Skill loader
-        └── sandbox/         # Code execution (local / microsandbox)
-```
-
-**CLI** (`pip install .../cli`) — Zero LLM deps. Injects templates, logs reports & decisions offline.
-
-**Engine** (`pip install .../engine`) — Repository knowledge runtime. Powers `ag-ask`, `ag-refresh`, `ag-mcp`. Uses the OpenAI-compatible endpoint written by `ag-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama, or custom).
-
-**New skill packaging updates:**
-- `engine/antigravity_engine/skills/graph-retrieval/` — graph-oriented retrieval tools for structure and call-path reasoning.
-- `engine/antigravity_engine/skills/knowledge-layer/` — project knowledge-layer tools for semantic context consolidation.
-
-```bash
-# Install both for full experience
-pip install "git+https://...#subdirectory=cli"
-pip install "git+https://...#subdirectory=engine"
-```
-
-For local work on this repository itself:
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -e ./cli -e './engine[dev]'
-pytest engine/tests cli/tests
-```
-
----
-
-## How It Works
-
-### 1. `ag init` — Inject context files
-
-```bash
-ag init my-project
-# Already initialized? Use --force to overwrite:
-ag init my-project --force
-```
-
-Creates `AGENTS.md` (authoritative behavior rules), IDE bootstrap files (`.cursorrules`, `CLAUDE.md`, `.windsurfrules`, `.clinerules`, `.github/copilot-instructions.md`), and `.antigravity/` dynamic context files.
-
-### 2. `ag-refresh` — Multi-agent self-learning
+### `ag-refresh` — Multi-agent self-learning (9-step pipeline)
 
 ```bash
 ag-refresh --workspace my-project
 ```
 
-**9-step pipeline:**
 1. Scan codebase (languages, frameworks, structure)
 2. Multi-agent pipeline generates `conventions.md`
 3. Generate `structure.md` — language-agnostic file tree with line counts
@@ -336,17 +297,27 @@ ag-refresh --workspace my-project
 8. **Map Agent** reads all agent docs → generates `map.md` (module routing index with descriptions and key topics)
 9. **GitNexus indexing** (optional) — runs `gitnexus analyze` to build a Tree-sitter code graph (16 languages, call chains, dependencies). Auto-skipped if GitNexus is not installed.
 
-### 3. `ag-ask` — Router-based Q&A
+### `ag-ask` — Router-based Q&A (dual-path)
 
 ```bash
 ag-ask "How does auth work in this project?"
 ```
 
-The ask pipeline uses a **dual-path architecture**:
 - **Semantic path**: Router reads `map.md` → selects modules → reads `agents/*.md` → LLM answers with code references. Multiple agent docs are read in parallel, then a Synthesizer combines answers.
 - **Graph path** (automatic): Router LLM decides if the question needs structural analysis → queries GitNexus for call chains, dependencies, or impact → injects graph data into the answer context. Silently skipped if GitNexus is not installed.
 
 Falls back to the legacy Router → ModuleAgent/GitAgent swarm when agent docs are not yet generated.
+
+### Key design choices
+
+- **LLM as analyzer**: No AST parsing or regex — source code is fed directly to LLMs. Works with any programming language out of the box.
+- **Smart grouping**: Files grouped by import relationships, directory co-location, filename prefixes. Build artifacts filtered. Hard character limit (800K) prevents context overflow.
+- **No information loss**: Large modules produce multiple `agent.md` files — no merging or compression. Parallel reads + Synthesizer recombines at answer time.
+- **Graph-enriched answers**: Router decides when structural data (call chains, dependencies, impact) is needed and queries GitNexus.
+- **Global API concurrency control**: `AG_API_CONCURRENCY` limits total simultaneous LLM calls.
+- **Language-agnostic module detection**: Pure directory structure — no `__init__.py` or any language-specific marker required.
+
+</details>
 
 ---
 
@@ -398,51 +369,7 @@ claude mcp add antigravity ag-mcp -- --workspace /path/to/project
 </details>
 
 <details>
-<summary><b>Dynamic Multi-Agent Cluster</b> — Module-level self-learning + intelligent routing</summary>
-
-The engine's core is **a dynamically created Agent cluster per code module**:
-
-```
- ag-refresh:                                 ag-ask:
-
- For each module:                            Router (reads map.md)
- ┌ Group files by import graph                 ├── GRAPH: no → read agents/*.md → LLM answer
- ├ Pre-load ~30K tokens per sub-agent          └── GRAPH: yes → query GitNexus graph
- ├ Filter out build artifacts                        → graph data + agents/*.md → LLM answer
- ├ Sub-agents → Markdown agent docs
- ├ agents/{module}.md (or /group_N.md)
- ├ Map Agent → map.md
- └ GitNexus analyze (optional)
-```
-
-**Key innovations:**
-- **LLM as analyzer**: No AST parsing or regex — source code is fed directly to LLMs for analysis. Works with any programming language out of the box.
-- **Smart grouping**: Files grouped by import relationships, directory co-location, and filename prefixes. Build artifacts automatically filtered out. Hard character limit (800K) prevents context overflow.
-- **No information loss**: Large modules produce multiple `agent.md` files (one per group) — no merging or compression. During `ag-ask`, multiple agent docs are read by parallel LLM calls, then a Synthesizer combines answers.
-- **Graph-enriched answers**: Router LLM automatically decides when a question needs structural data (call chains, dependencies, impact) and queries GitNexus. Combines precise graph relationships with semantic understanding.
-- **Global API concurrency control**: `AG_API_CONCURRENCY` limits total simultaneous LLM calls across all modules, preventing rate-limiting.
-- **Language-agnostic module detection**: Pure directory structure — no `__init__.py` or any language-specific marker required.
-
-```bash
-# ModuleAgents self-learn your codebase
-ag-refresh
-
-# Only scan files changed since last refresh
-ag-refresh --quick
-
-# Router intelligently routes to the right ModuleAgent
-ag-ask "What testing patterns does this project use?"
-
-# Log findings and decisions (no LLM needed)
-ag report "Auth module needs refactoring"
-ag log-decision "Use PostgreSQL" "Team has deep expertise"
-```
-
-Works with the provider selected by `ag-setup` through an OpenAI-compatible endpoint. Powered by OpenAI Agent SDK + LiteLLM.
-</details>
-
-<details>
-<summary><b>MCP Integration (Consumer)</b> — Let agents call external tools</summary>
+<summary><b>MCP Integration (Consumer) — Let agents call external tools</b></summary>
 
 `MCPClientManager` lets your agents connect to external MCP servers (GitHub, databases, etc.), auto-discovering and registering tools.
 
@@ -461,14 +388,12 @@ Works with the provider selected by `ag-setup` through an OpenAI-compatible endp
 }
 ```
 
-Set `MCP_ENABLED=true` in `.env` to make configured servers available, and set
-`AG_ALLOW_MCP=true` only when you want `ag-ask` to auto-connect those external
-servers. Stdio MCP servers inherit process environment plus configured `env`
-values, so treat enabled servers as local-permission code.
+Set `MCP_ENABLED=true` in `.env` to make configured servers available, and set `AG_ALLOW_MCP=true` only when you want `ag-ask` to auto-connect those external servers. Stdio MCP servers inherit process environment plus configured `env` values, so treat enabled servers as local-permission code.
+
 </details>
 
 <details>
-<summary><b>GitNexus Graph Enrichment</b> — Automatic structural intelligence for ask queries</summary>
+<summary><b>GitNexus Graph Enrichment — Automatic structural intelligence</b></summary>
 
 [GitNexus](https://github.com/abhigyanpatwari/GitNexus) builds a code knowledge graph using **Tree-sitter AST parsing** (16 languages). When installed, Antigravity integrates it at two levels:
 
@@ -495,8 +420,6 @@ Router: MODULES: gateway, tests_gateway | GRAPH: yes
 
 > **Note:** GitNexus is NOT bundled with Antigravity. It requires separate installation via npm (`npm install -g gitnexus`). Antigravity works fully without it — when not installed, all graph features are silently skipped with zero overhead.
 
-**How to enable:**
-
 ```bash
 # 1. Install GitNexus (requires Node.js)
 npm install -g gitnexus
@@ -506,14 +429,12 @@ ag-refresh --workspace my-project
 
 # 3. Ask — graph enrichment is automatic
 ag-ask "Who calls the send method in gateway adapters?"
-# Router decides: GRAPH: yes → queries GitNexus → enriched answer
 ```
 
 </details>
 
-
 <details>
-<summary><b>Sandbox</b> — Configurable code execution environment</summary>
+<summary><b>Sandbox — Configurable code execution environment</b></summary>
 
 | Variable | Default | Options |
 |:---------|:--------|:--------|
@@ -521,56 +442,77 @@ ag-ask "Who calls the send method in gateway adapters?"
 | `SANDBOX_TIMEOUT_SEC` | `30` | seconds |
 | `AG_RETRIEVAL_MODE` | `compact` | `off` · `compact` · `full` |
 
-The default sandbox is for trusted local workspaces, not untrusted code
-isolation. Retrieval graph files redact common secrets before writing to disk,
-but `full` mode can still preserve source snippets. See
-[Sandbox docs](docs/en/SANDBOX.md).
+The default sandbox is for trusted local workspaces, not untrusted code isolation. Retrieval graph files redact common secrets before writing to disk, but `full` mode can still preserve source snippets. See [Sandbox docs](docs/en/SANDBOX.md).
+
 </details>
 
----
+<details>
+<summary><b>CLI Commands Reference</b></summary>
 
-## Head-to-Head Eval: Antigravity vs Codex CLI vs Claude Code (2026-05-09)
+| Command | What it does | LLM needed? |
+|:--------|:-------------|:-----------:|
+| `ag init <dir>` | Inject cognitive architecture templates | No |
+| `ag init <dir> --force` | Re-inject, overwriting existing files | No |
+| `ag refresh --workspace <dir>` | CLI convenience wrapper around the knowledge-hub refresh pipeline | Yes |
+| `ag ask "question" --workspace <dir>` | CLI convenience wrapper around the routed project Q&A flow | Yes |
+| `ag-refresh` | Multi-agent self-learning of codebase, generates module knowledge docs + `conventions.md` + `structure.md` | Yes |
+| `ag-ask "question"` | Router → ModuleAgent/GitAgent routed Q&A | Yes |
+| `ag-mcp --workspace <dir>` | **Start MCP server** — exposes `ask_project` + `refresh_project` to Claude Code | Yes |
+| `ag report "message"` | Log a finding to `.antigravity/memory/` | No |
+| `ag log-decision "what" "why"` | Log an architectural decision | No |
 
-Asymmetric benchmark on three real-world Python codebases — `fastapi/fastapi`,
-`psf/requests`, `fastapi/sqlmodel` — asking each tool **the same 36 questions**
-across three difficulty bands. All three tools used `gpt-5.5` with high
-reasoning effort; Codex and Claude had full read access to the workspace.
-Codex was the grader (4-axis 0–3 rubric, scores verified against actual source).
+`ag ask` / `ag refresh` are available when both `cli/` and `engine/` are installed. `ag-ask` / `ag-refresh` are the engine-only entrypoints.
 
-| Question type | Antigravity | Codex CLI | Claude Code |
-|:---|:---:|:---:|:---:|
-| 15 factual lookups | **179/180 (99%)** | 179/180 (99%) | 178/180 (99%) |
-| 12 synthesis (project / arch tour) | 116/144 (81%) | **144/144 (100%)** | 136/144 (94%) |
-| 9 audit / security | **105/108 (97%)** | 104/108 (96%) | 98/108 (91%) |
+</details>
 
-**Combined factual + audit (24 cells): Antigravity 284/288, Codex 283/288,
-Claude 276/288.** Antigravity edges out both — at lower latency than Codex on
-every single question.
+<details>
+<summary><b>Two Packages, One Workflow — repo layout</b></summary>
 
-**Latency** (mean wall-clock per question, same proxy):
+```
+antigravity-workspace-template/
+├── cli/                     # ag CLI — lightweight, pip-installable
+│   └── templates/           # .cursorrules, CLAUDE.md, .antigravity/, ...
+└── engine/                  # Multi-agent engine + Knowledge Hub
+    └── antigravity_engine/
+        ├── _cli_entry.py    # ag-ask / ag-refresh / ag-mcp + python -m dispatch
+        ├── config.py        # Pydantic configuration
+        ├── hub/             # ★ Core: multi-agent cluster
+        │   ├── agents.py    #   Router + ModuleAgent + GitAgent
+        │   ├── contracts.py #   Pydantic models: claims, evidence, refresh status
+        │   ├── ask_pipeline.py    # agent.md + graph-enriched ask
+        │   ├── refresh_pipeline.py # LLM-driven refresh → agents/*.md + map.md
+        │   ├── ask_tools.py
+        │   ├── scanner.py   #   multi-language project scanning
+        │   ├── module_grouping.py # smart functional file grouping
+        │   ├── structure.py
+        │   ├── knowledge_graph.py
+        │   ├── retrieval_graph.py
+        │   └── mcp_server.py
+        ├── mcp_client.py    # MCP consumer (connects external tools)
+        ├── memory.py        # Persistent interaction memory
+        ├── tools/           # MCP query tools + extensions
+        ├── skills/          # Skill loader
+        └── sandbox/         # Code execution (local / microsandbox)
+```
 
-| Question type | Antigravity | Codex | Claude |
-|:---|:---:|:---:|:---:|
-| Factual | **56s** | 119s | 42s |
-| Audit | 160s | 177s | **100s** |
+**CLI** (`pip install .../cli`) — Zero LLM deps. Injects templates, logs reports & decisions offline.
 
-Antigravity is **2.1× faster than Codex on factual** and on par with Codex on
-audit, while matching or beating it on correctness. Claude is fastest on
-audit but loses 7 percentage points of correctness.
+**Engine** (`pip install .../engine`) — Repository knowledge runtime. Powers `ag-ask`, `ag-refresh`, `ag-mcp`. Uses the OpenAI-compatible endpoint written by `ag-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama, or custom).
 
-**What changed in this repo to get there.** Two engine fixes landed during the
-benchmark, both committed in this branch:
+**Skill packaging:**
+- `engine/antigravity_engine/skills/graph-retrieval/` — graph-oriented retrieval tools for structure and call-path reasoning.
+- `engine/antigravity_engine/skills/knowledge-layer/` — project knowledge-layer tools for semantic context consolidation.
 
-1. `_ask_with_agent_md` now surfaces project-level docs (`conventions.md`,
-   `module_registry.md`, `map.md`, `structure.md`) into its answer prompts.
-   Removes the “module knowledge does not include project-wide conventions”
-   refusal pattern.
-2. The structured-facts answer agents now have `search_code`, `read_file`,
-   `list_directory`, `read_file_metadata`, `search_by_type` bound at runtime,
-   so the LLM can grep and read actual source instead of paraphrasing the KG.
+For local work on this repository itself:
 
-Full report (data, methodology, per-cell tables, caveats):
-[`artifacts/benchmark-2026-05-09/REPORT.md`](artifacts/benchmark-2026-05-09/REPORT.md).
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -e ./cli -e './engine[dev]'
+pytest engine/tests cli/tests
+```
+
+</details>
 
 ---
 
