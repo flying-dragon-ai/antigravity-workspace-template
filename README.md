@@ -58,6 +58,8 @@
 
 ## Why Antigravity?
 
+**Cross-IDE repository knowledge engine for grounded codebase Q&A.** Same `.antigravity/` knowledge layer reads in every IDE; one engine, every host.
+
 > An AI Agent's capability ceiling = **the quality of context it can read.**
 
 `ag-refresh` deploys a multi-agent cluster that autonomously reads your code — each module gets its own Agent that generates a knowledge doc. `ag-ask` routes questions to the right Agent, grounded in real code with file paths and line numbers.
