@@ -459,7 +459,7 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
                 "OpenAI Agent SDK not found. Install: pip install antigravity-engine"
             ) from None
 
-        module_timeout = float(os.environ.get("AG_MODULE_AGENT_TIMEOUT_SECONDS", "240"))
+        module_timeout = float(os.environ.get("AG_MODULE_AGENT_TIMEOUT_SECONDS", "300"))
 
         # Skip module agents when failed-only mode has no modules to process
         if modules_filter is not None and not modules_filter:
@@ -1912,7 +1912,7 @@ async def _generate_map_md(workspace: Path, model: str) -> str:
         batches.append(current_batch)
 
     map_agent = build_map_agent(model)
-    map_timeout = float(os.environ.get("AG_MAP_AGENT_TIMEOUT_SECONDS", "240"))
+    map_timeout = float(os.environ.get("AG_MAP_AGENT_TIMEOUT_SECONDS", "300"))
 
     async def _run_map_batch(batch: list[str], batch_idx: int) -> str:
         prompt = "Create a map.md from these module knowledge documents:\n" + "\n".join(batch)
