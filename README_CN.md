@@ -33,6 +33,18 @@
 <br/>
 
 <div align="center">
+
+<a href="https://doloffer.com">
+  <img src="docs/assets/doloffer-banner-cn.png" alt="DolOffer - GPT 和 Claude 会员充值，正版订阅，售后无忧" width="800"/>
+</a>
+
+<sub><b>赞助:</b> DolOffer 提供优惠价 GPT / Claude 会员充值，正版订阅，售后无忧。使用优惠码 <code>AI8888</code> 可享 9 折。</sub>
+
+</div>
+
+<br/>
+
+<div align="center">
 <img src="docs/assets/before_after.png" alt="Before vs After Antigravity" width="800"/>
 </div>
 
