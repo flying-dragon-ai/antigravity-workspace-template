@@ -547,6 +547,13 @@ Antigravity 在事实题上**比 Codex 快 2.1x**，在审计题上跟 Codex 速
       <sub><b>核心贡献者</b> · 感谢你对 Antigravity 的支持、反馈与贡献</sub>
     </td>
     <td align="center" width="20%">
+      <a href="https://github.com/flyw1015">
+        <img src="https://github.com/flyw1015.png" width="80" /><br/>
+        <b>flyw1015</b>
+      </a><br/>
+      <sub><b>核心贡献者</b> · 感谢你对 Antigravity 的支持、反馈与贡献</sub>
+    </td>
+    <td align="center" width="20%">
       <a href="https://github.com/devalexanderdaza">
         <img src="https://github.com/devalexanderdaza.png" width="80" /><br/>
         <b>Alexander Daza</b>
@@ -560,6 +567,8 @@ Antigravity 在事实题上**比 Codex 快 2.1x**，在审计题上跟 Codex 速
       </a><br/>
       <sub>首个 CLI 原型 · 753 行重构 · DummyClient 提取 · 快速开始文档</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="20%">
       <a href="https://github.com/Subham-KRLX">
         <img src="https://github.com/Subham-KRLX.png" width="80" /><br/>
@@ -574,8 +583,6 @@ Antigravity 在事实题上**比 Codex 快 2.1x**，在审计题上跟 Codex 速
       </a><br/>
       <sub>记忆上下文窗口修复 · MCP 关闭优雅处理 (#28)</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" width="20%">
       <a href="https://github.com/goodmorning10">
         <img src="https://github.com/goodmorning10.png" width="80" /><br/>
@@ -597,6 +604,8 @@ Antigravity 在事实题上**比 Codex 快 2.1x**，在审计题上跟 Codex 速
       </a><br/>
       <sub>技能封装与知识图谱检索增强 · 多语言 README 同步更新 (#30)</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="20%">
       <a href="https://github.com/SunkenCost">
         <img src="https://github.com/SunkenCost.png" width="80" /><br/>

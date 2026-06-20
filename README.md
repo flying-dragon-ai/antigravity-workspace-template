@@ -517,6 +517,13 @@ Ideas are contributions too! Open an [issue](https://github.com/study8677/antigr
       <sub><b>Core Contributor</b> · Thank you for your support, feedback, and contributions to Antigravity</sub>
     </td>
     <td align="center" width="20%">
+      <a href="https://github.com/flyw1015">
+        <img src="https://github.com/flyw1015.png" width="80" /><br/>
+        <b>flyw1015</b>
+      </a><br/>
+      <sub><b>Core Contributor</b> · Thank you for your support, feedback, and contributions to Antigravity</sub>
+    </td>
+    <td align="center" width="20%">
       <a href="https://github.com/devalexanderdaza">
         <img src="https://github.com/devalexanderdaza.png" width="80" /><br/>
         <b>Alexander Daza</b>
@@ -530,6 +537,8 @@ Ideas are contributions too! Open an [issue](https://github.com/study8677/antigr
       </a><br/>
       <sub>First CLI prototype · 753-line refactor · DummyClient extraction · Quick-start docs</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="20%">
       <a href="https://github.com/Subham-KRLX">
         <img src="https://github.com/Subham-KRLX.png" width="80" /><br/>
@@ -544,8 +553,6 @@ Ideas are contributions too! Open an [issue](https://github.com/study8677/antigr
       </a><br/>
       <sub>Memory context window fix · MCP shutdown graceful handling (#28)</sub>
     </td>
-  </tr>
-  <tr>
     <td align="center" width="20%">
       <a href="https://github.com/goodmorning10">
         <img src="https://github.com/goodmorning10.png" width="80" /><br/>
@@ -567,6 +574,8 @@ Ideas are contributions too! Open an [issue](https://github.com/study8677/antigr
       </a><br/>
       <sub>Skill packaging & KG retrieval enhancements · Multi-language README sync (#30)</sub>
     </td>
+  </tr>
+  <tr>
     <td align="center" width="20%">
       <a href="https://github.com/SunkenCost">
         <img src="https://github.com/SunkenCost.png" width="80" /><br/>
