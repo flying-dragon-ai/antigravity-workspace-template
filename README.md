@@ -32,7 +32,7 @@
 
 <div align="center">
 
-<p><strong>🚀 实测推荐:</strong> <a href="https://teamorouter.com/?utm_source=awesome-architecture">TeamoRouter</a> —— 非广告，我自己在 Codex、Claude Code 等 AI 编程工具里高强度使用：一个 API Key 接入 Claude、GPT-5.5 等，模型价格方便调整，价格优惠，并没有掺水的情况。接入指南见 <a href="https://github.com/xixiaoyao/openrouter-api-key">openrouter-api-key</a>。</p>
+<p><strong>🚀 实测推荐:</strong> <a href="https://teamorouter.com/?i=e188641773">TeamoRouter</a> —— 非广告，我自己在 Codex、Claude Code 等 AI 编程工具里高强度使用：一个 API Key 接入 Claude、GPT-5.5 等，模型价格方便调整，价格优惠，并没有掺水的情况。接入指南见 <a href="https://github.com/xixiaoyao/openrouter-api-key">openrouter-api-key</a>。</p>
 
 </div>
 
