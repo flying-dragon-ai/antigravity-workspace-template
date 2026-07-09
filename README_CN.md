@@ -30,6 +30,10 @@
 <img src="https://img.shields.io/badge/Cline-✓-FF6B6B?style=flat-square" alt="Cline"/>
 <img src="https://img.shields.io/badge/Aider-✓-8B5CF6?style=flat-square" alt="Aider"/>
 
+<br/><br/>
+
+<img src="docs/assets/demo.gif" alt="rb-ask 演示 — 向代码库提问,答案带文件路径和行号" width="800"/>
+
 </div>
 
 <br/>

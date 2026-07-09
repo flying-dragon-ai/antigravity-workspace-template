@@ -87,6 +87,7 @@ class ScanReport:
     timed_out: bool = False
     scan_stopped_reason: str = ""
     scanned_file_samples: list[str] = field(default_factory=list)
+    changed_files: list[str] = field(default_factory=list)
     unreadable_files: int = 0
     oversized_files: int = 0
     binary_files: int = 0
@@ -898,6 +899,7 @@ def quick_scan(root: Path, since_sha: str) -> ScanReport:
             return full_scan(root)
 
         changed_files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
+        report.changed_files = changed_files
     except FileNotFoundError:
         return full_scan(root)
 

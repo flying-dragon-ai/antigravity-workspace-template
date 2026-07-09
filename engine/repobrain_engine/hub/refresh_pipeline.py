@@ -260,6 +260,7 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
         refresh_scan_only = scan_only_raw.strip().lower() in {"1", "true", "yes"}
     model: str | None = None
 
+    module_docs_changed = False
     if not refresh_scan_only:
         from agents import set_tracing_disabled
         from repobrain_engine.hub.agents import create_model
@@ -280,9 +281,12 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
 
     rb_dir = _ensure_refresh_workspace_initialized(workspace)
     sha_file = rb_dir / ".last_refresh_sha"
+    current_sha = _get_head_sha(workspace)
+    previous_status = _load_previous_refresh_status(rb_dir)
     refresh_status = RefreshStatus(
         refresh_run_id=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"),
         overall_status="success",
+        head_sha=current_sha,
     )
 
     scan_timeout = os.environ.get("RB_SCAN_TIMEOUT_SECONDS", "(default)")
@@ -303,7 +307,8 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
 
     print("[1/3] Scanning project...", file=sys.stderr)
 
-    if quick and sha_file.exists():
+    used_quick_scan = quick and sha_file.exists()
+    if used_quick_scan:
         since_sha = sha_file.read_text(encoding="utf-8").strip()
         report = quick_scan(workspace, since_sha)
     else:
@@ -339,8 +344,13 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
     print(f"[1/3] Scan report: {scan_report_path}", file=sys.stderr)
 
     conventions_content = ""
+    quick_changed_files = list(getattr(report, "changed_files", []) or [])
+    quick_has_no_changes = used_quick_scan and not quick_changed_files
 
-    if not refresh_scan_only:
+    if quick_has_no_changes:
+        print("[2/3] Quick mode: no changed files; preserving conventions.md.", file=sys.stderr)
+        refresh_status.stages["conventions"] = "skipped"
+    elif not refresh_scan_only:
         from repobrain_engine.hub.agents import build_refresh_agent
 
         prompt = _format_scan_report(report)
@@ -382,9 +392,11 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
         conventions_content = _build_fallback_conventions(report)
         refresh_status.stages["conventions"] = "skipped"
 
-    print("[3/8] Writing conventions.md...", file=sys.stderr)
-
-    (rb_dir / "conventions.md").write_text(conventions_content, encoding="utf-8")
+    if quick_has_no_changes:
+        print("[3/8] Quick mode: keeping existing conventions.md.", file=sys.stderr)
+    else:
+        print("[3/8] Writing conventions.md...", file=sys.stderr)
+        (rb_dir / "conventions.md").write_text(conventions_content, encoding="utf-8")
 
     # In quick mode the ScanReport only contains changed files, so
     # rebuilding structure / knowledge-graph / non-code indexes from it
@@ -481,6 +493,11 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
         if modules_filter is not None and not modules_filter:
             print("[7/8] No failed/partial modules to re-run. Skipping module agents.", file=sys.stderr)
             refresh_status.stages["module_docs"] = "skipped"
+        elif quick_has_no_changes:
+            print("  → 0 module groups affected", file=sys.stderr)
+            print("[7/8] No module groups to run. Skipping module agents.", file=sys.stderr)
+            refresh_status.stages["module_docs"] = "skipped"
+            _write_refresh_status(rb_dir, refresh_status)
         else:
             print("[7/8] Module agents learning codebase...", file=sys.stderr)
 
@@ -490,12 +507,34 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
             expected_modules = detect_modules(workspace)
             if modules_filter is not None:
                 expected_modules = [m for m in expected_modules if m in modules_filter]
+
+            affected_group_count: int | None = None
+            if used_quick_scan:
+                module_entries, affected_group_count = _filter_module_entries_for_changed_files(
+                    workspace=workspace,
+                    module_entries=module_entries,
+                    changed_files=quick_changed_files,
+                )
+                affected_modules = {mod for mod, _ in module_entries}
+                expected_modules = [m for m in expected_modules if m in affected_modules]
+                if affected_group_count == 0:
+                    print("  → 0 module groups affected", file=sys.stderr)
+
+            module_entries = _filter_completed_groups_for_head(
+                module_entries=module_entries,
+                previous_status=previous_status,
+                current_sha=current_sha,
+                refresh_status=refresh_status,
+            )
+            expected_modules = [m for m in expected_modules if any(e[0] == m for e in module_entries)]
+
             mod_concurrency = int(os.environ.get("RB_REFRESH_CONCURRENCY", "8"))
             _mod_sem = asyncio.Semaphore(mod_concurrency)
             # Global API call semaphore: limits total concurrent LLM calls
             # across ALL modules and groups to avoid rate-limiting.
             api_concurrency = int(os.environ.get("RB_API_CONCURRENCY", "5"))
             _api_sem = asyncio.Semaphore(api_concurrency)
+            status_write_lock = asyncio.Lock()
             agents_dir = rb_dir / "agents"
             agents_dir.mkdir(parents=True, exist_ok=True)
             # Keep legacy modules dir for backward compat (will be removed in Phase 5)
@@ -551,14 +590,41 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
                                 )
                             md_output = str(res.final_output).strip()
                             if not md_output:
+                                async with status_write_lock:
+                                    _mark_group_completion(
+                                        refresh_status,
+                                        module=mod_name,
+                                        group_name=group_name,
+                                        state="failed",
+                                        head_sha=current_sha,
+                                    )
+                                    _write_refresh_status(rb_dir, refresh_status)
                                 return group_name, None, "empty output"
                             print(f"    ✓ {mod_name}/{group_name}", file=sys.stderr)
+                            async with status_write_lock:
+                                _mark_group_completion(
+                                    refresh_status,
+                                    module=mod_name,
+                                    group_name=group_name,
+                                    state="success",
+                                    head_sha=current_sha,
+                                )
+                                _write_refresh_status(rb_dir, refresh_status)
                             return group_name, md_output, None
                         except Exception as exc:
                             failure_reason = str(exc)
                             print(f"    ⚠ {mod_name}/{group_name} failed: {failure_reason}", file=sys.stderr)
                             # Build a minimal fallback from file listing
                             fallback = _build_agent_md_fallback(mod_name, group_name, group)
+                            async with status_write_lock:
+                                _mark_group_completion(
+                                    refresh_status,
+                                    module=mod_name,
+                                    group_name=group_name,
+                                    state="partial",
+                                    head_sha=current_sha,
+                                )
+                                _write_refresh_status(rb_dir, refresh_status)
                             return group_name, fallback, failure_reason
 
                     sub_results = await asyncio.gather(
@@ -601,15 +667,25 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
                     if any(reason is not None for _, _, reason in sub_results):
                         module_state = "partial"
                     refresh_status.modules[mod_name] = module_state
+                    if current_sha:
+                        refresh_status.module_head_shas[mod_name] = current_sha
+                    _write_refresh_status(rb_dir, refresh_status)
                     print(f"  ✓ RefreshModule_{mod_name} done ({module_state})", file=sys.stderr)
                     return mod_name, module_state
 
-            print(
-                f"  ▶ Running {len(module_entries)} modules "
-                f"(module_concurrency={mod_concurrency}, api_concurrency={api_concurrency})...",
-                file=sys.stderr,
-            )
-            module_results = await asyncio.gather(*[_run_module(e) for e in module_entries])
+            if not module_entries:
+                print("[7/8] No module groups to run. Skipping module agents.", file=sys.stderr)
+                refresh_status.stages["module_docs"] = "skipped"
+                _write_refresh_status(rb_dir, refresh_status)
+                module_results = []
+            else:
+                print(
+                    f"  ▶ Running {len(module_entries)} modules "
+                    f"(module_concurrency={mod_concurrency}, api_concurrency={api_concurrency})...",
+                    file=sys.stderr,
+                )
+                module_results = await asyncio.gather(*[_run_module(e) for e in module_entries])
+                module_docs_changed = True
             seen_modules = {name for name, _ in module_results}
             for module_name in expected_modules:
                 if module_name in seen_modules:
@@ -628,33 +704,37 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
                 skipped_state="skipped",
             )
 
-        print("  → RefreshGitAgent analyzing git history...", file=sys.stderr)
-        try:
-            git_agent = build_refresh_git_agent(model, workspace)
-            await _run_with_retry(
-                Runner.run,
-                git_agent,
-                "Analyze the project's git history and write your git insights document.",
-                max_turns=25,
-                timeout=module_timeout,
-                context="Git agent",
-            )
-            refresh_status.stages["git_insights"] = "success"
-        except Exception as exc:
-            print(f"  ⚠ RefreshGitAgent failed: {exc}", file=sys.stderr)
-            _mark_stage_failure(
-                refresh_status,
-                stage="git_insights",
-                reason=str(exc),
-                partial=True,
-            )
+        if used_quick_scan and not module_docs_changed:
+            print("[7/8] Quick mode: no module changes; skipping git insights.", file=sys.stderr)
+            refresh_status.stages["git_insights"] = "skipped"
+        else:
+            print("  → RefreshGitAgent analyzing git history...", file=sys.stderr)
+            try:
+                git_agent = build_refresh_git_agent(model, workspace)
+                await _run_with_retry(
+                    Runner.run,
+                    git_agent,
+                    "Analyze the project's git history and write your git insights document.",
+                    max_turns=25,
+                    timeout=module_timeout,
+                    context="Git agent",
+                )
+                refresh_status.stages["git_insights"] = "success"
+            except Exception as exc:
+                print(f"  ⚠ RefreshGitAgent failed: {exc}", file=sys.stderr)
+                _mark_stage_failure(
+                    refresh_status,
+                    stage="git_insights",
+                    reason=str(exc),
+                    partial=True,
+                )
     else:
         print("[7/8] Scan-only mode: module agents skipped.", file=sys.stderr)
         refresh_status.stages["module_docs"] = "skipped"
         refresh_status.stages["git_insights"] = "skipped"
 
     # -- Step 8: Generate map.md via Map Agent --
-    if not refresh_scan_only:
+    if not refresh_scan_only and (not used_quick_scan or module_docs_changed):
         print("[8/8] Generating map.md via Map Agent...", file=sys.stderr)
         try:
             map_content = await _generate_map_md(workspace, model or "")
@@ -700,10 +780,12 @@ async def refresh_pipeline(workspace: Path, quick: bool = False, failed_only: bo
                 partial=True,
             )
     else:
-        print("[8/8] Scan-only mode: map generation skipped.", file=sys.stderr)
+        if refresh_scan_only:
+            print("[8/8] Scan-only mode: map generation skipped.", file=sys.stderr)
+        else:
+            print("[8/8] Quick mode: no module groups changed; keeping existing map.md.", file=sys.stderr)
         refresh_status.stages["module_registry"] = "skipped"
 
-    current_sha = _get_head_sha(workspace)
     if current_sha:
         sha_file.write_text(current_sha, encoding="utf-8")
 
@@ -912,6 +994,165 @@ def _write_refresh_status(rb_dir: Path, status: RefreshStatus) -> None:
         json.dumps(status.model_dump(mode="json"), ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+
+
+def _load_previous_refresh_status(rb_dir: Path) -> dict[str, object]:
+    """Load a previous status.json payload without requiring new fields."""
+    status_path = rb_dir / "status.json"
+    try:
+        payload = json.loads(status_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _group_key(module: str, group_name: str) -> str:
+    """Return the stable status key for a module group."""
+    return f"{module}/{group_name}"
+
+
+def _mark_group_completion(
+    status: RefreshStatus,
+    *,
+    module: str,
+    group_name: str,
+    state: str,
+    head_sha: str | None,
+) -> None:
+    """Record completion state for a single module group."""
+    key = _group_key(module, group_name)
+    status.groups[key] = state
+    if head_sha:
+        status.head_sha = head_sha
+        status.group_head_shas[key] = head_sha
+
+
+def _previous_module_success_at_head(
+    previous_status: dict[str, object],
+    module: str,
+    current_sha: str | None,
+) -> bool:
+    """Return whether a module already succeeded at the current HEAD."""
+    if not current_sha:
+        return False
+    modules = previous_status.get("modules")
+    if not isinstance(modules, dict) or modules.get(module) != "success":
+        return False
+    module_head_shas = previous_status.get("module_head_shas")
+    if isinstance(module_head_shas, dict):
+        return module_head_shas.get(module) == current_sha
+    return previous_status.get("head_sha") == current_sha
+
+
+def _previous_group_success_at_head(
+    previous_status: dict[str, object],
+    module: str,
+    group_name: str,
+    current_sha: str | None,
+) -> bool:
+    """Return whether a group already succeeded at the current HEAD."""
+    if not current_sha:
+        return False
+    key = _group_key(module, group_name)
+    groups = previous_status.get("groups")
+    if isinstance(groups, dict):
+        if groups.get(key) != "success":
+            return False
+        group_head_shas = previous_status.get("group_head_shas")
+        if isinstance(group_head_shas, dict):
+            return group_head_shas.get(key) == current_sha
+        return previous_status.get("head_sha") == current_sha
+    return _previous_module_success_at_head(previous_status, module, current_sha)
+
+
+def _filter_completed_groups_for_head(
+    *,
+    module_entries: list,
+    previous_status: dict[str, object],
+    current_sha: str | None,
+    refresh_status: RefreshStatus,
+) -> list:
+    """Remove groups already completed successfully at the same HEAD."""
+    if not current_sha or not previous_status:
+        return module_entries
+
+    filtered_entries: list = []
+    for module, group_entries in module_entries:
+        remaining_groups: list = []
+        skipped_groups = 0
+        for group_name, group, agent in group_entries:
+            if _previous_group_success_at_head(
+                previous_status,
+                module,
+                group_name,
+                current_sha,
+            ):
+                skipped_groups += 1
+                _mark_group_completion(
+                    refresh_status,
+                    module=module,
+                    group_name=group_name,
+                    state="success",
+                    head_sha=current_sha,
+                )
+                continue
+            remaining_groups.append((group_name, group, agent))
+        if remaining_groups:
+            filtered_entries.append((module, remaining_groups))
+        elif skipped_groups:
+            refresh_status.modules[module] = "success"
+            refresh_status.module_head_shas[module] = current_sha
+    return filtered_entries
+
+
+def _filter_module_entries_for_changed_files(
+    *,
+    workspace: Path,
+    module_entries: list,
+    changed_files: list[str],
+) -> tuple[list, int]:
+    """Keep only module groups affected by quick-scan changed files."""
+    changed = {path.replace("\\", "/").strip() for path in changed_files if path.strip()}
+    if not changed:
+        return [], 0
+
+    filtered_entries: list = []
+    affected_count = 0
+    for module, group_entries in module_entries:
+        module_path_prefix = _module_path_prefix(workspace, module)
+        module_has_unmatched_change = any(
+            module_path_prefix
+            and (rel == module_path_prefix or rel.startswith(f"{module_path_prefix}/"))
+            for rel in changed
+        )
+        kept_groups: list = []
+        matched_any_group = False
+        for group_name, group, agent in group_entries:
+            group_files = {
+                getattr(source_file, "rel_path", "").replace("\\", "/")
+                for source_file in getattr(group, "files", [])
+            }
+            if group_files & changed:
+                matched_any_group = True
+                kept_groups.append((group_name, group, agent))
+        if module_has_unmatched_change and not matched_any_group:
+            kept_groups = list(group_entries)
+        if kept_groups:
+            affected_count += len(kept_groups)
+            filtered_entries.append((module, kept_groups))
+    return filtered_entries, affected_count
+
+
+def _module_path_prefix(workspace: Path, module: str) -> str | None:
+    """Resolve a module id to a workspace-relative path prefix."""
+    try:
+        from repobrain_engine.hub.scanner import resolve_module_path
+
+        module_path = resolve_module_path(workspace, module)
+        rel_path = module_path.relative_to(workspace).as_posix()
+    except Exception:
+        return module if module else None
+    return "" if rel_path == "." else rel_path
 
 
 def _extract_json_payload(output: object) -> dict[str, object]:
@@ -1847,6 +2088,7 @@ def _build_scan_payload(report) -> dict[str, object]:
         "scan_elapsed_seconds": float(getattr(report, "scan_elapsed_seconds", 0.0)),
         "scan_stopped_reason": str(getattr(report, "scan_stopped_reason", "") or ""),
         "scanned_file_samples": list(getattr(report, "scanned_file_samples", []) or []),
+        "changed_files": list(getattr(report, "changed_files", []) or []),
         "unreadable_files": int(getattr(report, "unreadable_files", 0)),
         "oversized_files": int(getattr(report, "oversized_files", 0)),
         "binary_files": int(getattr(report, "binary_files", 0)),

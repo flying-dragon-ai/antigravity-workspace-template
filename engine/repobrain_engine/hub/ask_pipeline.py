@@ -204,7 +204,8 @@ async def ask_pipeline(workspace: Path, question: str) -> str:
                 f"Unsupported RB_HOST_RUNNER={settings.RB_HOST_RUNNER!r}. "
                 "Supported values: codex."
             )
-        return await _ask_with_host_runner(workspace, question, settings)
+        answer = await _ask_with_host_runner(workspace, question, settings)
+        return _prepend_workspace_health_notices(workspace, answer)
 
     from repobrain_engine.hub._providers import (
         get_provider_chain,
@@ -216,12 +217,13 @@ async def ask_pipeline(workspace: Path, question: str) -> str:
     async def _once() -> str:
         return await _ask_pipeline_once(workspace, question)
 
-    return await run_with_provider_failover(
+    answer = await run_with_provider_failover(
         _once,
         providers=providers,
         is_retryable=_is_retryable_ask_error,
         label="ask",
     )
+    return _prepend_workspace_health_notices(workspace, answer)
 
 
 async def _ask_pipeline_once(workspace: Path, question: str) -> str:
@@ -483,6 +485,80 @@ def _structured_artifacts_available(workspace: Path) -> bool:
         and modules_dir.is_dir()
         and any(modules_dir.glob("*.facts.json"))
     )
+
+
+def _prepend_workspace_health_notices(workspace: Path, answer: str) -> str:
+    """Add non-blocking workspace health notices before an ask answer."""
+    notices = _build_workspace_health_notices(workspace)
+    if not notices:
+        return answer
+    return "\n".join(notices + [answer])
+
+
+def _build_workspace_health_notices(workspace: Path) -> list[str]:
+    """Return staleness/degradation notices for existing knowledge artifacts."""
+    notices: list[str] = []
+    behind_count = _get_refresh_commit_lag(workspace)
+    if behind_count and behind_count > 0:
+        notices.append(
+            "⚠ Knowledge base is "
+            f"{behind_count} commit(s) behind HEAD -- consider running "
+            "rb-refresh --quick."
+        )
+
+    degraded_modules = _load_degraded_status_modules(workspace)
+    if degraded_modules:
+        notices.append(
+            "⚠ Knowledge base has partial/failed module knowledge for: "
+            f"{', '.join(degraded_modules)}."
+        )
+    return notices
+
+
+def _get_refresh_commit_lag(workspace: Path) -> int | None:
+    """Return commits between last refresh SHA and HEAD, or None on failure."""
+    sha_path = workspace / ".repobrain" / ".last_refresh_sha"
+    try:
+        last_sha = sha_path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if not last_sha:
+        return None
+
+    try:
+        result = subprocess.run(
+            ["git", "rev-list", "--count", f"{last_sha}..HEAD"],
+            capture_output=True,
+            text=True,
+            cwd=str(workspace),
+            check=False,
+        )
+    except (FileNotFoundError, OSError):
+        return None
+    if result.returncode != 0:
+        return None
+    try:
+        return int(result.stdout.strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _load_degraded_status_modules(workspace: Path) -> list[str]:
+    """Return modules marked partial/failed in status.json, if readable."""
+    status_path = workspace / ".repobrain" / "status.json"
+    try:
+        payload = json.loads(status_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        return []
+    modules = payload.get("modules")
+    if not isinstance(modules, dict):
+        return []
+    degraded = [
+        str(module)
+        for module, state in modules.items()
+        if state in {"partial", "failed"}
+    ]
+    return sorted(degraded)
 
 
 async def _ask_with_structured_facts(workspace: Path, question: str) -> str | None:

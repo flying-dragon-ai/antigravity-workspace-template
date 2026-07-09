@@ -31,6 +31,10 @@ Idioma: [English](README.md) | [中文](README_CN.md) | **Español**
 <img src="https://img.shields.io/badge/Cline-✓-FF6B6B?style=flat-square" alt="Cline"/>
 <img src="https://img.shields.io/badge/Aider-✓-8B5CF6?style=flat-square" alt="Aider"/>
 
+<br/><br/>
+
+<img src="docs/assets/demo.gif" alt="Demo de rb-ask — respuestas fundamentadas con rutas de archivo y números de línea" width="800"/>
+
 </div>
 
 <br/>

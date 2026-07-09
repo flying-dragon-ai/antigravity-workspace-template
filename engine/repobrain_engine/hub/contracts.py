@@ -239,6 +239,22 @@ class RefreshStatus(BaseModel):
         default_factory=list,
         description="Collected failures for the refresh run.",
     )
+    head_sha: str | None = Field(
+        default=None,
+        description="Git HEAD SHA observed while writing this status.",
+    )
+    module_head_shas: dict[str, str] = Field(
+        default_factory=dict,
+        description="HEAD SHA where each module status was last updated.",
+    )
+    groups: dict[str, RefreshState] = Field(
+        default_factory=dict,
+        description="Group-level statuses keyed by '<module>/<group>'.",
+    )
+    group_head_shas: dict[str, str] = Field(
+        default_factory=dict,
+        description="HEAD SHA where each group status was last updated.",
+    )
 
     @property
     def exit_code(self) -> int:

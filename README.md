@@ -28,6 +28,10 @@
 
 <sub>**English** · [中文](README_CN.md) · [Español](README_ES.md)</sub>
 
+<br/><br/>
+
+<img src="docs/assets/demo.gif" alt="rb-ask demo — ask your codebase, get grounded answers with file paths and line numbers" width="800"/>
+
 </div>
 
 <br/>

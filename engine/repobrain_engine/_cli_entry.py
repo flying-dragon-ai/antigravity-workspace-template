@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import traceback
 from pathlib import Path
 from typing import Sequence
 
@@ -32,6 +33,89 @@ def _parse_args(
     return parser.parse_args(list(argv))
 
 
+def _run_ask_pipeline(workspace: Path, question: str) -> str:
+    """Run the ask pipeline for CLI entry points."""
+    import asyncio
+    from repobrain_engine.hub.pipeline import ask_pipeline
+
+    return asyncio.run(ask_pipeline(workspace, question))
+
+
+def _run_refresh_pipeline(workspace: Path, *, quick: bool, failed_only: bool):
+    """Run the refresh pipeline for CLI entry points."""
+    import asyncio
+    from repobrain_engine.hub.pipeline import refresh_pipeline
+
+    return asyncio.run(
+        refresh_pipeline(
+            workspace=workspace,
+            quick=quick,
+            failed_only=failed_only,
+        )
+    )
+
+
+def _diagnostic_log_path() -> Path:
+    """Return the MCP diagnostic log path for actionable CLI errors."""
+    try:
+        from repobrain_engine.hub.mcp_server import _mcp_log_path
+
+        return _mcp_log_path()
+    except Exception:
+        data_dir = os.environ.get("CLAUDE_PLUGIN_DATA_DIR", "").strip()
+        if data_dir:
+            base = Path(data_dir).expanduser()
+        else:
+            base = Path.home() / ".claude" / "plugins" / "data" / "repobrain-repobrain"
+        return base / "rb-mcp.log"
+
+
+def _debug_mode_enabled() -> bool:
+    """Return whether full tracebacks should be printed."""
+    value = os.environ.get("DEBUG_MODE", "")
+    if value.strip().lower() in {"1", "true", "yes", "on"}:
+        return True
+    try:
+        from repobrain_engine.config import settings
+
+        return bool(settings.DEBUG_MODE)
+    except Exception:
+        return False
+
+
+def _one_line_message(exc: BaseException) -> str:
+    """Return an exception message without embedded newlines."""
+    message = str(exc).replace("\n", " ").replace("\r", " ").strip()
+    return message or exc.__class__.__name__
+
+
+def _suggestion_for_exception(exc: BaseException) -> str:
+    """Return a short actionable suggestion for a CLI failure."""
+    name = exc.__class__.__name__.lower()
+    message = _one_line_message(exc).lower()
+    if "timeout" in name or "timeout" in message or "timed out" in message:
+        return "Try increasing RB_ASK_TIMEOUT_SECONDS or rerun rb doctor."
+    if "connection" in name or "connect" in message or "provider" in message:
+        return "Run rb doctor to check provider connectivity."
+    if "permission" in name or "permission" in message:
+        return "Check workspace file permissions, then rerun rb doctor."
+    return "Run rb doctor for environment and knowledge-base diagnostics."
+
+
+def _handle_unexpected_cli_exception(exc: Exception) -> None:
+    """Print a compact actionable error, then optional debug traceback."""
+    print(
+        "Error: "
+        f"{exc.__class__.__name__}: {_one_line_message(exc)}. "
+        f"{_suggestion_for_exception(exc)} "
+        f"Diagnostic log: {_diagnostic_log_path()}",
+        file=sys.stderr,
+    )
+    if _debug_mode_enabled():
+        traceback.print_exception(type(exc), exc, exc.__traceback__, file=sys.stderr)
+    sys.exit(1)
+
+
 def ask_main(argv: Sequence[str] | None = None) -> None:
     """Entry point for ``rb-ask``.
 
@@ -51,13 +135,14 @@ def ask_main(argv: Sequence[str] | None = None) -> None:
     os.environ["WORKSPACE_PATH"] = str(workspace)
 
     try:
-        import asyncio
-        from repobrain_engine.hub.pipeline import ask_pipeline
-
-        print(asyncio.run(ask_pipeline(workspace, args.question)))
+        print(_run_ask_pipeline(workspace, args.question))
+    except KeyboardInterrupt:
+        sys.exit(130)
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
+    except Exception as exc:  # noqa: BLE001 - CLI boundary formats unknown failures
+        _handle_unexpected_cli_exception(exc)
 
 
 def refresh_main(argv: Sequence[str] | None = None) -> None:
@@ -80,21 +165,20 @@ def refresh_main(argv: Sequence[str] | None = None) -> None:
     os.environ["WORKSPACE_PATH"] = str(workspace)
 
     try:
-        import asyncio
-        from repobrain_engine.hub.pipeline import refresh_pipeline
-
-        status = asyncio.run(
-            refresh_pipeline(
-                workspace=workspace,
-                quick=args.quick,
-                failed_only=args.failed_only,
-            )
+        status = _run_refresh_pipeline(
+            workspace=workspace,
+            quick=args.quick,
+            failed_only=args.failed_only,
         )
         if getattr(status, "exit_code", 0) != 0:
             sys.exit(int(status.exit_code))
+    except KeyboardInterrupt:
+        sys.exit(130)
     except ValueError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         sys.exit(1)
+    except Exception as exc:  # noqa: BLE001 - CLI boundary formats unknown failures
+        _handle_unexpected_cli_exception(exc)
 
 
 def mcp_main(argv: Sequence[str] | None = None) -> None:
