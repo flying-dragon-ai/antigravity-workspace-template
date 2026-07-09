@@ -228,7 +228,7 @@ with open("test.txt", "w") as f:
 | `SANDBOX_MAX_OUTPUT_KB` | `10` | Output truncation limit (KB) |
 | `SANDBOX_BLOCK_DANGEROUS_IMPORTS` | `false` | Enable AST import blocking |
 | `SANDBOX_STORE_CODE` | `on_error` | Artifact policy: `always`, `on_error`, `never` |
-| `DOCKER_IMAGE` | `antigravity-sandbox:latest` | Docker runner image |
+| `DOCKER_IMAGE` | `repobrain-sandbox:latest` | Docker runner image |
 | `DOCKER_NETWORK_ENABLED` | `false` | Allow container network access |
 | `DOCKER_CPU_LIMIT` | `0.5` | CPU limit (cores) |
 | `DOCKER_MEMORY_LIMIT` | `256m` | Memory limit |

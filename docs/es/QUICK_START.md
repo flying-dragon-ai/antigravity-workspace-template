@@ -1,6 +1,6 @@
 # 🚀 Guía de Inicio Rápido
 
-Comienza a usar el motor de conocimiento de repositorios de Antigravity en minutos.
+Comienza a usar el motor de conocimiento de repositorios de RepoBrain en minutos.
 
 ## 📋 Requisitos Previos
 
@@ -19,15 +19,15 @@ pip install -e ./cli -e './engine[dev]'
 
 ### 2. Construir la Base de Conocimiento
 ```bash
-ag-refresh --workspace .
+rb-refresh --workspace .
 ```
 
-Este comando escanea el proyecto, construye `.antigravity/` y prepara la base
+Este comando escanea el proyecto, construye `.repobrain/` y prepara la base
 de conocimiento del repositorio para preguntas enrutadas sobre el codebase.
 
 ### 3. Hacer Preguntas sobre el Proyecto
 ```bash
-ag-ask "¿Cómo funciona la autenticación en este proyecto?" --workspace .
+rb-ask "¿Cómo funciona la autenticación en este proyecto?" --workspace .
 ```
 
 El pipeline de preguntas lee el mapa estructural, enruta al agente de módulo
@@ -64,11 +64,11 @@ OPENAI_MODEL=tu-modelo
 
 # Configuración de MCP
 MCP_ENABLED=true
-# Requerido antes de que ag-ask conecte servidores MCP externos
-AG_ALLOW_MCP=true
+# Requerido antes de que rb-ask conecte servidores MCP externos
+RB_ALLOW_MCP=true
 
 # Retrieval graph: off, compact o full
-AG_RETRIEVAL_MODE=compact
+RB_RETRIEVAL_MODE=compact
 
 # Configuración personalizada
 LOG_LEVEL=INFO
@@ -78,7 +78,7 @@ ARTIFACTS_DIR=artifacts
 `ARTIFACTS_DIR` admite rutas absolutas o relativas. Las rutas relativas se
 resuelven desde la raíz del repositorio.
 
-El proyecto está optimizado para workspaces locales confiables. `AG_RETRIEVAL_MODE`
+El proyecto está optimizado para workspaces locales confiables. `RB_RETRIEVAL_MODE`
 usa `compact` por defecto; `full` conserva artefactos de evidencia más ricos. Los
 secretos comunes se redactan antes de escribir archivos del retrieval graph, pero
 los fragmentos aún pueden incluir contenido del repositorio.
@@ -96,17 +96,17 @@ Para reiniciar:
 
 ```bash
 rm -f memory/agent_memory.md memory/agent_summary.md
-ag-refresh --workspace .
+rb-refresh --workspace .
 ```
 
 ## 📁 Referencia de Estructura del Proyecto
 
 ```
-├── cli/                         # CLI ag ligero y plantillas
-├── engine/antigravity_engine/    # Motor de conocimiento, hub, MCP server, sandbox
+├── cli/                         # CLI rb ligero y plantillas
+├── engine/repobrain_engine/    # Motor de conocimiento, hub, MCP server, sandbox
 ├── artifacts/                   # Planes, reportes y salidas de benchmark
 ├── memory/                      # Memoria de interacción en Markdown
-└── .antigravity/                # Base de conocimiento generada en repos destino
+└── .repobrain/                # Base de conocimiento generada en repos destino
 ```
 
 Consulta [Estructura del Proyecto](../README.md#project-structure) para detalles.
@@ -126,7 +126,7 @@ pytest engine/tests/test_hub_pipeline.py -v
 ### Los comandos de conocimiento no se inician
 ```bash
 # Verifica que el CLI del engine esté instalado
-ag-ask --help
+rb-ask --help
 
 # Verifica la configuración OpenAI-compatible
 echo $OPENAI_BASE_URL
@@ -136,10 +136,10 @@ echo $OPENAI_API_KEY
 ### Las herramientas no cargan
 ```bash
 # Verifica que las herramientas del engine sean archivos Python válidos
-ls -la engine/antigravity_engine/tools/
+ls -la engine/repobrain_engine/tools/
 
 # Verifica errores de sintaxis
-python -m py_compile engine/antigravity_engine/tools/*.py
+python -m py_compile engine/repobrain_engine/tools/*.py
 ```
 
 ### Problemas de memoria
@@ -156,7 +156,7 @@ rm -f memory/agent_memory.md memory/agent_summary.md
 Para habilitar servidores MCP:
 
 1. Configura `MCP_ENABLED=true` en `.env`
-2. Configura `AG_ALLOW_MCP=true` solo cuando confíes en los servidores
+2. Configura `RB_ALLOW_MCP=true` solo cuando confíes en los servidores
 3. Configura servidores en `mcp_servers.json`
 4. Vuelve a ejecutar el comando
 

@@ -6,11 +6,11 @@ Engine lacks a focused product identity. The core thesis — "AI Agent's capabil
 
 ## What Changes
 
-- **BREAKING**: Rename `engine/src/` to `engine/antigravity_engine/` — all imports change from `from src.X` to `from antigravity_engine.X`
+- **BREAKING**: Rename `engine/src/` to `engine/repobrain_engine/` — all imports change from `from src.X` to `from repobrain_engine.X`
 - Replace `engine/requirements.txt` with `engine/pyproject.toml` (Hatchling) — engine becomes an installable package with console scripts (`ag-engine`, `ag-hub`)
 - Add Knowledge Hub agents (OpenAI Agent SDK): scanner, refresh pipeline, ask pipeline
-- Add CLI commands: `ag ask`, `ag refresh`, `ag report`, `ag log-decision`, `ag hooks install`
-- Update `.antigravity/` templates with self-contained inline rules
+- Add CLI commands: `rb ask`, `rb refresh`, `rb report`, `rb log-decision`, `rb hooks install`
+- Update `.repobrain/` templates with self-contained inline rules
 - Add IDE config templates: `CLAUDE.md`, `AGENTS.md`, `.windsurfrules`, `.clinerules`, `.github/copilot-instructions.md`
 - Update all documentation (en/zh/es) to reflect new package structure
 

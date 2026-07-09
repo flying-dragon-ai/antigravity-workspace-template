@@ -2,7 +2,7 @@
 
 ## 🪐 Arquitectura: Patrón Router-Worker
 
-El Antigravity Workspace incluye un sistema de swarm de múltiples agentes sofisticado basado en el patrón Router-Worker. Esto permite descomponer tareas complejas y manejarlas con agentes especialistas trabajando en coordinación.
+El RepoBrain Workspace incluye un sistema de swarm de múltiples agentes sofisticado basado en el patrón Router-Worker. Esto permite descomponer tareas complejas y manejarlas con agentes especialistas trabajando en coordinación.
 
 ```mermaid
 graph TD
@@ -67,7 +67,7 @@ Investiga soluciones, recopila contexto y proporciona conocimiento fundamental p
 ### Ejecutar Demo Interactivo
 
 ```bash
-python -m antigravity_engine.swarm_demo
+python -m repobrain_engine.swarm_demo
 ```
 
 Esto inicia un prompt interactivo donde puedes asignar tareas al swarm y ver a especialistas colaborar.
@@ -96,7 +96,7 @@ Esto inicia un prompt interactivo donde puedes asignar tareas al swarm y ver a e
 ### Uso Programático
 
 ```python
-from antigravity_engine.swarm import SwarmOrchestrator
+from repobrain_engine.swarm import SwarmOrchestrator
 
 swarm = SwarmOrchestrator()
 result = swarm.execute("Construye una utilidad de compresión de archivos con manejo de errores")
@@ -105,7 +105,7 @@ print(result)  # cadena final sintetizada
 
 ## 🔧 Configuración
 
-La implementación actual usa el mapa de workers en `antigravity_engine/swarm.py`.
+La implementación actual usa el mapa de workers en `repobrain_engine/swarm.py`.
 No existe todavía un cargador externo `swarm_config.json`.
 
 ## 📊 Logs y trazabilidad
@@ -114,7 +114,7 @@ No existe todavía un cargador externo `swarm_config.json`.
 También puedes inspeccionar los mensajes en memoria:
 
 ```python
-from antigravity_engine.swarm import SwarmOrchestrator
+from repobrain_engine.swarm import SwarmOrchestrator
 
 swarm = SwarmOrchestrator()
 swarm.execute("Construir y revisar una calculadora", verbose=False)

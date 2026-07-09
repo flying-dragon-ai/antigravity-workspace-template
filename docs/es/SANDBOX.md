@@ -17,7 +17,7 @@ confiable. El sandbox local no es una frontera para ejecutar código no confiabl
 ### Ejecución Local (Por Defecto)
 
 ```python
-from antigravity_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.factory import get_sandbox
 
 sandbox = get_sandbox()
 result = sandbox.execute(code="print(2 + 2)", language="python", timeout=30)
@@ -89,7 +89,7 @@ bloquear flujos de desarrollo. Trata esa caída como ejecución local confiable.
 ## Uso desde Código
 
 ```python
-from antigravity_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.factory import get_sandbox
 
 sandbox = get_sandbox()
 result = sandbox.execute(code="print('Hello')", language="python", timeout=30)

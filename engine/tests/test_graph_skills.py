@@ -10,13 +10,13 @@ def _load_skill_tools_module(skill_name: str) -> ModuleType:
     """Load a skill tools module directly from its filesystem path."""
     tools_path = (
         Path(__file__).resolve().parents[1]
-        / "antigravity_engine"
+        / "repobrain_engine"
         / "skills"
         / skill_name
         / "tools.py"
     )
     spec = spec_from_file_location(
-        f"antigravity_engine.skills.{skill_name}.tools",
+        f"repobrain_engine.skills.{skill_name}.tools",
         tools_path,
     )
     if spec is None or spec.loader is None:
@@ -32,15 +32,15 @@ def test_query_graph_returns_relevant_subgraph(
     monkeypatch,
 ) -> None:
     """query_graph should return matching triples and replayable evidence."""
-    graph_dir = tmp_path / ".antigravity" / "graph"
+    graph_dir = tmp_path / ".repobrain" / "graph"
     graph_dir.mkdir(parents=True)
 
     (graph_dir / "nodes.jsonl").write_text(
         "\n".join(
             [
-                '{"schema":"antigravity-graph-node-v1","retrieval_id":"r1","tool_name":"search_code","node":{"id":"function:login","type":"function","label":"login"}}',
-                '{"schema":"antigravity-graph-node-v1","retrieval_id":"r1","tool_name":"search_code","node":{"id":"module:auth","type":"module","label":"auth module"}}',
-                '{"schema":"antigravity-graph-node-v1","retrieval_id":"r1","tool_name":"search_code","node":{"id":"service:session","type":"service","label":"session manager"}}',
+                '{"schema":"repobrain-graph-node-v1","retrieval_id":"r1","tool_name":"search_code","node":{"id":"function:login","type":"function","label":"login"}}',
+                '{"schema":"repobrain-graph-node-v1","retrieval_id":"r1","tool_name":"search_code","node":{"id":"module:auth","type":"module","label":"auth module"}}',
+                '{"schema":"repobrain-graph-node-v1","retrieval_id":"r1","tool_name":"search_code","node":{"id":"service:session","type":"service","label":"session manager"}}',
             ]
         )
         + "\n",
@@ -49,8 +49,8 @@ def test_query_graph_returns_relevant_subgraph(
     (graph_dir / "edges.jsonl").write_text(
         "\n".join(
             [
-                '{"schema":"antigravity-graph-edge-v1","retrieval_id":"r1","tool_name":"search_code","edge":{"from":"function:login","to":"module:auth","type":"defined_in"}}',
-                '{"schema":"antigravity-graph-edge-v1","retrieval_id":"r1","tool_name":"search_code","edge":{"from":"function:login","to":"service:session","type":"calls"}}',
+                '{"schema":"repobrain-graph-edge-v1","retrieval_id":"r1","tool_name":"search_code","edge":{"from":"function:login","to":"module:auth","type":"defined_in"}}',
+                '{"schema":"repobrain-graph-edge-v1","retrieval_id":"r1","tool_name":"search_code","edge":{"from":"function:login","to":"service:session","type":"calls"}}',
             ]
         )
         + "\n",
@@ -70,12 +70,12 @@ def test_query_graph_returns_relevant_subgraph(
 
 def test_query_graph_after_refresh_without_retrieval_graph_jsonl(tmp_path: Path, monkeypatch) -> None:
     """query_graph should fallback to knowledge_graph.json when JSONL files are missing."""
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir(parents=True)
-    (ag_dir / "knowledge_graph.json").write_text(
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir(parents=True)
+    (rb_dir / "knowledge_graph.json").write_text(
         json.dumps(
             {
-                "schema": "antigravity-knowledge-graph-v2",
+                "schema": "repobrain-knowledge-graph-v2",
                 "created_at_utc": "2026-04-09T00:00:00+00:00",
                 "workspace": str(tmp_path.resolve()),
                 "summary": {
@@ -131,8 +131,8 @@ def test_refresh_filesystem_reports_generated_artifacts(
     module = _load_skill_tools_module("knowledge-layer")
 
     async def fake_refresh_pipeline(workspace: Path, quick: bool = False) -> None:
-        ag_dir = workspace / ".antigravity"
-        ag_dir.mkdir(parents=True, exist_ok=True)
+        rb_dir = workspace / ".repobrain"
+        rb_dir.mkdir(parents=True, exist_ok=True)
         for name in (
             "knowledge_graph.json",
             "knowledge_graph.md",
@@ -140,9 +140,9 @@ def test_refresh_filesystem_reports_generated_artifacts(
             "data_overview.md",
             "media_manifest.md",
         ):
-            (ag_dir / name).write_text(name, encoding="utf-8")
+            (rb_dir / name).write_text(name, encoding="utf-8")
 
-    import antigravity_engine.hub.pipeline as pipeline_mod
+    import repobrain_engine.hub.pipeline as pipeline_mod
 
     monkeypatch.setattr(pipeline_mod, "refresh_pipeline", fake_refresh_pipeline)
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
@@ -151,7 +151,7 @@ def test_refresh_filesystem_reports_generated_artifacts(
 
     assert "Knowledge-layer refresh completed" in result
     assert "knowledge_graph.json" in result
-    assert (tmp_path / ".antigravity" / "knowledge_graph.json").exists()
+    assert (tmp_path / ".repobrain" / "knowledge_graph.json").exists()
 
 
 def test_ask_filesystem_delegates_to_pipeline(tmp_path: Path, monkeypatch) -> None:
@@ -163,7 +163,7 @@ def test_ask_filesystem_delegates_to_pipeline(tmp_path: Path, monkeypatch) -> No
         assert question == "What changed?"
         return "graph-aware answer"
 
-    import antigravity_engine.hub.pipeline as pipeline_mod
+    import repobrain_engine.hub.pipeline as pipeline_mod
 
     monkeypatch.setattr(pipeline_mod, "ask_pipeline", fake_ask_pipeline)
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))

@@ -5,7 +5,7 @@ This document describes the shared semantic layer used by
 
 ## Semantic IR
 
-The semantic layer lives under `engine/antigravity_engine/hub/`:
+The semantic layer lives under `engine/repobrain_engine/hub/`:
 
 - `semantic_index.py`
 - `language_adapters/base.py`

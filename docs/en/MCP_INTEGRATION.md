@@ -14,11 +14,11 @@ The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) is a standa
 ### 1. Enable MCP in `.env`
 ```bash
 MCP_ENABLED=true
-AG_ALLOW_MCP=true
+RB_ALLOW_MCP=true
 ```
 
 `MCP_ENABLED=true` makes configured MCP servers available to the engine.
-`AG_ALLOW_MCP=true` is the explicit opt-in that lets `ag-ask` auto-connect
+`RB_ALLOW_MCP=true` is the explicit opt-in that lets `rb-ask` auto-connect
 external MCP servers. Leave it unset unless you trust the configured servers.
 
 ### 2. Configure Servers in `mcp_servers.json`
@@ -49,7 +49,7 @@ external MCP servers. Leave it unset unless you trust the configured servers.
 
 ### 3. Query the Knowledge Hub
 ```bash
-ag-ask "What MCP tools are available?" --workspace .
+rb-ask "What MCP tools are available?" --workspace .
 ```
 
 When both flags are enabled, the ask pipeline will:
@@ -62,7 +62,7 @@ When both flags are enabled, the ask pipeline will:
 
 ```mermaid
 graph TD
-    Agent[🤖 Antigravity Agent] --> LocalTools[🛠️ Local Tools]
+    Agent[🤖 RepoBrain Agent] --> LocalTools[🛠️ Local Tools]
     Agent --> MCPManager[🔌 MCP Client Manager]
     MCPManager --> Server1[📡 GitHub MCP]
     MCPManager --> Server2[📡 Database MCP]
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
 ### Register Custom Server
 
-1. Save your server to `antigravity_engine/tools/my_server.py`
+1. Save your server to `repobrain_engine/tools/my_server.py`
 2. Add to `mcp_servers.json`:
 
 ```json
@@ -141,12 +141,12 @@ if __name__ == "__main__":
   "name": "my-analysis",
   "transport": "stdio",
   "command": "python",
-  "args": ["antigravity_engine/tools/my_server.py"],
+  "args": ["repobrain_engine/tools/my_server.py"],
   "enabled": true
 }
 ```
 
-3. Re-run `ag-ask`—your new tools are available.
+3. Re-run `rb-ask`—your new tools are available.
 
 ## 🔐 Security Considerations
 
@@ -179,7 +179,7 @@ For untrusted servers, consider:
 ## 🧪 Testing MCP Integration
 
 ```python
-from antigravity_engine.mcp_client import MCPClientManagerSync
+from repobrain_engine.mcp_client import MCPClientManagerSync
 
 manager = MCPClientManagerSync(config_path="mcp_servers.json")
 manager.initialize()
@@ -197,7 +197,7 @@ manager.shutdown()
 ### Server won't connect
 ```bash
 # Check if server process starts
-python antigravity_engine/tools/my_server.py
+python repobrain_engine/tools/my_server.py
 
 # Verify command exists
 which npx
@@ -206,7 +206,7 @@ which npx
 ### Tools not appearing
 ```bash
 # Re-run the ask pipeline
-ag-ask "What MCP tools are available?" --workspace .
+rb-ask "What MCP tools are available?" --workspace .
 
 # Verify server command exists
 which npx

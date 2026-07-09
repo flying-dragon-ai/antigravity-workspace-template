@@ -28,7 +28,7 @@ The agent remains agnostic; runtime selection happens via configuration (`SANDBO
 ## Why This Approach
 
 ### Preserves Zero-Config
-- `git clone` + `pip install` + `ag-refresh` still works immediately
+- `git clone` + `pip install` + `rb-refresh` still works immediately
 - No daemon requirements, no image pulls by default
 - Microsandbox is optional for users who need stronger isolation
 

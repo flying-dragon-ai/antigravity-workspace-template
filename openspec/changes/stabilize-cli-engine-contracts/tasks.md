@@ -1,8 +1,8 @@
 ## 1. Command Contract
 - [x] 1.1 Replace CLI runtime calls to `ag-hub` and `ag-engine` with canonical
       engine entrypoints.
-- [x] 1.2 Implement a shared engine dispatcher for `python -m antigravity_engine`
-      and `python -m antigravity_engine.hub`.
+- [x] 1.2 Implement a shared engine dispatcher for `python -m repobrain_engine`
+      and `python -m repobrain_engine.hub`.
 - [x] 1.3 Remove repo-managed references to unsupported command names from
       runtime messages and inline guidance.
 
@@ -18,7 +18,7 @@
       install context.
 - [x] 3.2 Extend GitHub Actions to run both `engine/tests/` and `cli/tests/`.
 - [x] 3.3 Add command-smoke verification for supported entrypoints instead of
-      verifying only `ag version`.
+      verifying only `rb version`.
 
 ## 4. Documentation
 - [x] 4.1 Rewrite README install/run sections to reflect the split-package

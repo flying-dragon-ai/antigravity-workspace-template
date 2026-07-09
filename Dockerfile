@@ -26,4 +26,4 @@ RUN chown -R appuser:appuser /app /home/appuser
 USER appuser
 
 # Run the knowledge-hub MCP server against the mounted workspace
-CMD ["ag-mcp", "--workspace", "/app"]
+CMD ["rb-mcp", "--workspace", "/app"]

@@ -1,6 +1,6 @@
 import json
 
-from antigravity_engine.memory import MemoryManager
+from repobrain_engine.memory import MemoryManager
 
 
 def test_context_window_without_overflow(tmp_path):

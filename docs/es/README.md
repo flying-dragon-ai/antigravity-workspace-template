@@ -25,14 +25,14 @@ de archivos.
 La resumización recursiva comprime automáticamente el historial—los límites de contexto se acabaron.
 
 ### 🛠️ Protocolo Universal de Herramientas
-Patrón genérico ReAct. Solo registra cualquier función Python en `antigravity_engine/tools/`, y el Agente aprende a usarla automáticamente.
+Patrón genérico ReAct. Solo registra cualquier función Python en `repobrain_engine/tools/`, y el Agente aprende a usarla automáticamente.
 
 ### 🎓 Inicialización de Proyectos con Skills
 Usa la skill integrada `agent-repo-init` para crear un repositorio limpio desde esta plantilla.
 Soporta modos `quick` y `full`, y expone un script portable en `skills/agent-repo-init/scripts/init_project.py`.
 
 ### ⚡️ Soporte Multi-Modelo
-Usa el endpoint OpenAI-compatible elegido por `ag-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o personalizado).
+Usa el endpoint OpenAI-compatible elegido por `rb-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o personalizado).
 
 ### 🔌 Soporte de LLM Externo
 Llama cualquier API compatible con OpenAI mediante la herramienta integrada `call_openai_chat` (soporta OpenAI, Azure, Ollama).
@@ -50,18 +50,18 @@ Llama cualquier API compatible con OpenAI mediante la herramienta integrada `cal
 | Usar múltiples agentes | [Protocolo de Swarm](SWARM_PROTOCOL.md) |
 | Entender la arquitectura | [Filosofía del Proyecto](PHILOSOPHY.md) |
 | Ver qué viene | [Hoja de Ruta de Desarrollo](ROADMAP.md) |
-| Consultar contexto del proyecto | `ag-ask "pregunta"` / `ag-refresh` |
+| Consultar contexto del proyecto | `rb-ask "pregunta"` / `rb-refresh` |
 
 ## 📊 Estructura del Proyecto
 
 ```
 .
-├── .antigravity/        # 🛸 Base de conocimiento generada
+├── .repobrain/        # 🛸 Base de conocimiento generada
 ├── .context/            # 📚 Contexto adicional opcional
 ├── artifacts/           # 📂 Outputs del agente (planes, logs, visuales)
-├── antigravity_engine/  # 🧠 Código fuente del agente
+├── repobrain_engine/  # 🧠 Código fuente del agente
 │   ├── hub/             # Knowledge Hub (escáner, agentes, pipeline)
-│   ├── mcp_server.py    # Servidor MCP (ag-mcp)
+│   ├── mcp_server.py    # Servidor MCP (rb-mcp)
 │   ├── memory.py        # Memoria Markdown
 │   ├── mcp_client.py    # Integración de MCP
 │   ├── swarm.py         # Orquestación multi-agente
@@ -103,7 +103,7 @@ Llama cualquier API compatible con OpenAI mediante la herramienta integrada `cal
 
 ## 🔗 Recursos Externos
 
-- 🌐 [Docs Oficial de RepoBrain](https://docs.antigravity.dev/)
+- 🌐 [Docs Oficial de RepoBrain](https://docs.repobrain.dev/)
 - 📘 [Especificación del Protocolo MCP](https://modelcontextprotocol.io/)
 - 🐍 [Documentación de Python](https://docs.python.org/3/)
 - 🐳 [Documentación de Docker](https://docs.docker.com/)
@@ -112,10 +112,10 @@ Llama cualquier API compatible con OpenAI mediante la herramienta integrada `cal
 ## ❓ Preguntas Frecuentes
 
 **P: ¿Qué proveedores LLM están soportados?**
-R: Ejecuta `ag-setup` y elige OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o un endpoint OpenAI-compatible personalizado. El comando escribe `OPENAI_BASE_URL`, `OPENAI_API_KEY` y `OPENAI_MODEL` en `.env`.
+R: Ejecuta `rb-setup` y elige OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o un endpoint OpenAI-compatible personalizado. El comando escribe `OPENAI_BASE_URL`, `OPENAI_API_KEY` y `OPENAI_MODEL` en `.env`.
 
 **P: ¿Cómo agrego una herramienta personalizada?**
-R: ¡Coloca un archivo Python en `antigravity_engine/tools/` con tus funciones. Sin registro necesario! Ver [Características Zero-Config](ZERO_CONFIG.md).
+R: ¡Coloca un archivo Python en `repobrain_engine/tools/` con tus funciones. Sin registro necesario! Ver [Características Zero-Config](ZERO_CONFIG.md).
 
 **P: ¿Cómo inicializo un proyecto nuevo desde esta plantilla?**
 R: Usa la skill `agent-repo-init` en modo `quick` o `full`, o ejecuta `skills/agent-repo-init/scripts/init_project.py`. Ver [Características Zero-Config](ZERO_CONFIG.md).
@@ -130,13 +130,13 @@ R: ¡Sí! Usa el sistema de swarm. Ver [Protocolo de Swarm](SWARM_PROTOCOL.md).
 R: ¡Crea archivos en directorio `.context/`. Se cargan automáticamente! Ver [Características Zero-Config](ZERO_CONFIG.md).
 
 **P: ¿Qué es el Knowledge Hub?**
-R: El Knowledge Hub (`ag-ask`, `ag-refresh`, `ag report`, `ag log-decision`) mantiene contexto del proyecto en `.antigravity/`, haciendo todos los IDEs de IA más inteligentes. Ver el [README](../../README.md) principal.
+R: El Knowledge Hub (`rb-ask`, `rb-refresh`, `rb report`, `rb log-decision`) mantiene contexto del proyecto en `.repobrain/`, haciendo todos los IDEs de IA más inteligentes. Ver el [README](../../README.md) principal.
 
 **P: ¿Qué lenguajes soporta la detección de módulos?**
 R: Python, TypeScript/JavaScript, Go, Rust, Java, Kotlin, Swift, C/C++ y C#. El escáner usa una lista unificada de extensiones para detectar módulos en todos los lenguajes soportados.
 
 **P: ¿Qué son los facts estructurados?**
-R: Desde abril 2026, `ag-refresh` produce claims JSON estructurados con evidencia de fuente (ruta de archivo + rango de líneas) por módulo. `ag-ask` verifica estos claims contra el fuente antes de responder, reduciendo alucinaciones y mejorando la trazabilidad.
+R: Desde abril 2026, `rb-refresh` produce claims JSON estructurados con evidencia de fuente (ruta de archivo + rango de líneas) por módulo. `rb-ask` verifica estos claims contra el fuente antes de responder, reduciendo alucinaciones y mejorando la trazabilidad.
 
 ## 🤝 Contribuyendo
 
@@ -166,7 +166,7 @@ Bienvenemos contribuciones en todos los niveles:
 
 - [@devalexanderdaza](https://github.com/devalexanderdaza) — Primer contribuidor. Implementó herramientas de demo, mejoró la funcionalidad del agente, ayudó a definir la hoja de ruta inicial y completó la integración MCP.
 - [@Subham-KRLX](https://github.com/Subham-KRLX) — Añadió carga dinámica de herramientas y contexto (Fixes #4) y el protocolo de clúster multi‑agente (Fixes #6).
-- [@SunkenCost](https://github.com/SunkenCost) — Comando `ag clean` y protección de entrada `__main__` (#37).
+- [@SunkenCost](https://github.com/SunkenCost) — Comando `rb clean` y protección de entrada `__main__` (#37).
 - [@aravindhbalaji04](https://github.com/aravindhbalaji04) — Superficie de instrucciones unificada en torno a `AGENTS.md` (#41).
 - [@xiaolai](https://github.com/xiaolai) — Aportó feedback de auditoría con [NLPM](https://github.com/xiaolai/nlpm-for-claude), mejorando frontmatter de skills e higiene de dependencias (#51, #52, #53).
 

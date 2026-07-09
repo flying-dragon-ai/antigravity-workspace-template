@@ -5,8 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from antigravity_engine.hub import _providers
-from antigravity_engine.hub._providers import (
+from repobrain_engine.hub import _providers
+from repobrain_engine.hub._providers import (
     ProviderConfig,
     get_provider_chain,
     is_retryable_provider_error,
@@ -51,7 +51,7 @@ def test_is_retryable_provider_error_false(exc: Exception) -> None:
 
 
 def test_get_provider_chain_without_fallbacks_is_single(monkeypatch) -> None:
-    monkeypatch.delenv("AG_LLM_FALLBACKS", raising=False)
+    monkeypatch.delenv("RB_LLM_FALLBACKS", raising=False)
     chain = get_provider_chain(_settings())
     assert len(chain) == 1
     assert chain[0].label == "primary"
@@ -61,7 +61,7 @@ def test_get_provider_chain_without_fallbacks_is_single(monkeypatch) -> None:
 
 def test_get_provider_chain_parses_and_inherits(monkeypatch) -> None:
     monkeypatch.setenv(
-        "AG_LLM_FALLBACKS",
+        "RB_LLM_FALLBACKS",
         json.dumps(
             [
                 {
@@ -86,13 +86,13 @@ def test_get_provider_chain_parses_and_inherits(monkeypatch) -> None:
 
 
 def test_get_provider_chain_degrades_on_bad_json(monkeypatch) -> None:
-    monkeypatch.setenv("AG_LLM_FALLBACKS", "not json {{")
+    monkeypatch.setenv("RB_LLM_FALLBACKS", "not json {{")
     chain = get_provider_chain(_settings())
     assert len(chain) == 1
 
 
 def test_get_provider_chain_degrades_on_non_array(monkeypatch) -> None:
-    monkeypatch.setenv("AG_LLM_FALLBACKS", json.dumps({"model": "x"}))
+    monkeypatch.setenv("RB_LLM_FALLBACKS", json.dumps({"model": "x"}))
     chain = get_provider_chain(_settings())
     assert len(chain) == 1
 

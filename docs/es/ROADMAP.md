@@ -2,8 +2,8 @@
 
 ## Visión: Capa de Conocimiento de Repositorios con Evidencia
 
-Antigravity converge hacia un motor portable de conocimiento de repositorios:
-refresca un workspace en `.antigravity/`, responde preguntas con evidencia de
+RepoBrain converge hacia un motor portable de conocimiento de repositorios:
+refresca un workspace en `.repobrain/`, responde preguntas con evidencia de
 código y expone la misma capa mediante plugins, CLI y MCP.
 
 ## Estado Actual
@@ -25,14 +25,14 @@ código y expone la misma capa mediante plugins, CLI y MCP.
 
 - Sandbox: frontera local confiable, opt-in a Microsandbox/E2B y warnings de fallback.
 - Retrieval graph: mantener experiencia de desarrollo con redacción de secretos y documentación de riesgos.
-- MCP: conservar comodidad opt-in y aclarar `AG_ALLOW_MCP`, entorno y permisos de servidores externos.
-- Instalación y documentación: sostener la línea `ag-setup -> ag-refresh -> ag-ask`.
+- MCP: conservar comodidad opt-in y aclarar `RB_ALLOW_MCP`, entorno y permisos de servidores externos.
+- Instalación y documentación: sostener la línea `rb-setup -> rb-refresh -> rb-ask`.
 - Contract checks: verificar scripts de instalación, docs de sandbox, modelo por defecto y quick starts.
 
 ## Casos de Uso
 
-- Onboarding: ejecutar `ag-refresh` y preguntar con `ag-ask`, recibiendo evidencia de archivos.
-- Colaboración multi-IDE: Claude Code, Codex CLI, Cursor y otros usan la misma `.antigravity/`.
+- Onboarding: ejecutar `rb-refresh` y preguntar con `rb-ask`, recibiendo evidencia de archivos.
+- Colaboración multi-IDE: Claude Code, Codex CLI, Cursor y otros usan la misma `.repobrain/`.
 - Publicación segura: el repo documenta límites locales confiables, MCP y riesgos del retrieval graph.
 
 ---

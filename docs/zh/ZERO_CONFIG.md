@@ -2,27 +2,27 @@
 
 ## 🎯 零配置理念
 
-**告别重复配置。** Antigravity 会自动发现工具与上下文，无需手动注册。
+**告别重复配置。** RepoBrain 会自动发现工具与上下文，无需手动注册。
 
 ## 🛠️ 自动发现工具
 
-把任意 Python 文件放进 `antigravity_engine/tools/`，Agent 会立刻识别其顶层函数——无需 import、无需登记。
+把任意 Python 文件放进 `repobrain_engine/tools/`，Agent 会立刻识别其顶层函数——无需 import、无需登记。
 
 ### 工作方式
-1) 🔍 扫描 `antigravity_engine/tools/` 下所有 `.py`  
+1) 🔍 扫描 `repobrain_engine/tools/` 下所有 `.py`  
 2) 📋 索引顶层函数并读取 docstring  
 3) ✅ 注册公开函数为可调用工具  
 
 ### 示例
 ```python
-# antigravity_engine/tools/sentiment_analyzer.py
+# repobrain_engine/tools/sentiment_analyzer.py
 def analyze_sentiment(text: str) -> dict:
     """情感分析：返回分数与标签。"""
     if len(text) > 10:
         return {"score": 0.8, "label": "positive"}
     return {"score": 0.3, "label": "neutral"}
 ```
-运行一次 `ag-refresh --workspace .` 后即可在对话里直接使用 `analyze_sentiment()`。
+运行一次 `rb-refresh --workspace .` 后即可在对话里直接使用 `analyze_sentiment()`。
 
 ### 编写建议
 - 必写 docstring，说明参数/返回值/边界。  
@@ -31,14 +31,14 @@ def analyze_sentiment(text: str) -> dict:
 
 ## 🎓 自动发现 Skill
 
-把一个技能目录放到 `antigravity_engine/skills/` 下（包含 `SKILL.md`，可选 `tools.py`），Agent 会自动加载：
+把一个技能目录放到 `repobrain_engine/skills/` 下（包含 `SKILL.md`，可选 `tools.py`），Agent 会自动加载：
 - `SKILL.md` 内容会注入提示上下文
 - `tools.py` 中的公开函数会注册为可调用工具
 
 ### 内置示例：`agent-repo-init`
 
 当前仓库包含：
-- `antigravity_engine/skills/agent-repo-init/`：Agent 内部可调用 skill（`init_agent_repo`）
+- `repobrain_engine/skills/agent-repo-init/`：Agent 内部可调用 skill（`init_agent_repo`）
 - `skills/agent-repo-init/`：可移植 skill 包（脚本入口）
 
 `agent-repo-init` 支持：
@@ -71,7 +71,7 @@ def analyze_sentiment(text: str) -> dict:
 
 **场景**：构建数据分析工具  
 - 上下文：`.context/database_schema.md` 记录表结构  
-- 工具：`antigravity_engine/tools/db_query.py` 提供查询函数  
+- 工具：`repobrain_engine/tools/db_query.py` 提供查询函数  
 - 对话：直接让 Agent“查找最近一月创建的用户”，它既“知道”结构，也“能”查询。
 
 ## 🎓 最佳实践
@@ -83,9 +83,9 @@ def analyze_sentiment(text: str) -> dict:
 
 **工具没加载？**
 ```bash
-ls -la antigravity_engine/tools/
-python -m py_compile antigravity_engine/tools/my_tool.py
-ag-refresh --workspace .  # 重新刷新知识库
+ls -la repobrain_engine/tools/
+python -m py_compile repobrain_engine/tools/my_tool.py
+rb-refresh --workspace .  # 重新刷新知识库
 ```
 
 **上下文未注入？**
@@ -93,7 +93,7 @@ ag-refresh --workspace .  # 重新刷新知识库
 ls -la .context/
 cat .context/your_file.md
 du -sh .context/
-ag-refresh --workspace .  # 重新刷新知识库
+rb-refresh --workspace .  # 重新刷新知识库
 ```
 
 ## 🚀 进阶

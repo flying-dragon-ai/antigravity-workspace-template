@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 from typing import Dict, Any
 
 # Test configuration
-from antigravity_engine.config import settings, MCPServerConfig
+from repobrain_engine.config import settings, MCPServerConfig
 
 
 class TestMCPServerConfig:
@@ -124,7 +124,7 @@ class TestMCPClientManager:
     def test_import_mcp_client(self):
         """Test that mcp_client module can be imported."""
         try:
-            from antigravity_engine.mcp_client import MCPClientManager, MCPTool, MCPServerConnection
+            from repobrain_engine.mcp_client import MCPClientManager, MCPTool, MCPServerConnection
 
             assert MCPClientManager is not None
             assert MCPTool is not None
@@ -135,7 +135,7 @@ class TestMCPClientManager:
 
     def test_mcp_tool_dataclass(self):
         """Test MCPTool dataclass."""
-        from antigravity_engine.mcp_client import MCPTool
+        from repobrain_engine.mcp_client import MCPTool
 
         tool = MCPTool(
             name="test_tool",
@@ -151,7 +151,7 @@ class TestMCPClientManager:
 
     def test_mcp_server_connection_dataclass(self):
         """Test MCPServerConnection dataclass."""
-        from antigravity_engine.mcp_client import MCPServerConnection
+        from repobrain_engine.mcp_client import MCPServerConnection
 
         config = MCPServerConfig(name="test", transport="stdio", command="echo")
         connection = MCPServerConnection(config=config)
@@ -167,7 +167,7 @@ class TestMCPTools:
 
     def test_import_mcp_tools(self):
         """Test that mcp_tools module can be imported."""
-        from antigravity_engine.tools.mcp_tools import (
+        from repobrain_engine.tools.mcp_tools import (
             list_mcp_servers,
             list_mcp_tools,
             get_mcp_tool_help,
@@ -181,7 +181,7 @@ class TestMCPTools:
 
     def test_list_mcp_servers_no_manager(self):
         """Test list_mcp_servers when manager is not initialized."""
-        from antigravity_engine.tools.mcp_tools import list_mcp_servers, _set_mcp_manager
+        from repobrain_engine.tools.mcp_tools import list_mcp_servers, _set_mcp_manager
 
         # Ensure no manager is set
         _set_mcp_manager(None)
@@ -191,7 +191,7 @@ class TestMCPTools:
 
     def test_list_mcp_tools_no_manager(self):
         """Test list_mcp_tools when manager is not initialized."""
-        from antigravity_engine.tools.mcp_tools import list_mcp_tools, _set_mcp_manager
+        from repobrain_engine.tools.mcp_tools import list_mcp_tools, _set_mcp_manager
 
         _set_mcp_manager(None)
 
@@ -200,7 +200,7 @@ class TestMCPTools:
 
     def test_get_mcp_tool_help_no_manager(self):
         """Test get_mcp_tool_help when manager is not initialized."""
-        from antigravity_engine.tools.mcp_tools import get_mcp_tool_help, _set_mcp_manager
+        from repobrain_engine.tools.mcp_tools import get_mcp_tool_help, _set_mcp_manager
 
         _set_mcp_manager(None)
 
@@ -209,7 +209,7 @@ class TestMCPTools:
 
     def test_mcp_health_check_no_manager(self):
         """Test mcp_health_check when manager is not initialized."""
-        from antigravity_engine.tools.mcp_tools import mcp_health_check, _set_mcp_manager
+        from repobrain_engine.tools.mcp_tools import mcp_health_check, _set_mcp_manager
 
         _set_mcp_manager(None)
 
@@ -222,7 +222,7 @@ class TestMCPToolsMocked:
 
     def test_list_mcp_servers_with_mock_manager(self):
         """Test list_mcp_servers with a mocked manager."""
-        from antigravity_engine.tools.mcp_tools import list_mcp_servers, _set_mcp_manager
+        from repobrain_engine.tools.mcp_tools import list_mcp_servers, _set_mcp_manager
 
         # Create mock manager
         mock_manager = MagicMock()
@@ -259,8 +259,8 @@ class TestMCPToolsMocked:
 
     def test_list_mcp_tools_with_mock_manager(self):
         """Test list_mcp_tools with mocked tools."""
-        from antigravity_engine.tools.mcp_tools import list_mcp_tools, _set_mcp_manager
-        from antigravity_engine.mcp_client import MCPTool
+        from repobrain_engine.tools.mcp_tools import list_mcp_tools, _set_mcp_manager
+        from repobrain_engine.mcp_client import MCPTool
 
         mock_tool = MCPTool(
             name="create_issue",
@@ -293,7 +293,7 @@ class TestMCPClientManagerConfigLoading:
 
     def test_load_config_from_valid_file(self):
         """Test loading configuration from valid JSON file."""
-        from antigravity_engine.mcp_client import MCPClientManager
+        from repobrain_engine.mcp_client import MCPClientManager
 
         manager = MCPClientManager(config_path="mcp_servers.json")
         configs = manager._load_server_configs()
@@ -303,7 +303,7 @@ class TestMCPClientManagerConfigLoading:
 
     def test_load_config_from_nonexistent_file(self):
         """Test loading configuration from non-existent file."""
-        from antigravity_engine.mcp_client import MCPClientManager
+        from repobrain_engine.mcp_client import MCPClientManager
 
         manager = MCPClientManager(config_path="nonexistent.json")
         configs = manager._load_server_configs()
@@ -313,7 +313,7 @@ class TestMCPClientManagerConfigLoading:
     def test_load_config_filters_disabled_servers(self):
         """Test that disabled servers are filtered out."""
         import tempfile
-        from antigravity_engine.mcp_client import MCPClientManager
+        from repobrain_engine.mcp_client import MCPClientManager
 
         # Create temp config with one enabled, one disabled
         config_data = {
@@ -352,7 +352,7 @@ class TestMCPToolWrapper:
 
     def test_tool_wrapper_metadata(self):
         """Test that tool wrappers have correct metadata."""
-        from antigravity_engine.mcp_client import MCPClientManager, MCPServerConnection, MCPTool
+        from repobrain_engine.mcp_client import MCPClientManager, MCPServerConnection, MCPTool
 
         config = MCPServerConfig(name="test", transport="stdio", command="echo")
         connection = MCPServerConnection(config=config, connected=True)
@@ -380,7 +380,7 @@ class TestMCPShutdown:
     @pytest.mark.asyncio
     async def test_shutdown_skips_missing_context_managers(self):
         """Shutdown should not warn when optional context managers are absent."""
-        from antigravity_engine.mcp_client import MCPClientManager, MCPServerConnection
+        from repobrain_engine.mcp_client import MCPClientManager, MCPServerConnection
 
         manager = MCPClientManager()
         config = MCPServerConfig(name="test", transport="stdio", command="echo")

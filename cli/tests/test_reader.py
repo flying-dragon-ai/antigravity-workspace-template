@@ -1,23 +1,23 @@
-"""Tests for ag_cli.reader module."""
+"""Tests for rb_cli.reader module."""
 from pathlib import Path
 
-from ag_cli.reader import append_decision, append_to_memory, read_antigravity_context
+from rb_cli.reader import append_decision, append_to_memory, read_repobrain_context
 
 
-def test_read_antigravity_context_empty(tmp_path: Path) -> None:
-    """Returns empty dict when .antigravity/ does not exist."""
-    assert read_antigravity_context(tmp_path) == {}
+def test_read_repobrain_context_empty(tmp_path: Path) -> None:
+    """Returns empty dict when .repobrain/ does not exist."""
+    assert read_repobrain_context(tmp_path) == {}
 
 
-def test_read_antigravity_context_reads_md(tmp_path: Path) -> None:
-    """Reads .md files from .antigravity/ directory."""
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir()
-    (ag_dir / "rules.md").write_text("# Rules\nBe nice.", encoding="utf-8")
-    (ag_dir / "conventions.md").write_text("# Conventions", encoding="utf-8")
-    (ag_dir / "not-md.txt").write_text("ignored", encoding="utf-8")
+def test_read_repobrain_context_reads_md(tmp_path: Path) -> None:
+    """Reads .md files from .repobrain/ directory."""
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
+    (rb_dir / "rules.md").write_text("# Rules\nBe nice.", encoding="utf-8")
+    (rb_dir / "conventions.md").write_text("# Conventions", encoding="utf-8")
+    (rb_dir / "not-md.txt").write_text("ignored", encoding="utf-8")
 
-    result = read_antigravity_context(tmp_path)
+    result = read_repobrain_context(tmp_path)
     assert "rules.md" in result
     assert "conventions.md" in result
     assert "not-md.txt" not in result
@@ -37,7 +37,7 @@ def test_append_to_memory_appends(tmp_path: Path) -> None:
     """Appends multiple entries to the same file."""
     append_to_memory(tmp_path, "reports.md", "First")
     append_to_memory(tmp_path, "reports.md", "Second")
-    content = (tmp_path / ".antigravity" / "memory" / "reports.md").read_text(encoding="utf-8")
+    content = (tmp_path / ".repobrain" / "memory" / "reports.md").read_text(encoding="utf-8")
     assert "First" in content
     assert "Second" in content
 

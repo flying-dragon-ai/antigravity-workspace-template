@@ -16,7 +16,7 @@ local sandbox is not a boundary for untrusted code.
 ### Local Execution (Default)
 
 ```python
-from antigravity_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.factory import get_sandbox
 
 sandbox = get_sandbox()
 result = sandbox.execute(code="print(2 + 2)", language="python", timeout=30)
@@ -86,7 +86,7 @@ execution.
 ## Using the Sandbox in Code
 
 ```python
-from antigravity_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.factory import get_sandbox
 
 sandbox = get_sandbox()
 result = sandbox.execute(code="print('Hello')", language="python", timeout=30)

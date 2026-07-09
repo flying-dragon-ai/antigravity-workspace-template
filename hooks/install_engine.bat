@@ -12,6 +12,6 @@ if not errorlevel 1 (
     py "%~dp0install_engine.py"
     exit /b %errorlevel%
 )
-echo [antigravity] Python is required but neither 'python' nor 'py' was found on PATH. 1>&2
+echo [repobrain] Python is required but neither 'python' nor 'py' was found on PATH. 1>&2
 echo Install Python 3.10+ from https://www.python.org/downloads/ and re-run. 1>&2
 exit /b 1

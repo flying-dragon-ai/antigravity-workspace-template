@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Antigravity repository knowledge engine installer for Linux/macOS.
+# RepoBrain repository knowledge engine installer for Linux/macOS.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
-echo "Antigravity Repository Knowledge Engine - Installer"
+echo "RepoBrain Repository Knowledge Engine - Installer"
 echo "==================================================="
 echo ""
 
@@ -49,14 +49,14 @@ source venv/bin/activate
 echo "Upgrading pip..."
 python -m pip install --upgrade pip --quiet
 
-echo "Installing Antigravity CLI and engine..."
+echo "Installing RepoBrain CLI and engine..."
 python -m pip install -e ./cli -e './engine[dev]' --quiet
 echo "Dependencies installed"
 
 echo "Setting up local configuration..."
 if [ ! -f ".env" ]; then
     cat > .env << 'EOF'
-# Antigravity local configuration
+# RepoBrain local configuration
 # This file is for trusted local development. Keep real credentials out of git.
 
 # OpenAI-compatible endpoint
@@ -65,7 +65,7 @@ OPENAI_API_KEY=your-key
 OPENAI_MODEL=your-model
 
 # Retrieval graph mode: off, compact, or full.
-AG_RETRIEVAL_MODE=compact
+RB_RETRIEVAL_MODE=compact
 EOF
     echo "Created .env file"
 else
@@ -76,20 +76,20 @@ if [ -f ".gitignore" ] && ! grep -qxF ".env" .gitignore; then
     printf '\n.env\n' >> .gitignore
 fi
 
-mkdir -p artifacts .antigravity
+mkdir -p artifacts .repobrain
 
 echo ""
 echo "==================================================="
 echo "Installation complete."
 echo ""
 echo "Next steps:"
-echo "1. Run /ag-setup in your agent host, or configure OPENAI_* in .env."
+echo "1. Run /rb-setup in your agent host, or configure OPENAI_* in .env."
 echo "2. Activate the virtual environment:"
 echo "   source venv/bin/activate"
 echo "3. Build repository knowledge:"
-echo "   ag-refresh --workspace ."
+echo "   rb-refresh --workspace ."
 echo "4. Ask a repository question:"
-echo "   ag-ask \"How does this project work?\" --workspace ."
+echo "   rb-ask \"How does this project work?\" --workspace ."
 echo ""
 echo "Documentation: docs/en/QUICK_START.md"
 echo "==================================================="

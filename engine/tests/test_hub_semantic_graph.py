@@ -5,11 +5,11 @@ import asyncio
 import json
 from pathlib import Path
 
-from antigravity_engine.hub.knowledge_graph import build_knowledge_graph
-from antigravity_engine.hub.module_grouping import group_files, load_module_files
-from antigravity_engine.hub.refresh_pipeline import refresh_pipeline
-from antigravity_engine.hub.scanner import full_scan
-from antigravity_engine.hub.semantic_index import analyze_source_file
+from repobrain_engine.hub.knowledge_graph import build_knowledge_graph
+from repobrain_engine.hub.module_grouping import group_files, load_module_files
+from repobrain_engine.hub.refresh_pipeline import refresh_pipeline
+from repobrain_engine.hub.scanner import full_scan
+from repobrain_engine.hub.semantic_index import analyze_source_file
 
 
 def test_python_semantic_graph_preserves_imports_and_definitions(tmp_path: Path) -> None:
@@ -380,13 +380,13 @@ def test_realistic_go_refresh_pipeline_emits_semantic_diagnostics(
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
-    monkeypatch.setenv("AG_REFRESH_SCAN_ONLY", "1")
+    monkeypatch.setenv("RB_REFRESH_SCAN_ONLY", "1")
 
     status = asyncio.run(refresh_pipeline(tmp_path, quick=False))
-    graph = json.loads((tmp_path / ".antigravity" / "knowledge_graph.json").read_text(encoding="utf-8"))
+    graph = json.loads((tmp_path / ".repobrain" / "knowledge_graph.json").read_text(encoding="utf-8"))
 
     assert status.overall_status == "success"
-    assert graph["schema"] == "antigravity-knowledge-graph-v2"
+    assert graph["schema"] == "repobrain-knowledge-graph-v2"
     assert graph["summary"]["semantic_files"] == 6
     assert graph["summary"]["semantic_files_by_language"] == {"Go": 6}
     assert graph["summary"]["semantic_adapters"] == {"go": 6}
@@ -415,10 +415,10 @@ def test_mixed_language_refresh_pipeline_normalizes_nested_go_modules(
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
-    monkeypatch.setenv("AG_REFRESH_SCAN_ONLY", "1")
+    monkeypatch.setenv("RB_REFRESH_SCAN_ONLY", "1")
 
     status = asyncio.run(refresh_pipeline(tmp_path, quick=False))
-    graph = json.loads((tmp_path / ".antigravity" / "knowledge_graph.json").read_text(encoding="utf-8"))
+    graph = json.loads((tmp_path / ".repobrain" / "knowledge_graph.json").read_text(encoding="utf-8"))
     node_ids = {node["id"] for node in graph["nodes"] if isinstance(node, dict)}
     import_edges = [edge for edge in graph["edges"] if isinstance(edge, dict) and edge.get("type") == "imports"]
 

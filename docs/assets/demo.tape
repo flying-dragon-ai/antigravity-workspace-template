@@ -1,4 +1,4 @@
-# vhs tape file — Antigravity README hero demo
+# vhs tape file — RepoBrain README hero demo
 #
 # Prerequisites:
 #   brew install vhs
@@ -21,14 +21,14 @@ Set PlaybackSpeed 1.0
 
 # Use the demo mock so the recording doesn't depend on a live LLM call
 Hide
-Type "alias ag-ask='bash docs/assets/demo-mock.sh'"
+Type "alias rb-ask='bash docs/assets/demo-mock.sh'"
 Enter
 Type "clear"
 Enter
 Show
 
 Sleep 800ms
-Type "ag-ask "
+Type "rb-ask "
 Sleep 200ms
 Type `'How does the multi-agent cluster work?'`
 Sleep 500ms
@@ -38,7 +38,7 @@ Enter
 Sleep 8s
 
 # Tail: a second, structural question to show graph enrichment
-Type "ag-ask "
+Type "rb-ask "
 Sleep 200ms
 Type `'Who calls refresh_pipeline?'`
 Sleep 500ms

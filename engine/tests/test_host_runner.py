@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from antigravity_engine.hub.host_runner import (
+from repobrain_engine.hub.host_runner import (
     HostRunnerError,
     build_codex_command,
     parse_host_runner_answer,

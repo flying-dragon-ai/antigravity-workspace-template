@@ -38,7 +38,7 @@
     <circle cx="32" cy="32" r="32" fill="url(#accent)"/>
     <path d="M20 44 L32 18 L44 44 M24 36 H40" stroke="#0F172A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   </g>
-  <text x="152" y="118" fill="#E5E7EB" font-size="32" font-weight="700" letter-spacing="-0.5">Antigravity</text>
+  <text x="152" y="118" fill="#E5E7EB" font-size="32" font-weight="700" letter-spacing="-0.5">RepoBrain</text>
 
   <!-- Headline -->
   <text x="72" y="240" fill="#FFFFFF" font-size="72" font-weight="800" letter-spacing="-2.5">ChatGPT for your</text>
@@ -90,7 +90,7 @@
     </g>
     <g font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Consolas, monospace" font-size="17">
       <text x="20" y="74" fill="#94A3B8">$</text>
-      <text x="40" y="74" fill="#E5E7EB">ag-ask </text>
+      <text x="40" y="74" fill="#E5E7EB">rb-ask </text>
       <text x="40" y="100" fill="#22D3EE">"How does auth work?"</text>
 
       <text x="20" y="146" fill="#6B7280">▸ Routing to ModuleAgent...</text>

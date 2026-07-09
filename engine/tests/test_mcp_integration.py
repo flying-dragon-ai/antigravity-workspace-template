@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 def test_build_ask_swarm_without_mcp(tmp_path: Path) -> None:
     """build_ask_swarm works normally when mcp_tools is None."""
-    from antigravity_engine.hub.agents import build_ask_swarm
+    from repobrain_engine.hub.agents import build_ask_swarm
 
     # Create a minimal module structure
     (tmp_path / "src").mkdir()
@@ -19,7 +19,7 @@ def test_build_ask_swarm_without_mcp(tmp_path: Path) -> None:
 
 def test_build_ask_swarm_with_mcp_tools(tmp_path: Path) -> None:
     """build_ask_swarm injects MCP tools into all worker agents."""
-    from antigravity_engine.hub.agents import build_ask_swarm
+    from repobrain_engine.hub.agents import build_ask_swarm
 
     # Create a minimal module structure
     (tmp_path / "src").mkdir()
@@ -59,7 +59,7 @@ def test_build_ask_swarm_with_mcp_tools(tmp_path: Path) -> None:
 
 def test_build_ask_swarm_mcp_in_instructions(tmp_path: Path) -> None:
     """MCP tool names appear in ModuleAgent instructions."""
-    from antigravity_engine.hub.agents import build_ask_swarm
+    from repobrain_engine.hub.agents import build_ask_swarm
 
     (tmp_path / "api").mkdir()
     (tmp_path / "api" / "server.py").write_text("app = Flask(__name__)")
@@ -85,7 +85,7 @@ def test_build_ask_swarm_mcp_in_instructions(tmp_path: Path) -> None:
 
 def test_build_ask_swarm_empty_mcp_tools(tmp_path: Path) -> None:
     """Empty mcp_tools dict behaves same as None — no MCP section."""
-    from antigravity_engine.hub.agents import build_ask_swarm
+    from repobrain_engine.hub.agents import build_ask_swarm
 
     (tmp_path / "lib").mkdir()
     (tmp_path / "lib" / "utils.py").write_text("pass")
@@ -96,7 +96,7 @@ def test_build_ask_swarm_empty_mcp_tools(tmp_path: Path) -> None:
 
 def test_ask_pipeline_mcp_disabled(tmp_path: Path, monkeypatch) -> None:
     """When MCP_ENABLED=false, no MCP connections are attempted."""
-    from antigravity_engine.config import reset_settings
+    from repobrain_engine.config import reset_settings
 
     reset_settings()
     monkeypatch.setenv("MCP_ENABLED", "false")
@@ -107,20 +107,20 @@ def test_ask_pipeline_mcp_disabled(tmp_path: Path, monkeypatch) -> None:
     mock_result.final_output = "test answer"
 
     with patch(
-        "antigravity_engine.hub.agents.build_ask_swarm",
+        "repobrain_engine.hub.agents.build_ask_swarm",
         return_value=mock_agent,
     ) as mock_build, patch(
-        "antigravity_engine.hub.pipeline._build_ask_context",
+        "repobrain_engine.hub.pipeline._build_ask_context",
         return_value="test context",
     ), patch(
-        "antigravity_engine.hub.agents.create_model",
+        "repobrain_engine.hub.agents.create_model",
         return_value="test-model",
     ), patch(
         "agents.Runner.run",
         new_callable=AsyncMock,
         return_value=mock_result,
     ):
-        from antigravity_engine.hub.pipeline import ask_pipeline
+        from repobrain_engine.hub.pipeline import ask_pipeline
 
         import asyncio
 
@@ -135,12 +135,12 @@ def test_ask_pipeline_mcp_disabled(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_ask_pipeline_mcp_enabled_without_runtime_opt_in(tmp_path: Path, monkeypatch) -> None:
-    """MCP must not autoconnect unless AG_ALLOW_MCP is set in process env."""
-    from antigravity_engine.config import reset_settings
+    """MCP must not autoconnect unless RB_ALLOW_MCP is set in process env."""
+    from repobrain_engine.config import reset_settings
 
     reset_settings()
     monkeypatch.setenv("MCP_ENABLED", "true")
-    monkeypatch.delenv("AG_ALLOW_MCP", raising=False)
+    monkeypatch.delenv("RB_ALLOW_MCP", raising=False)
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
 
     mock_agent = MagicMock()
@@ -148,23 +148,23 @@ def test_ask_pipeline_mcp_enabled_without_runtime_opt_in(tmp_path: Path, monkeyp
     mock_result.final_output = "test answer"
 
     with patch(
-        "antigravity_engine.hub.agents.build_ask_swarm",
+        "repobrain_engine.hub.agents.build_ask_swarm",
         return_value=mock_agent,
     ) as mock_build, patch(
-        "antigravity_engine.hub.pipeline._build_ask_context",
+        "repobrain_engine.hub.pipeline._build_ask_context",
         return_value="test context",
     ), patch(
-        "antigravity_engine.hub.agents.create_model",
+        "repobrain_engine.hub.agents.create_model",
         return_value="test-model",
     ), patch(
         "agents.Runner.run",
         new_callable=AsyncMock,
         return_value=mock_result,
     ), patch(
-        "antigravity_engine.mcp_client.MCPClientManager.initialize",
+        "repobrain_engine.mcp_client.MCPClientManager.initialize",
         new_callable=AsyncMock,
     ) as mock_mcp_init:
-        from antigravity_engine.hub.pipeline import ask_pipeline
+        from repobrain_engine.hub.pipeline import ask_pipeline
 
         import asyncio
 

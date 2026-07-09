@@ -4,7 +4,7 @@
 
 The repository currently ships two Python packages, but the supported command
 surface is inconsistent across code, Docker, scaffolded next steps, CI, and
-docs. The engine package publishes `ag-ask`, `ag-refresh`, and `ag-mcp`, while
+docs. The engine package publishes `rb-ask`, `rb-refresh`, and `rb-mcp`, while
 the CLI package, Dockerfile, and setup guidance still reference `ag-engine` and
 `ag-hub`. This drift already hides real failures because the CLI test suite is
 not exercised in GitHub Actions.
@@ -30,12 +30,12 @@ for installation, invocation, and verification.
 - Affected specs: `deployment` (modified), `knowledge-hub` (added),
   `developer-workflow` (added)
 - Affected code:
-  - `cli/src/ag_cli/cli.py`
+  - `cli/src/rb_cli/cli.py`
   - `cli/tests/`
-  - `engine/antigravity_engine/_cli_entry.py`
-  - `engine/antigravity_engine/__main__.py`
-  - `engine/antigravity_engine/hub/__main__.py`
-  - `engine/antigravity_engine/skills/agent_repo_init_core.py`
+  - `engine/repobrain_engine/_cli_entry.py`
+  - `engine/repobrain_engine/__main__.py`
+  - `engine/repobrain_engine/hub/__main__.py`
+  - `engine/repobrain_engine/skills/agent_repo_init_core.py`
   - `Dockerfile`
   - `.github/workflows/test.yml`
   - `README.md`

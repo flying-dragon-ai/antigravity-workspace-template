@@ -25,7 +25,7 @@ def test_plugin_versions_are_in_sync() -> None:
         encoding="utf-8"
     )
     engine_init = (
-        REPO_ROOT / "engine" / "antigravity_engine" / "__init__.py"
+        REPO_ROOT / "engine" / "repobrain_engine" / "__init__.py"
     ).read_text(encoding="utf-8")
 
     assert manifest["version"] == PLUGIN_VERSION
@@ -49,29 +49,29 @@ def test_plugin_manifests_do_not_auto_register_mcp() -> None:
     assert not (REPO_ROOT / ".mcp.json").exists()
 
 
-def test_optional_mcp_example_passes_workspace_to_ag_mcp() -> None:
+def test_optional_mcp_example_passes_workspace_to_rb_mcp() -> None:
     config = json.loads(
-        (REPO_ROOT / "docs" / "examples" / "antigravity.mcp.json").read_text(
+        (REPO_ROOT / "docs" / "examples" / "repobrain.mcp.json").read_text(
             encoding="utf-8"
         )
     )
-    server = config["mcpServers"]["antigravity"]
+    server = config["mcpServers"]["repobrain"]
 
-    assert server["command"] == "ag-mcp"
+    assert server["command"] == "rb-mcp"
     assert server["args"] == ["--workspace", "/path/to/project"]
     assert server["env"]["WORKSPACE_PATH"] == "/path/to/project"
 
 
 def test_slash_commands_run_cli_without_mcp_tools() -> None:
-    ask_command = (REPO_ROOT / "commands" / "ag-ask.md").read_text(encoding="utf-8")
-    refresh_command = (REPO_ROOT / "commands" / "ag-refresh.md").read_text(
+    ask_command = (REPO_ROOT / "commands" / "rb-ask.md").read_text(encoding="utf-8")
+    refresh_command = (REPO_ROOT / "commands" / "rb-refresh.md").read_text(
         encoding="utf-8"
     )
 
     assert 'allowed-tools: ["Bash"]' in ask_command
     assert 'allowed-tools: ["Bash"]' in refresh_command
-    assert "ag-ask" in ask_command
-    assert "ag-refresh" in refresh_command
+    assert "rb-ask" in ask_command
+    assert "rb-refresh" in refresh_command
     assert "mcp__" not in ask_command
     assert "mcp__" not in refresh_command
 
@@ -79,8 +79,8 @@ def test_slash_commands_run_cli_without_mcp_tools() -> None:
 def test_legacy_unprefixed_mcp_tool_names_do_not_reappear() -> None:
     """Repo text should not route users back to the non-plugin MCP names."""
     legacy_names = (
-        "mcp__antigravity__ask_project",
-        "mcp__antigravity__refresh_project",
+        "mcp__repobrain__ask_project",
+        "mcp__repobrain__refresh_project",
     )
     skipped_parts = {
         ".git",
@@ -89,10 +89,10 @@ def test_legacy_unprefixed_mcp_tool_names_do_not_reappear() -> None:
         "venv",
         ".venv",
         ".tmp-venv",
-        "antigravity_workspace_template_venv",
+        "repobrain_workspace_template_venv",
         # Generated / local-only dirs that are never part of shipped source:
         # the knowledge base, IDE & agent state, eval artifacts, build output.
-        ".antigravity",
+        ".repobrain",
         ".claude",
         "artifacts",
         "build",

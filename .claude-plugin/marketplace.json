@@ -1,18 +1,18 @@
 {
-  "name": "antigravity",
+  "name": "repobrain",
   "owner": {
-    "name": "Antigravity Team",
+    "name": "RepoBrain Team",
     "email": "fanjingwen50@gmail.com",
     "url": "https://github.com/study8677/repobrain"
   },
   "metadata": {
-    "description": "Antigravity developer tools for project knowledge refresh and routed codebase Q&A."
+    "description": "RepoBrain developer tools for project knowledge refresh and routed codebase Q&A."
   },
   "plugins": [
     {
-      "name": "antigravity",
+      "name": "repobrain",
       "source": "./",
-      "description": "Repository knowledge engine: CLI-backed slash commands (ag-setup / ag-init / ag-refresh / ag-ask) for both Claude Code and Codex CLI, agent-repo-init skill, and optional MCP server.",
+      "description": "Repository knowledge engine: CLI-backed slash commands (rb-setup / rb-init / rb-refresh / rb-ask) for both Claude Code and Codex CLI, agent-repo-init skill, and optional MCP server.",
       "version": "0.2.1",
       "category": "developer-tools",
       "keywords": ["mcp", "knowledge-graph", "multi-agent", "scaffolding"]

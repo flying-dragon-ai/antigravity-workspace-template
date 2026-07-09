@@ -3,14 +3,14 @@ from pathlib import Path
 
 import pytest
 
-from antigravity_engine.hub._constants import WORKSPACE_ROOT_MODULE_ID
-from antigravity_engine.hub.module_grouping import (
+from repobrain_engine.hub._constants import WORKSPACE_ROOT_MODULE_ID
+from repobrain_engine.hub.module_grouping import (
     MAX_FILES_PER_GROUP,
     format_group_context,
     group_files,
     load_module_files,
 )
-from antigravity_engine.hub.scanner import detect_modules, resolve_module_path
+from repobrain_engine.hub.scanner import detect_modules, resolve_module_path
 
 
 @pytest.mark.parametrize(

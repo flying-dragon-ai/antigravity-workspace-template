@@ -1,4 +1,4 @@
-"""Tests for user-actionable ag-mcp error formatting."""
+"""Tests for user-actionable rb-mcp error formatting."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import pytest
 
 def test_redact_secrets_covers_common_token_patterns() -> None:
     """Diagnostics should not persist common API key or auth token shapes."""
-    from antigravity_engine.hub.mcp_server import _redact_secrets
+    from repobrain_engine.hub.mcp_server import _redact_secrets
 
     raw = (
         "OPENAI_API_KEY=sk-test-123456789 "
@@ -41,7 +41,7 @@ def test_redact_secrets_covers_common_token_patterns() -> None:
 
 def test_mcp_log_permissions_are_private(tmp_path: Path, monkeypatch) -> None:
     """The diagnostic directory and log file should not be world-readable."""
-    from antigravity_engine.hub.mcp_server import _log_mcp_event
+    from repobrain_engine.hub.mcp_server import _log_mcp_event
 
     monkeypatch.setenv("CLAUDE_PLUGIN_DATA_DIR", str(tmp_path))
 
@@ -57,7 +57,7 @@ def test_format_tool_error_redacts_secrets_in_response_and_log(
     monkeypatch,
 ) -> None:
     """The full tool-error path must redact both user response and log."""
-    from antigravity_engine.hub.mcp_server import _format_tool_error
+    from repobrain_engine.hub.mcp_server import _format_tool_error
 
     monkeypatch.setenv("CLAUDE_PLUGIN_DATA_DIR", str(tmp_path))
     raw_tokens = (
@@ -71,7 +71,7 @@ def test_format_tool_error_redacts_secrets_in_response_and_log(
         "refresh_project",
         RuntimeError("provider failed: " + " ".join(raw_tokens)),
     )
-    log_text = (tmp_path / "ag-mcp.log").read_text(encoding="utf-8")
+    log_text = (tmp_path / "rb-mcp.log").read_text(encoding="utf-8")
 
     assert "Diagnostic log:" in response
     for raw_token in raw_tokens:
@@ -84,38 +84,38 @@ def test_no_llm_error_points_to_setup_and_restart(
     monkeypatch,
 ) -> None:
     """Missing LLM config should not look like an MCP registration failure."""
-    from antigravity_engine.hub.mcp_server import _format_tool_error
+    from repobrain_engine.hub.mcp_server import _format_tool_error
 
     monkeypatch.setenv("CLAUDE_PLUGIN_DATA_DIR", str(tmp_path))
 
     text = _format_tool_error(
         "refresh_project",
         ValueError(
-            "No LLM configured. Run ag-setup or set OPENAI_BASE_URL, "
+            "No LLM configured. Run rb-setup or set OPENAI_BASE_URL, "
             "OPENAI_API_KEY, and OPENAI_MODEL in .env"
         ),
     )
 
-    assert "/antigravity:ag-setup" in text
-    assert "/ag-setup" in text
+    assert "/repobrain:rb-setup" in text
+    assert "/rb-setup" in text
     assert "restart the host" in text
-    assert (tmp_path / "ag-mcp.log").exists()
+    assert (tmp_path / "rb-mcp.log").exists()
 
 
 def test_generic_tool_error_includes_log_path(tmp_path: Path, monkeypatch) -> None:
     """Unexpected tool failures should expose the diagnostic log location."""
-    from antigravity_engine.hub.mcp_server import _format_tool_error
+    from repobrain_engine.hub.mcp_server import _format_tool_error
 
     monkeypatch.setenv("CLAUDE_PLUGIN_DATA_DIR", str(tmp_path))
 
     text = _format_tool_error("refresh_project", RuntimeError("boom"))
 
     assert "Diagnostic log:" in text
-    assert str(tmp_path / "ag-mcp.log") in text
+    assert str(tmp_path / "rb-mcp.log") in text
 
 
 @pytest.mark.asyncio
-async def test_ag_mcp_exposes_project_tools(tmp_path: Path, monkeypatch) -> None:
+async def test_rb_mcp_exposes_project_tools(tmp_path: Path, monkeypatch) -> None:
     """The stdio MCP server should register the plugin tools successfully."""
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
@@ -126,7 +126,7 @@ async def test_ag_mcp_exposes_project_tools(tmp_path: Path, monkeypatch) -> None
         command=sys.executable,
         args=[
             "-m",
-            "antigravity_engine.hub.mcp_server",
+            "repobrain_engine.hub.mcp_server",
             "--workspace",
             str(tmp_path),
         ],

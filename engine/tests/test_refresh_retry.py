@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 
-from antigravity_engine.hub.refresh_pipeline import _is_retryable_error
+from repobrain_engine.hub.refresh_pipeline import _is_retryable_error
 
 
 def test_bare_wait_for_timeout_is_not_retryable() -> None:

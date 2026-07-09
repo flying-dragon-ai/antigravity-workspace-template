@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/logo.png" alt="RepoBrain" width="200"/>
+<img src="docs/assets/logo.svg" alt="RepoBrain" width="200"/>
 
 # RepoBrain
 
@@ -8,7 +8,7 @@
 
 <sub>Anteriormente conocido como <b>Antigravity Workspace Template</b> — el mismo proyecto, nuevo nombre.</sub>
 
-`ag-refresh` construye la capa de conocimiento portable; `ag-ask` enruta preguntas
+`rb-refresh` construye la capa de conocimiento portable; `rb-ask` enruta preguntas
 al contexto de módulo correcto y responde con evidencia de código. Plugins, CLI y
 MCP son canales de entrega alrededor de ese flujo.
 
@@ -36,7 +36,7 @@ Idioma: [English](README.md) | [中文](README_CN.md) | **Español**
 <br/>
 
 <div align="center">
-<img src="docs/assets/before_after.png" alt="Before vs After RepoBrain" width="800"/>
+<img src="docs/assets/before_after.svg" alt="Before vs After RepoBrain" width="800"/>
 </div>
 
 <br/>
@@ -45,7 +45,7 @@ Idioma: [English](README.md) | [中文](README_CN.md) | **Español**
 
 > El techo de capacidad de un AI Agent = **la calidad del contexto que puede leer.**
 
-El motor es el núcleo: `ag-refresh` despliega un clúster multi-agente que lee tu código autónomamente — cada módulo obtiene su propio Agent que genera documentación de conocimiento. `ag-ask` enruta preguntas al Agent correcto, con respuestas basadas en código real con rutas de archivo y números de línea.
+El motor es el núcleo: `rb-refresh` despliega un clúster multi-agente que lee tu código autónomamente — cada módulo obtiene su propio Agent que genera documentación de conocimiento. `rb-ask` enruta preguntas al Agent correcto, con respuestas basadas en código real con rutas de archivo y números de línea.
 
 **En vez de darle a Claude Code / Codex un `grep` del repositorio para que busque por su cuenta, dale un ChatGPT para tu repositorio.**
 
@@ -60,9 +60,9 @@ Enfoque tradicional:                    Enfoque RepoBrain:
 
 | Problema | Sin RepoBrain | Con RepoBrain |
 |:---------|:---------------|:----------------|
-| El agente olvida el estilo de código | Repites las mismas correcciones | Lee `.antigravity/conventions.md` — lo hace bien a la primera |
-| Incorporar un codebase nuevo | El agente adivina la arquitectura | `ag-refresh` → ModuleAgents aprenden cada módulo |
-| Cambiar entre IDEs | Reglas diferentes en cada uno | Una carpeta `.antigravity/` — todos los IDEs la comparten |
+| El agente olvida el estilo de código | Repites las mismas correcciones | Lee `.repobrain/conventions.md` — lo hace bien a la primera |
+| Incorporar un codebase nuevo | El agente adivina la arquitectura | `rb-refresh` → ModuleAgents aprenden cada módulo |
+| Cambiar entre IDEs | Reglas diferentes en cada uno | Una carpeta `.repobrain/` — todos los IDEs la comparten |
 | Preguntar "¿cómo funciona X?" | El agente lee archivos al azar | `ask_project` MCP → Router enruta al ModuleAgent responsable |
 
 La arquitectura son **archivos + un motor Q&A en vivo**, no plugins. Portable entre cualquier IDE, cualquier LLM, cero lock-in.
@@ -71,74 +71,74 @@ La arquitectura son **archivos + un motor Q&A en vivo**, no plugins. Portable en
 
 ## Comandos Slash
 
-Los mismos cuatro comandos slash funcionan tanto en **Claude Code** como en **Codex CLI**. Claude los expone con el espacio de nombres `/antigravity:<nombre>`; Codex auto-descubre el directorio `commands/` y los presenta sin prefijo, como `/<nombre>`. Mismo flujo en ambos hosts — sin reaprender.
+Los mismos cuatro comandos slash funcionan tanto en **Claude Code** como en **Codex CLI**. Claude los expone con el espacio de nombres `/repobrain:<nombre>`; Codex auto-descubre el directorio `commands/` y los presenta sin prefijo, como `/<nombre>`. Mismo flujo en ambos hosts — sin reaprender.
 
 | Claude Code | Codex CLI | Propósito |
 |---|---|---|
-| `/antigravity:ag-setup` | `/ag-setup` | Configuración inicial — elige proveedor LLM, escribe `.env` |
-| `/antigravity:ag-refresh [quick]` | `/ag-refresh [quick]` | Construye / refresca incrementalmente la base de conocimiento |
-| `/antigravity:ag-ask <pregunta>` | `/ag-ask <pregunta>` | Q&A enrutada sobre el código actual |
-| `/antigravity:ag-init <nombre>` | `/ag-init <nombre>` | Crea un nuevo repo multi-agente desde esta plantilla |
+| `/repobrain:rb-setup` | `/rb-setup` | Configuración inicial — elige proveedor LLM, escribe `.env` |
+| `/repobrain:rb-refresh [quick]` | `/rb-refresh [quick]` | Construye / refresca incrementalmente la base de conocimiento |
+| `/repobrain:rb-ask <pregunta>` | `/rb-ask <pregunta>` | Q&A enrutada sobre el código actual |
+| `/repobrain:rb-init <nombre>` | `/rb-init <nombre>` | Crea un nuevo repo multi-agente desde esta plantilla |
 
-Sesión típica inicial: **ag-setup → ag-refresh → ag-ask**. Detalles abajo.
+Sesión típica inicial: **rb-setup → rb-refresh → rb-ask**. Detalles abajo.
 
-### `ag-setup` — configuración inicial
+### `rb-setup` — configuración inicial
 
-Ejecútalo **una vez por proyecto**, justo después de instalar el plugin. Selector interactivo del proveedor LLM (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA NIM / Ollama local / cualquier endpoint OpenAI-compatible), luego escribe `.env` en la raíz del proyecto con `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `AG_ASK_TIMEOUT_SECONDS`. También asegura que `.env` esté en `.gitignore`. Sáltatelo si ya tienes un `.env` funcional.
-
-```
-# Claude Code
-/antigravity:ag-setup
-
-# Codex CLI
-/ag-setup
-```
-
-### `ag-refresh` — construir / refrescar la base de conocimiento
-
-Despliega el clúster multi-agente para leer tu código: cada módulo obtiene su propio Agent que produce un documento de conocimiento en `.antigravity/agents/*.md`, más un `map.md` como índice de routing. Ejecútalo tras instalar, tras cambios de código significativos, o cuando `ag-ask` devuelva respuestas obsoletas. El primer refresh crea `.antigravity/` automáticamente — no hace falta un paso de init separado. Pasa `quick` para actualización incremental, `failed-only` para reintentar solo los módulos previamente fallidos.
+Ejecútalo **una vez por proyecto**, justo después de instalar el plugin. Selector interactivo del proveedor LLM (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA NIM / Ollama local / cualquier endpoint OpenAI-compatible), luego escribe `.env` en la raíz del proyecto con `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `RB_ASK_TIMEOUT_SECONDS`. También asegura que `.env` esté en `.gitignore`. Sáltatelo si ya tienes un `.env` funcional.
 
 ```
 # Claude Code
-/antigravity:ag-refresh
-/antigravity:ag-refresh quick
+/repobrain:rb-setup
 
 # Codex CLI
-/ag-refresh
-/ag-refresh quick
+/rb-setup
 ```
 
-Tiempo: pocos minutos en repos pequeños, más en repos grandes. Requiere `ag-setup` ya completado.
+### `rb-refresh` — construir / refrescar la base de conocimiento
 
-### `ag-ask` — Q&A enrutada sobre el código
+Despliega el clúster multi-agente para leer tu código: cada módulo obtiene su propio Agent que produce un documento de conocimiento en `.repobrain/agents/*.md`, más un `map.md` como índice de routing. Ejecútalo tras instalar, tras cambios de código significativos, o cuando `rb-ask` devuelva respuestas obsoletas. El primer refresh crea `.repobrain/` automáticamente — no hace falta un paso de init separado. Pasa `quick` para actualización incremental, `failed-only` para reintentar solo los módulos previamente fallidos.
+
+```
+# Claude Code
+/repobrain:rb-refresh
+/repobrain:rb-refresh quick
+
+# Codex CLI
+/rb-refresh
+/rb-refresh quick
+```
+
+Tiempo: pocos minutos en repos pequeños, más en repos grandes. Requiere `rb-setup` ya completado.
+
+### `rb-ask` — Q&A enrutada sobre el código
 
 **La razón principal por la que existe este plugin**. Enruta tu pregunta al ModuleAgent adecuado (y a GitAgent cuando aplica), y devuelve una respuesta fundamentada en el código real, con rutas de archivo y números de línea. Úsalo **antes** de hacer grep manual o leer archivos — es más rápido y más preciso. Buenas formas de pregunta: "¿dónde se define/maneja X?", "¿por qué se hizo Y de esta forma?", "¿cómo funciona el flujo de auth?", "¿qué depende del módulo Z?".
 
 ```
 # Claude Code
-/antigravity:ag-ask "¿Cómo funciona la autenticación?"
+/repobrain:rb-ask "¿Cómo funciona la autenticación?"
 
 # Codex CLI
-/ag-ask "¿Cómo funciona la autenticación?"
+/rb-ask "¿Cómo funciona la autenticación?"
 ```
 
-Requiere una base de conocimiento — si ves "sin índice" o respuestas vacías, ejecuta `ag-refresh` primero.
+Requiere una base de conocimiento — si ves "sin índice" o respuestas vacías, ejecuta `rb-refresh` primero.
 
-### `ag-init` — andamiar un nuevo repo multi-agente
+### `rb-init` — andamiar un nuevo repo multi-agente
 
-Crea un **nuevo** proyecto desde la plantilla RepoBrain. Dos modos: `quick` (andamio rápido, copia limpia) y `full` (añade runtime profile, `.env`, archivo de misión, config de sandbox, `git init` opcional). Es para **empezar un repo nuevo** — **no** lo necesitas antes de `ag-refresh` en un proyecto existente.
+Crea un **nuevo** proyecto desde la plantilla RepoBrain. Dos modos: `quick` (andamio rápido, copia limpia) y `full` (añade runtime profile, `.env`, archivo de misión, config de sandbox, `git init` opcional). Es para **empezar un repo nuevo** — **no** lo necesitas antes de `rb-refresh` en un proyecto existente.
 
 ```
 # Claude Code
-/antigravity:ag-init my-agent
-/antigravity:ag-init my-agent full
+/repobrain:rb-init my-agent
+/repobrain:rb-init my-agent full
 
 # Codex CLI
-/ag-init my-agent
-/ag-init my-agent full
+/rb-init my-agent
+/rb-init my-agent full
 ```
 
-> El plugin también incluye el skill `agent-repo-init` (es el backend que `ag-init` invoca — Codex / Claude también lo emparejan por descripción) y el servidor MCP opcional `ag-mcp` (`ask_project` + `refresh_project`) para integración tipo herramienta.
+> El plugin también incluye el skill `agent-repo-init` (es el backend que `rb-init` invoca — Codex / Claude también lo emparejan por descripción) y el servidor MCP opcional `rb-mcp` (`ask_project` + `refresh_project`) para integración tipo herramienta.
 
 ---
 
@@ -148,26 +148,24 @@ Crea un **nuevo** proyecto desde la plantilla RepoBrain. Dos modos: `quick` (and
 ```bash
 # Claude Code (auto-instala el motor Python en la primera sesión vía SessionStart hook)
 /plugin marketplace add study8677/repobrain
-/plugin install antigravity@antigravity
-/antigravity:ag-setup            # interactivo: elige proveedor LLM, pega API key, escribe .env
-/antigravity:ag-refresh          # el primer refresh crea .antigravity/ automáticamente
-/antigravity:ag-ask "¿Cómo funciona este proyecto?"
+/plugin install repobrain@repobrain
+/repobrain:rb-setup            # interactivo: elige proveedor LLM, pega API key, escribe .env
+/repobrain:rb-refresh          # el primer refresh crea .repobrain/ automáticamente
+/repobrain:rb-ask "¿Cómo funciona este proyecto?"
 
 # Codex CLI (instala el motor manualmente primero; los hooks de Codex aún no son soportados)
 pipx install "git+https://github.com/study8677/repobrain.git#subdirectory=engine"
 codex plugin marketplace add study8677/repobrain
-/ag-setup                        # mismos comandos en Codex, sin el prefijo antigravity:
-/ag-refresh
-/ag-ask "¿Cómo funciona este proyecto?"
+/rb-setup                        # mismos comandos en Codex, sin el prefijo repobrain:
+/rb-refresh
+/rb-ask "¿Cómo funciona este proyecto?"
 ```
 
-Nota: el ID del plugin/paquete sigue siendo `antigravity`; migrará en una versión futura.
+Codex CLI auto-descubre los comandos slash desde el directorio `commands/` del plugin, así que los mismos cuatro comandos están disponibles sin el prefijo `repobrain:` (`/rb-setup`, `/rb-refresh`, `/rb-ask`, `/rb-init`). También puedes seguir usando el CLI directo (`rb-refresh --workspace .`, `rb-ask "..." --workspace .`).
 
-Codex CLI auto-descubre los comandos slash desde el directorio `commands/` del plugin, así que los mismos cuatro comandos están disponibles sin el prefijo `antigravity:` (`/ag-setup`, `/ag-refresh`, `/ag-ask`, `/ag-init`). También puedes seguir usando el CLI directo (`ag-refresh --workspace .`, `ag-ask "..." --workspace .`).
+Si la sesión actual de Claude Code dice que la herramienta MCP de RepoBrain no está conectada, reinicia Claude Code una vez y vuelve a ejecutar `/repobrain:rb-refresh`. Es un problema de carga de sesión, no de API key. Consulta [troubleshooting](docs/en/TROUBLESHOOTING.md).
 
-Si la sesión actual de Claude Code dice que la herramienta MCP de RepoBrain no está conectada, reinicia Claude Code una vez y vuelve a ejecutar `/antigravity:ag-refresh`. Es un problema de carga de sesión, no de API key. Consulta [troubleshooting](docs/en/TROUBLESHOOTING.md).
-
-Después de instalar y configurar dispondrás de los comandos slash `ag-ask <pregunta>`, `ag-refresh`, `ag-init <nombre>` en ambos hosts, y del servidor MCP `antigravity` (`ask_project` + `refresh_project`). Ver [INSTALL.md](INSTALL.md) para detalles de instalación y troubleshooting.
+Después de instalar y configurar dispondrás de los comandos slash `rb-ask <pregunta>`, `rb-refresh`, `rb-init <nombre>` en ambos hosts, y del servidor MCP `repobrain` (`ask_project` + `refresh_project`). Ver [INSTALL.md](INSTALL.md) para detalles de instalación y troubleshooting.
 
 **Opción B — Instalación manual: motor + CLI vía pip**
 ```bash
@@ -181,24 +179,24 @@ cat > .env <<EOF
 OPENAI_BASE_URL=https://tu-endpoint/v1
 OPENAI_API_KEY=tu-key
 OPENAI_MODEL=tu-modelo
-AG_ASK_TIMEOUT_SECONDS=120
+RB_ASK_TIMEOUT_SECONDS=120
 EOF
 
 # 3. Construir base de conocimiento (ModuleAgents aprenden cada módulo)
-ag-refresh --workspace .
+rb-refresh --workspace .
 
 # 4. Preguntar
-ag-ask "¿Cómo funciona la autenticación en este proyecto?"
+rb-ask "¿Cómo funciona la autenticación en este proyecto?"
 
 # 5. (Opcional) Registrar como servidor MCP para Claude Code
-claude mcp add antigravity ag-mcp -- --workspace $(pwd)
+claude mcp add repobrain rb-mcp -- --workspace $(pwd)
 ```
 
 **Opción C — Solo archivos de contexto (cualquier IDE, sin LLM)**
 ```bash
 pip install git+https://github.com/study8677/repobrain.git#subdirectory=cli
-ag init mi-proyecto && cd mi-proyecto
-# Los archivos de entrada del IDE hacen bootstrap hacia AGENTS.md; el contexto dinámico vive en .antigravity/
+rb init mi-proyecto && cd mi-proyecto
+# Los archivos de entrada del IDE hacen bootstrap hacia AGENTS.md; el contexto dinámico vive en .repobrain/
 ```
 
 ---
@@ -206,17 +204,17 @@ ag init mi-proyecto && cd mi-proyecto
 ## Características de un Vistazo
 
 ```
-  ag init             Inyectar archivos de contexto (--force para sobrescribir)
+  rb init             Inyectar archivos de contexto (--force para sobrescribir)
        │
        ▼
-  .antigravity/       Base de conocimiento compartida — cada IDE lee de aquí
+  .repobrain/       Base de conocimiento compartida — cada IDE lee de aquí
        │
-       ├──► ag-refresh     Aprendizaje multi-agente dinámico → docs de conocimiento + mapa estructural
-       ├──► ag-ask         Router → ModuleAgent Q&A con evidencia de código en vivo
-       └──► ag-mcp         Servidor MCP → Claude Code llama directamente
+       ├──► rb-refresh     Aprendizaje multi-agente dinámico → docs de conocimiento + mapa estructural
+       ├──► rb-ask         Router → ModuleAgent Q&A con evidencia de código en vivo
+       └──► rb-mcp         Servidor MCP → Claude Code llama directamente
 ```
 
-**Clúster Multi-Agente Dinámico** — Durante `ag-refresh`, el motor usa **agrupación funcional inteligente**: archivos agrupados por relaciones de import, co-ubicación en directorios y prefijos de nombre. El código fuente se pre-carga directamente en el contexto del agente (sin tool calls), y los artefactos de build se filtran automáticamente. Cada sub-agente analiza ~30K tokens de código enfocado en 1 llamada LLM y produce un **documento de conocimiento Markdown completo** (`agents/*.md`). Módulos grandes generan múltiples agent docs en paralelo (uno por grupo, sin fusión ni pérdida de información). Un **Map Agent** lee todos los docs y genera `map.md` — un índice de enrutamiento. Durante `ag-ask`, Router lee `map.md` para seleccionar módulos relevantes, luego alimenta sus agent docs a los agentes de respuesta. **Completamente agnóstico al lenguaje** — detección de módulos por estructura de directorios pura, análisis de código realizado íntegramente por LLMs. Funciona con cualquier lenguaje de programación.
+**Clúster Multi-Agente Dinámico** — Durante `rb-refresh`, el motor usa **agrupación funcional inteligente**: archivos agrupados por relaciones de import, co-ubicación en directorios y prefijos de nombre. El código fuente se pre-carga directamente en el contexto del agente (sin tool calls), y los artefactos de build se filtran automáticamente. Cada sub-agente analiza ~30K tokens de código enfocado en 1 llamada LLM y produce un **documento de conocimiento Markdown completo** (`agents/*.md`). Módulos grandes generan múltiples agent docs en paralelo (uno por grupo, sin fusión ni pérdida de información). Un **Map Agent** lee todos los docs y genera `map.md` — un índice de enrutamiento. Durante `rb-ask`, Router lee `map.md` para seleccionar módulos relevantes, luego alimenta sus agent docs a los agentes de respuesta. **Completamente agnóstico al lenguaje** — detección de módulos por estructura de directorios pura, análisis de código realizado íntegramente por LLMs. Funciona con cualquier lenguaje de programación.
 
 **GitAgent** — Un agente dedicado a analizar el historial git — entiende quién cambió qué y por qué.
 
@@ -228,17 +226,17 @@ ag init mi-proyecto && cd mi-proyecto
 
 | Comando | Qué hace | ¿Necesita LLM? |
 |:--------|:---------|:---------------:|
-| `ag init <dir>` | Inyectar plantillas de arquitectura cognitiva | No |
-| `ag init <dir> --force` | Re-inyectar, sobrescribiendo archivos existentes | No |
-| `ag refresh --workspace <dir>` | Wrapper CLI conveniente para el pipeline de refresh del knowledge hub | Sí |
-| `ag ask "pregunta" --workspace <dir>` | Wrapper CLI conveniente para el flujo Q&A enrutado del proyecto | Sí |
-| `ag-refresh` | Aprendizaje multi-agente del codebase, genera docs de conocimiento + `conventions.md` + `structure.md` | Sí |
-| `ag-ask "pregunta"` | Router → ModuleAgent/GitAgent Q&A enrutado | Sí |
-| `ag-mcp --workspace <dir>` | **Iniciar servidor MCP** — expone `ask_project` + `refresh_project` a Claude Code | Sí |
-| `ag report "mensaje"` | Registrar un hallazgo en `.antigravity/memory/` | No |
-| `ag log-decision "qué" "por qué"` | Registrar una decisión arquitectónica | No |
+| `rb init <dir>` | Inyectar plantillas de arquitectura cognitiva | No |
+| `rb init <dir> --force` | Re-inyectar, sobrescribiendo archivos existentes | No |
+| `rb refresh --workspace <dir>` | Wrapper CLI conveniente para el pipeline de refresh del knowledge hub | Sí |
+| `rb ask "pregunta" --workspace <dir>` | Wrapper CLI conveniente para el flujo Q&A enrutado del proyecto | Sí |
+| `rb-refresh` | Aprendizaje multi-agente del codebase, genera docs de conocimiento + `conventions.md` + `structure.md` | Sí |
+| `rb-ask "pregunta"` | Router → ModuleAgent/GitAgent Q&A enrutado | Sí |
+| `rb-mcp --workspace <dir>` | **Iniciar servidor MCP** — expone `ask_project` + `refresh_project` a Claude Code | Sí |
+| `rb report "mensaje"` | Registrar un hallazgo en `.repobrain/memory/` | No |
+| `rb log-decision "qué" "por qué"` | Registrar una decisión arquitectónica | No |
 
-`ag ask` / `ag refresh` están disponibles cuando `cli/` y `engine/` están instalados. `ag-ask` / `ag-refresh` son los entrypoints disponibles con solo el engine.
+`rb ask` / `rb refresh` están disponibles cuando `cli/` y `engine/` están instalados. `rb-ask` / `rb-refresh` son los entrypoints disponibles con solo el engine.
 
 ---
 
@@ -246,11 +244,11 @@ ag init mi-proyecto && cd mi-proyecto
 
 ```
 repobrain/
-├── cli/                     # ag CLI — ligero, instalable con pip
-│   └── templates/           # .cursorrules, CLAUDE.md, .antigravity/, ...
+├── cli/                     # rb CLI — ligero, instalable con pip
+│   └── templates/           # .cursorrules, CLAUDE.md, .repobrain/, ...
 └── engine/                  # Motor multi-agente + Knowledge Hub
-    └── antigravity_engine/
-        ├── _cli_entry.py    # ag-ask / ag-refresh puntos de entrada
+    └── repobrain_engine/
+        ├── _cli_entry.py    # rb-ask / rb-refresh puntos de entrada
         ├── config.py        # Configuración Pydantic
         ├── hub/             # ★ Núcleo: clúster multi-agente
         │   ├── agents.py    #   Router + ModuleAgent + GitAgent
@@ -260,7 +258,7 @@ repobrain/
         │   ├── ask_tools.py #   Exploración de código
         │   ├── scanner.py   #   Escaneo multi-lenguaje de proyecto
         │   ├── module_grouping.py # agrupación funcional inteligente
-        │   └── mcp_server.py#   Servidor MCP (ag-mcp)
+        │   └── mcp_server.py#   Servidor MCP (rb-mcp)
         ├── mcp_client.py    # Consumidor MCP (conecta herramientas externas)
         ├── memory.py        # Memoria de interacción persistente
         ├── tools/           # Herramientas MCP + extensiones
@@ -270,11 +268,11 @@ repobrain/
 
 **CLI** (`pip install .../cli`) — Cero deps de LLM. Inyecta plantillas, registra reportes y decisiones offline.
 
-**Engine** (`pip install .../engine`) — Runtime de conocimiento del repositorio. Alimenta `ag-ask`, `ag-refresh`, `ag-mcp`. Usa el endpoint OpenAI-compatible escrito por `ag-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o personalizado).
+**Engine** (`pip install .../engine`) — Runtime de conocimiento del repositorio. Alimenta `rb-ask`, `rb-refresh`, `rb-mcp`. Usa el endpoint OpenAI-compatible escrito por `rb-setup` (OpenAI, DeepSeek, Groq, DashScope, NVIDIA NIM, Ollama o personalizado).
 
 **Nuevas actualizaciones de empaquetado de skills:**
-- `engine/antigravity_engine/skills/graph-retrieval/` — herramientas de recuperación orientadas a grafo para razonamiento de estructura y rutas de llamadas.
-- `engine/antigravity_engine/skills/knowledge-layer/` — herramientas de capa de conocimiento para consolidación de contexto semántico del proyecto.
+- `engine/repobrain_engine/skills/graph-retrieval/` — herramientas de recuperación orientadas a grafo para razonamiento de estructura y rutas de llamadas.
+- `engine/repobrain_engine/skills/knowledge-layer/` — herramientas de capa de conocimiento para consolidación de contexto semántico del proyecto.
 
 ```bash
 # Instalar ambos para la experiencia completa
@@ -286,20 +284,20 @@ pip install "git+https://...#subdirectory=engine"
 
 ## Cómo Funciona
 
-### 1. `ag init` — Inyectar archivos de contexto
+### 1. `rb init` — Inyectar archivos de contexto
 
 ```bash
-ag init mi-proyecto
+rb init mi-proyecto
 # ¿Ya inicializado? Usa --force para sobrescribir:
-ag init mi-proyecto --force
+rb init mi-proyecto --force
 ```
 
-Crea `AGENTS.md` (reglas de comportamiento autoritativas), archivos bootstrap de IDE (`.cursorrules`, `CLAUDE.md`, `.windsurfrules`, `.clinerules`, `.github/copilot-instructions.md`) y archivos de contexto dinámico en `.antigravity/`.
+Crea `AGENTS.md` (reglas de comportamiento autoritativas), archivos bootstrap de IDE (`.cursorrules`, `CLAUDE.md`, `.windsurfrules`, `.clinerules`, `.github/copilot-instructions.md`) y archivos de contexto dinámico en `.repobrain/`.
 
-### 2. `ag-refresh` — Aprendizaje multi-agente
+### 2. `rb-refresh` — Aprendizaje multi-agente
 
 ```bash
-ag-refresh --workspace mi-proyecto
+rb-refresh --workspace mi-proyecto
 ```
 
 **Pipeline de 8 pasos:**
@@ -312,10 +310,10 @@ ag-refresh --workspace mi-proyecto
 7. **RefreshGitAgent** analiza historial git, genera `_git_insights.md`
 8. **Map Agent** lee todos los agent docs → genera `map.md` (índice de enrutamiento de módulos con descripciones y temas clave)
 
-### 3. `ag-ask` — Q&A basado en Router
+### 3. `rb-ask` — Q&A basado en Router
 
 ```bash
-ag-ask "¿Cómo funciona la autenticación en este proyecto?"
+rb-ask "¿Cómo funciona la autenticación en este proyecto?"
 ```
 
 El pipeline de ask usa una **vía semántica**: Router lee `map.md` → selecciona módulos → lee `agents/*.md` → LLM responde con referencias al código. Múltiples agent docs se leen en paralelo, luego un Synthesizer combina las respuestas.
@@ -336,9 +334,9 @@ La arquitectura está codificada en **archivos** — cualquier agente que lea ar
 | VS Code + Copilot | `.github/copilot-instructions.md` |
 | Gemini CLI / Codex | `AGENTS.md` |
 | Cline | `.clinerules` |
-| Google Antigravity | `.antigravity/rules.md` |
+| Google Antigravity | `.repobrain/rules.md` |
 
-Todo se genera con `ag init`: `AGENTS.md` es el único rulebook de comportamiento, los archivos específicos por IDE son bootstraps ligeros, y `.antigravity/` guarda el contexto dinámico compartido del proyecto.
+Todo se genera con `rb init`: `AGENTS.md` es el único rulebook de comportamiento, los archivos específicos por IDE son bootstraps ligeros, y `.repobrain/` guarda el contexto dinámico compartido del proyecto.
 
 ---
 
@@ -356,10 +354,10 @@ Claude Code no necesita leer cientos de archivos de documentación — puede lla
 pip install "git+https://github.com/study8677/repobrain.git#subdirectory=engine"
 
 # Refrescar base de conocimiento primero (ModuleAgents aprenden cada módulo)
-ag-refresh --workspace /ruta/al/proyecto
+rb-refresh --workspace /ruta/al/proyecto
 
 # Registrar como servidor MCP en Claude Code
-claude mcp add antigravity ag-mcp -- --workspace /ruta/al/proyecto
+claude mcp add repobrain rb-mcp -- --workspace /ruta/al/proyecto
 ```
 
 **Herramientas expuestas a Claude Code:**
@@ -377,7 +375,7 @@ claude mcp add antigravity ag-mcp -- --workspace /ruta/al/proyecto
 El núcleo del motor es **un clúster de Agents creado dinámicamente por módulo de código**:
 
 ```
- ag-refresh:                                 ag-ask:
+ rb-refresh:                                 rb-ask:
 
  Para cada módulo:                           Router (lee map.md)
  ┌ Agrupar archivos por grafo de imports       └── leer agents/*.md → respuesta LLM
@@ -391,26 +389,26 @@ El núcleo del motor es **un clúster de Agents creado dinámicamente por módul
 **Innovaciones clave:**
 - **LLM como analizador**: Sin AST ni regex — el código fuente se alimenta directamente al LLM. Funciona con cualquier lenguaje de programación de forma inmediata.
 - **Agrupación inteligente**: Archivos agrupados por relaciones de import, co-ubicación en directorios y prefijos de nombre. Artefactos de build filtrados automáticamente. Límite duro de caracteres (800K) previene desbordamiento de contexto.
-- **Sin pérdida de información**: Módulos grandes producen múltiples `agent.md` (uno por grupo) — sin fusión ni compresión. Durante `ag-ask`, múltiples agent docs son leídos por LLMs en paralelo, luego un Synthesizer combina las respuestas.
-- **Control global de concurrencia API**: `AG_API_CONCURRENCY` limita las llamadas LLM simultáneas entre todos los módulos, previniendo rate-limiting.
+- **Sin pérdida de información**: Módulos grandes producen múltiples `agent.md` (uno por grupo) — sin fusión ni compresión. Durante `rb-ask`, múltiples agent docs son leídos por LLMs en paralelo, luego un Synthesizer combina las respuestas.
+- **Control global de concurrencia API**: `RB_API_CONCURRENCY` limita las llamadas LLM simultáneas entre todos los módulos, previniendo rate-limiting.
 - **Detección de módulos agnóstica al lenguaje**: Estructura de directorios pura — sin `__init__.py` ni marcadores específicos de lenguaje.
 
 ```bash
 # ModuleAgents aprenden tu codebase
-ag-refresh
+rb-refresh
 
 # Solo escanear archivos cambiados desde el último refresh
-ag-refresh --quick
+rb-refresh --quick
 
 # Router enruta inteligentemente al ModuleAgent correcto
-ag-ask "¿Qué patrones de testing usa este proyecto?"
+rb-ask "¿Qué patrones de testing usa este proyecto?"
 
 # Registrar hallazgos y decisiones (sin LLM)
-ag report "El módulo de auth necesita refactoring"
-ag log-decision "Usar PostgreSQL" "El equipo tiene experiencia profunda"
+rb report "El módulo de auth necesita refactoring"
+rb log-decision "Usar PostgreSQL" "El equipo tiene experiencia profunda"
 ```
 
-Funciona con el endpoint OpenAI-compatible seleccionado por `ag-setup`. Basado en OpenAI Agent SDK + LiteLLM.
+Funciona con el endpoint OpenAI-compatible seleccionado por `rb-setup`. Basado en OpenAI Agent SDK + LiteLLM.
 </details>
 
 <details>
@@ -434,7 +432,7 @@ Funciona con el endpoint OpenAI-compatible seleccionado por `ag-setup`. Basado e
 ```
 
 Configura `MCP_ENABLED=true` para hacer visibles los servidores y
-`AG_ALLOW_MCP=true` solo cuando quieras que `ag-ask` conecte servidores externos
+`RB_ALLOW_MCP=true` solo cuando quieras que `rb-ask` conecte servidores externos
 automáticamente. Los servidores MCP por stdio heredan el entorno del proceso y
 los valores `env` configurados, así que trátalos como código con permisos
 locales.
@@ -447,7 +445,7 @@ locales.
 |:---------|:--------|:---------|
 | `SANDBOX_TYPE` | `local` | `local` · `microsandbox` |
 | `SANDBOX_TIMEOUT_SEC` | `30` | segundos |
-| `AG_RETRIEVAL_MODE` | `compact` | `off` · `compact` · `full` |
+| `RB_RETRIEVAL_MODE` | `compact` | `off` · `compact` · `full` |
 
 El sandbox por defecto es para workspaces locales confiables, no para aislar
 código no confiable. El retrieval graph redacta secretos comunes antes de
@@ -563,7 +561,7 @@ Reporte completo (datos, metodología, tablas por celda, advertencias):
         <img src="https://github.com/goodmorning10.png" width="80" /><br/>
         <b>goodmorning10</b>
       </a><br/>
-      <sub>Mejora de carga de contexto en <code>ag ask</code> — añadió CONTEXT.md, AGENTS.md y memory/*.md como fuentes de contexto (#29)</sub>
+      <sub>Mejora de carga de contexto en <code>rb ask</code> — añadió CONTEXT.md, AGENTS.md y memory/*.md como fuentes de contexto (#29)</sub>
     </td>
     <td align="center" width="20%">
       <a href="https://github.com/BBear0115">
@@ -577,7 +575,7 @@ Reporte completo (datos, metodología, tablas por celda, advertencias):
         <img src="https://github.com/SunkenCost.png" width="80" /><br/>
         <b>SunkenCost</b>
       </a><br/>
-      <sub>Comando <code>ag clean</code> · Protección de entrada <code>__main__</code> (#37)</sub>
+      <sub>Comando <code>rb clean</code> · Protección de entrada <code>__main__</code> (#37)</sub>
     </td>
     <td align="center" width="20%">
       <a href="https://github.com/aravindhbalaji04">

@@ -1,6 +1,6 @@
 # 🚀 Quick Start Guide
 
-Get the Antigravity repository knowledge engine running in minutes.
+Get the RepoBrain repository knowledge engine running in minutes.
 
 ## 📋 Prerequisites
 
@@ -19,15 +19,15 @@ pip install -e ./cli -e './engine[dev]'
 
 ### 2. Build the Knowledge Base
 ```bash
-ag-refresh --workspace .
+rb-refresh --workspace .
 ```
 
-This command scans the project, builds `.antigravity/`, and prepares the
+This command scans the project, builds `.repobrain/`, and prepares the
 repository knowledge base for routed project Q&A.
 
 ### 3. Ask Project Questions
 ```bash
-ag-ask "How does authentication work in this project?" --workspace .
+rb-ask "How does authentication work in this project?" --workspace .
 ```
 
 The ask pipeline reads the generated structure map, routes to the right module
@@ -63,11 +63,11 @@ OPENAI_MODEL=your-model
 
 # MCP Configuration
 MCP_ENABLED=true
-# Required before ag-ask auto-connects external MCP servers
-AG_ALLOW_MCP=true
+# Required before rb-ask auto-connects external MCP servers
+RB_ALLOW_MCP=true
 
 # Retrieval graph: off, compact, or full
-AG_RETRIEVAL_MODE=compact
+RB_RETRIEVAL_MODE=compact
 
 # Custom settings
 LOG_LEVEL=INFO
@@ -77,7 +77,7 @@ ARTIFACTS_DIR=artifacts
 `ARTIFACTS_DIR` supports absolute or relative paths. Relative values are
 resolved from the repository root so outputs do not drift into IDE default paths.
 
-This project is optimized for trusted local workspaces. `AG_RETRIEVAL_MODE`
+This project is optimized for trusted local workspaces. `RB_RETRIEVAL_MODE`
 defaults to `compact`; `full` keeps richer evidence artifacts. Common secrets are
 redacted before retrieval graph files are written, but snippets can still include
 repository content, so do not enable rich retrieval logging for untrusted or
@@ -96,17 +96,17 @@ To reset:
 
 ```bash
 rm -f memory/agent_memory.md memory/agent_summary.md
-ag-refresh --workspace .
+rb-refresh --workspace .
 ```
 
 ## 📁 Project Structure Reference
 
 ```
-├── cli/                         # Lightweight ag CLI and templates
-├── engine/antigravity_engine/    # Knowledge engine, hub, MCP server, sandbox
+├── cli/                         # Lightweight rb CLI and templates
+├── engine/repobrain_engine/    # Knowledge engine, hub, MCP server, sandbox
 ├── artifacts/                   # Plans, reports, and benchmark outputs
 ├── memory/                      # Markdown interaction memory
-└── .antigravity/                # Generated knowledge base in target repos
+└── .repobrain/                # Generated knowledge base in target repos
 ```
 
 See [Project Structure](../README.md#project-structure) for details.
@@ -126,7 +126,7 @@ pytest engine/tests/test_hub_pipeline.py -v
 ### Knowledge commands don't start
 ```bash
 # Check if the engine CLI is installed
-ag-ask --help
+rb-ask --help
 
 # Verify OpenAI-compatible configuration
 echo $OPENAI_BASE_URL
@@ -136,10 +136,10 @@ echo $OPENAI_API_KEY
 ### Tools not loading
 ```bash
 # Verify engine tools have valid Python files
-ls -la engine/antigravity_engine/tools/
+ls -la engine/repobrain_engine/tools/
 
 # Check for syntax errors
-python -m py_compile engine/antigravity_engine/tools/*.py
+python -m py_compile engine/repobrain_engine/tools/*.py
 ```
 
 ### Memory issues
@@ -156,7 +156,7 @@ rm -f memory/agent_memory.md memory/agent_summary.md
 To enable MCP servers:
 
 1. Set `MCP_ENABLED=true` in `.env`
-2. Set `AG_ALLOW_MCP=true` only when you trust the configured servers
+2. Set `RB_ALLOW_MCP=true` only when you trust the configured servers
 3. Configure servers in `mcp_servers.json`
 4. Restart the command
 

@@ -1,12 +1,12 @@
 name: Feature request
-description: Propose an improvement to the Antigravity knowledge engine or its delivery channels.
+description: Propose an improvement to the RepoBrain knowledge engine or its delivery channels.
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Antigravity is a repository knowledge engine first. Explain how the request improves grounded codebase Q&A, refresh quality, install ergonomics, or supported delivery channels.
+        RepoBrain is a repository knowledge engine first. Explain how the request improves grounded codebase Q&A, refresh quality, install ergonomics, or supported delivery channels.
   - type: textarea
     id: problem
     attributes:

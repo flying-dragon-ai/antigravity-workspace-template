@@ -1,6 +1,6 @@
 import os
 
-from antigravity_engine.sandbox.local import LocalSandbox
+from repobrain_engine.sandbox.local import LocalSandbox
 
 
 def test_success_execution():

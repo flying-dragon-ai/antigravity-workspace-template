@@ -12,11 +12,11 @@
 1) `.env` 启用 MCP
 ```bash
 MCP_ENABLED=true
-AG_ALLOW_MCP=true
+RB_ALLOW_MCP=true
 ```
 
-`MCP_ENABLED=true` 让配置的 MCP server 对 engine 可见。`AG_ALLOW_MCP=true`
-是 `ag-ask` 自动连接外部 MCP server 的显式 opt-in；只有信任这些 server 时才开启。
+`MCP_ENABLED=true` 让配置的 MCP server 对 engine 可见。`RB_ALLOW_MCP=true`
+是 `rb-ask` 自动连接外部 MCP server 的显式 opt-in；只有信任这些 server 时才开启。
 
 2) 编辑 `mcp_servers.json`
 ```json
@@ -43,7 +43,7 @@ AG_ALLOW_MCP=true
 
 3) 调用知识库问答
 ```bash
-ag-ask "有哪些 MCP 工具可用？" --workspace .
+rb-ask "有哪些 MCP 工具可用？" --workspace .
 ```
 当两个开关都开启时，问答流水线会连接已启用的服务器、发现工具并与本地工具合并。
 
@@ -91,11 +91,11 @@ if __name__ == "__main__":
   "name": "my-analysis",
   "transport": "stdio",
   "command": "python",
-  "args": ["antigravity_engine/tools/my_server.py"],
+  "args": ["repobrain_engine/tools/my_server.py"],
   "enabled": true
 }
 ```
-重新运行 `ag-ask` 即可使用。
+重新运行 `rb-ask` 即可使用。
 
 ## 🔐 安全注意事项
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
 ## 🧪 测试 MCP 集成
 ```python
-from antigravity_engine.mcp_client import MCPClientManagerSync
+from repobrain_engine.mcp_client import MCPClientManagerSync
 
 manager = MCPClientManagerSync(config_path="mcp_servers.json")
 manager.initialize()
@@ -117,7 +117,7 @@ manager.shutdown()
 
 ## 🐛 故障排查
 
-- 无法连接：先手动运行服务器命令（如 `python antigravity_engine/tools/my_server.py`），确认 `npx` 等命令存在。
+- 无法连接：先手动运行服务器命令（如 `python repobrain_engine/tools/my_server.py`），确认 `npx` 等命令存在。
 - 工具未出现：重启 Agent，并确认对应 MCP 服务器已在 `mcp_servers.json` 里启用。
 - 性能问题：禁用不需要的服务器；远程优先用 `http`；必要时缓存结果。
 

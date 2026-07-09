@@ -10,15 +10,15 @@ from __future__ import annotations
 
 import types
 
-from antigravity_engine.hub._constants import (
+from repobrain_engine.hub._constants import (
     AGENT_MD_FALLBACK_MARKER,
     AGENT_MD_FALLBACK_SENTINEL,
 )
-from antigravity_engine.hub.ask_pipeline import (
+from repobrain_engine.hub.ask_pipeline import (
     _is_fallback_doc,
     _prepend_degradation_banner,
 )
-from antigravity_engine.hub.refresh_pipeline import _build_agent_md_fallback
+from repobrain_engine.hub.refresh_pipeline import _build_agent_md_fallback
 
 
 def _stub_group() -> types.SimpleNamespace:

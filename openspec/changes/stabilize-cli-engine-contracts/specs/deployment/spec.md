@@ -24,14 +24,14 @@ Linux, macOS, and Windows.
 - **WHEN** a user runs `pip install ./cli` or
   `pip install "git+https://...#subdirectory=cli"`
 - **THEN** the CLI package is installed successfully
-- **AND** the `ag` command is available on PATH
+- **AND** the `rb` command is available on PATH
 
 #### Scenario: Engine Package Installation via pip
 - **WHEN** a user runs `pip install ./engine` or
   `pip install "git+https://...#subdirectory=engine"`
 - **THEN** the engine package is installed successfully
-- **AND** `ag-ask`, `ag-refresh`, and `ag-mcp` are available on PATH
-- **AND** `python -m antigravity_engine ask ...` works as a source-checkout
+- **AND** `rb-ask`, `rb-refresh`, and `rb-mcp` are available on PATH
+- **AND** `python -m repobrain_engine ask ...` works as a source-checkout
   alternative
 
 ### Requirement: Environment Validation

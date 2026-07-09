@@ -14,11 +14,11 @@ El [Protocolo de Contexto del Modelo (MCP)](https://modelcontextprotocol.io/) es
 ### 1. Habilitar MCP en `.env`
 ```bash
 MCP_ENABLED=true
-AG_ALLOW_MCP=true
+RB_ALLOW_MCP=true
 ```
 
 `MCP_ENABLED=true` hace visibles los servidores configurados para el engine.
-`AG_ALLOW_MCP=true` es el opt-in explícito que permite a `ag-ask` conectar
+`RB_ALLOW_MCP=true` es el opt-in explícito que permite a `rb-ask` conectar
 servidores MCP externos automáticamente. Déjalo sin configurar salvo que confíes
 en esos servidores.
 
@@ -43,7 +43,7 @@ en esos servidores.
 
 ### 3. Consultar el Knowledge Hub
 ```bash
-ag-ask "What MCP tools are available?" --workspace .
+rb-ask "What MCP tools are available?" --workspace .
 ```
 
 Cuando ambas variables están habilitadas, el pipeline de preguntas:
@@ -56,7 +56,7 @@ Cuando ambas variables están habilitadas, el pipeline de preguntas:
 
 ```mermaid
 graph TD
-    Agent[🤖 Antigravity Agent] --> LocalTools[🛠️ Local Tools]
+    Agent[🤖 RepoBrain Agent] --> LocalTools[🛠️ Local Tools]
     Agent --> MCPManager[🔌 MCP Client Manager]
     MCPManager --> Server1[📡 GitHub MCP]
     MCPManager --> Server2[📡 Database MCP]
@@ -140,7 +140,7 @@ Regístralo en `mcp_servers.json`:
 ## 🧪 Prueba Rápida de Integración
 
 ```python
-from antigravity_engine.mcp_client import MCPClientManagerSync
+from repobrain_engine.mcp_client import MCPClientManagerSync
 
 manager = MCPClientManagerSync(config_path="mcp_servers.json")
 manager.initialize()

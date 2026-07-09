@@ -1,4 +1,4 @@
-# Antigravity Coding Standards & Best Practices
+# RepoBrain Coding Standards & Best Practices
 
 ## Architecture
 1.  **Tool Isolation**: All external interactions (API calls, file I/O, system commands) MUST be encapsulated in functions within the `tools/` directory.

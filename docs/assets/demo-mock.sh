@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Mock ag-ask output used by docs/assets/demo.tape to record the README GIF
+# Mock rb-ask output used by docs/assets/demo.tape to record the README GIF
 # without requiring a live LLM endpoint. Two scripted responses keyed by the
 # question text — falls back to the multi-agent answer for anything else.
 
@@ -25,8 +25,8 @@ if [[ "$QUESTION" == *"calls"* || "$QUESTION" == *"call "* ]]; then
   echo
   echo "  refresh_pipeline.run() is called from:"
   echo
-  printf "    1. _cli_entry.ag_refresh()             ${c_under}engine/antigravity_engine/_cli_entry.py:142${c_off}\n"
-  printf "    2. mcp_server.refresh_project()        ${c_under}engine/antigravity_engine/hub/mcp_server.py:88${c_off}\n"
+  printf "    1. _cli_entry.rb_refresh()             ${c_under}engine/repobrain_engine/_cli_entry.py:142${c_off}\n"
+  printf "    2. mcp_server.refresh_project()        ${c_under}engine/repobrain_engine/hub/mcp_server.py:88${c_off}\n"
   echo
   printf "  ${c_dim}Confidence: high · agent doc + live source cross-check${c_off}\n"
   echo
@@ -44,20 +44,20 @@ sleep 0.4
 echo
 printf "${c_green}✓ Answer (grounded in 3 source files):${c_off}\n"
 echo
-echo "  During ag-refresh, files are grouped by import graph,"
+echo "  During rb-refresh, files are grouped by import graph,"
 echo "  directory co-location and filename prefix. Each group"
 echo "  becomes a sub-agent loaded with ~30K tokens of source"
 echo "  pre-baked into context — no tool calls needed."
 echo
-printf "    ${c_under}engine/antigravity_engine/hub/module_grouping.py:78${c_off}\n"
-printf "    ${c_under}engine/antigravity_engine/hub/refresh_pipeline.py:142${c_off}\n"
+printf "    ${c_under}engine/repobrain_engine/hub/module_grouping.py:78${c_off}\n"
+printf "    ${c_under}engine/repobrain_engine/hub/refresh_pipeline.py:142${c_off}\n"
 echo
 echo "  Each sub-agent writes a Markdown knowledge doc to"
-echo "  .antigravity/agents/{module}.md. Large modules emit"
+echo "  .repobrain/agents/{module}.md. Large modules emit"
 echo "  multiple docs — no merging, no information loss."
 echo
 echo "  Map Agent then reads all agent docs and produces"
-echo "  map.md as the routing index used by ag-ask."
+echo "  map.md as the routing index used by rb-ask."
 echo
-printf "    ${c_under}engine/antigravity_engine/hub/agents.py:215${c_off}\n"
+printf "    ${c_under}engine/repobrain_engine/hub/agents.py:215${c_off}\n"
 echo

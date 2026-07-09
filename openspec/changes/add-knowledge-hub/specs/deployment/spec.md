@@ -19,9 +19,9 @@ The system SHALL provide an automated installation mechanism that works on Linux
 
 #### Scenario: Package Installation via pip
 - **WHEN** a user runs `pip install ./engine` or `pip install "git+https://...#subdirectory=engine"`
-- **THEN** the engine is installed as the `antigravity-engine` package
+- **THEN** the engine is installed as the `repobrain-engine` package
 - **AND** `ag-engine` and `ag-hub` console scripts are available on PATH
-- **AND** `python -m antigravity_engine` works as an alternative entry point
+- **AND** `python -m repobrain_engine` works as an alternative entry point
 
 ### Requirement: Environment Validation
 The installer SHALL verify that all necessary system prerequisites are met before attempting installation.

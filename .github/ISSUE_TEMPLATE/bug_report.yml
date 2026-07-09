@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible Antigravity bug.
+description: Report a reproducible RepoBrain bug.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -48,10 +48,10 @@ body:
     attributes:
       label: Affected surface
       options:
-        - ag-refresh
-        - ag-ask
-        - ag-mcp
-        - ag CLI
+        - rb-refresh
+        - rb-ask
+        - rb-mcp
+        - rb CLI
         - Claude Code plugin
         - Codex CLI plugin
         - Documentation

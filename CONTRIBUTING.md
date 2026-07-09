@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for improving Antigravity. The project direction is a repository
+Thanks for improving RepoBrain. The project direction is a repository
 knowledge engine first; plugins, MCP, and templates are delivery paths around
 that core.
 
@@ -32,8 +32,8 @@ For Docker changes:
 
 ```bash
 docker compose config --quiet
-docker build -t antigravity-local .
-docker build -f Dockerfile.sandbox -t antigravity-sandbox-local .
+docker build -t repobrain-local .
+docker build -f Dockerfile.sandbox -t repobrain-sandbox-local .
 ```
 
 ## Versioning

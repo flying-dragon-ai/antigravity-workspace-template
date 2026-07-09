@@ -1,15 +1,15 @@
-"""Tests for antigravity_engine.skills.loader."""
+"""Tests for repobrain_engine.skills.loader."""
 import textwrap
 from pathlib import Path
 from unittest.mock import patch
 
-from antigravity_engine.skills.loader import load_skills
+from repobrain_engine.skills.loader import load_skills
 
 
 def test_empty_directory_returns_empty_string(tmp_path: Path):
     """An empty skills directory produces no docs and no tools."""
     tools: dict = {}
-    with patch("antigravity_engine.skills.loader.Path") as MockPath:
+    with patch("repobrain_engine.skills.loader.Path") as MockPath:
         # Make __file__.parent point to the empty tmp directory
         MockPath.return_value.parent = tmp_path
         MockPath.__file__ = tmp_path / "loader.py"
@@ -23,7 +23,7 @@ def test_empty_directory_returns_empty_string(tmp_path: Path):
         pass
 
     # Simpler approach: call with a patched __file__
-    import antigravity_engine.skills.loader as loader_mod
+    import repobrain_engine.skills.loader as loader_mod
 
     original_file = loader_mod.__file__
     try:
@@ -55,7 +55,7 @@ def test_skill_with_tools_registers_functions(tmp_path: Path):
         encoding="utf-8",
     )
 
-    import antigravity_engine.skills.loader as loader_mod
+    import repobrain_engine.skills.loader as loader_mod
 
     original_file = loader_mod.__file__
     try:
@@ -75,7 +75,7 @@ def test_skill_with_doc_returns_content(tmp_path: Path):
 
     (skill_dir / "SKILL.md").write_text("# My Skill\nDoes things.", encoding="utf-8")
 
-    import antigravity_engine.skills.loader as loader_mod
+    import repobrain_engine.skills.loader as loader_mod
 
     original_file = loader_mod.__file__
     try:
@@ -95,7 +95,7 @@ def test_bad_module_does_not_crash(tmp_path: Path):
 
     (skill_dir / "tools.py").write_text("raise RuntimeError('boom')", encoding="utf-8")
 
-    import antigravity_engine.skills.loader as loader_mod
+    import repobrain_engine.skills.loader as loader_mod
 
     original_file = loader_mod.__file__
     try:
@@ -122,7 +122,7 @@ def test_load_skills_caches_per_directory(tmp_path: Path):
         encoding="utf-8",
     )
 
-    import antigravity_engine.skills.loader as loader_mod
+    import repobrain_engine.skills.loader as loader_mod
 
     original_file = loader_mod.__file__
     try:

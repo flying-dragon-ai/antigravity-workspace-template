@@ -1,8 +1,8 @@
 """Tests for hub.scanner — pure Python, no LLM needed."""
 from pathlib import Path
 
-from antigravity_engine.hub._constants import WORKSPACE_ROOT_MODULE_ID
-from antigravity_engine.hub.scanner import (
+from repobrain_engine.hub._constants import WORKSPACE_ROOT_MODULE_ID
+from repobrain_engine.hub.scanner import (
     ScanReport,
     detect_modules,
     extract_structure,
@@ -203,27 +203,27 @@ def test_full_scan_reads_ci_workflows(tmp_path: Path) -> None:
 def test_full_scan_detects_entry_points_from_pyproject(tmp_path: Path) -> None:
     """Entry points are extracted from pyproject.toml [project.scripts]."""
     (tmp_path / "pyproject.toml").write_text(
-        '[project.scripts]\nag = "ag_cli.cli:app"\n', encoding="utf-8"
+        '[project.scripts]\nrb = "rb_cli.cli:app"\n', encoding="utf-8"
     )
-    cli_dir = tmp_path / "ag_cli"
+    cli_dir = tmp_path / "rb_cli"
     cli_dir.mkdir()
     (cli_dir / "cli.py").write_text("app = 'hello'\n", encoding="utf-8")
     report = full_scan(tmp_path)
-    assert "ag_cli/cli.py" in report.entry_points
+    assert "rb_cli/cli.py" in report.entry_points
 
 
 def test_full_scan_detects_src_layout_entry_points_from_pyproject(tmp_path: Path) -> None:
     """Entry points in src-layout Python packages should be detected."""
     (tmp_path / "pyproject.toml").write_text(
-        '[project.scripts]\nag = "ag_cli.cli:app"\n', encoding="utf-8"
+        '[project.scripts]\nrb = "rb_cli.cli:app"\n', encoding="utf-8"
     )
-    cli_dir = tmp_path / "src" / "ag_cli"
+    cli_dir = tmp_path / "src" / "rb_cli"
     cli_dir.mkdir(parents=True)
     (cli_dir / "cli.py").write_text("app = 'hello'\n", encoding="utf-8")
 
     report = full_scan(tmp_path)
 
-    assert "src/ag_cli/cli.py" in report.entry_points
+    assert "src/rb_cli/cli.py" in report.entry_points
 
 
 def test_full_scan_detects_common_entry_files(tmp_path: Path) -> None:

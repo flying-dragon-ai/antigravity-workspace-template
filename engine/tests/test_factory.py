@@ -1,6 +1,6 @@
-from antigravity_engine.sandbox.factory import get_sandbox
-from antigravity_engine.sandbox.local import LocalSandbox
-from antigravity_engine.sandbox.microsandbox_exec import MicrosandboxSandbox
+from repobrain_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.local import LocalSandbox
+from repobrain_engine.sandbox.microsandbox_exec import MicrosandboxSandbox
 
 
 def test_factory_default_local(monkeypatch):

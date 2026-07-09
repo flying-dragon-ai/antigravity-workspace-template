@@ -8,14 +8,14 @@ __pycache__
 *.egg-info
 
 .env
-.antigravity
+.repobrain
 .context
 .venv
 venv
 env
 ENV
 .tmp-venv
-antigravity_workspace_template_venv
+repobrain_workspace_template_venv
 engine/venv
 
 build

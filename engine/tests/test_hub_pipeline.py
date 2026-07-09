@@ -4,12 +4,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from antigravity_engine.hub.pipeline import (
+from repobrain_engine.hub.pipeline import (
     _build_ask_context,
     _format_scan_report,
     _get_head_sha,
 )
-from antigravity_engine.hub.scanner import ScanReport
+from repobrain_engine.hub.scanner import ScanReport
 
 
 def test_format_scan_report_basic() -> None:
@@ -44,17 +44,17 @@ def test_get_head_sha_no_git(tmp_path: Path) -> None:
     assert sha is None or isinstance(sha, str)
 
 
-def test_refresh_initializes_antigravity_scaffold(tmp_path: Path) -> None:
+def test_refresh_initializes_repobrain_scaffold(tmp_path: Path) -> None:
     """Refresh initialization creates project-local state idempotently."""
-    from antigravity_engine.hub.refresh_pipeline import (
+    from repobrain_engine.hub.refresh_pipeline import (
         _ensure_refresh_workspace_initialized,
     )
 
-    ag_dir = _ensure_refresh_workspace_initialized(tmp_path)
-    manifest = ag_dir / "manifest.json"
+    rb_dir = _ensure_refresh_workspace_initialized(tmp_path)
+    manifest = rb_dir / "manifest.json"
     original_manifest = manifest.read_text(encoding="utf-8")
 
-    assert ag_dir == tmp_path / ".antigravity"
+    assert rb_dir == tmp_path / ".repobrain"
     assert manifest.exists()
     for dirname in (
         "agents",
@@ -65,7 +65,7 @@ def test_refresh_initializes_antigravity_scaffold(tmp_path: Path) -> None:
         "decisions",
         "logs",
     ):
-        assert (ag_dir / dirname).is_dir()
+        assert (rb_dir / dirname).is_dir()
 
     _ensure_refresh_workspace_initialized(tmp_path)
 
@@ -74,11 +74,11 @@ def test_refresh_initializes_antigravity_scaffold(tmp_path: Path) -> None:
 
 def test_refresh_initialization_refuses_blocking_file(tmp_path: Path) -> None:
     """Initialization fails instead of replacing user-owned files."""
-    from antigravity_engine.hub.refresh_pipeline import (
+    from repobrain_engine.hub.refresh_pipeline import (
         _ensure_refresh_workspace_initialized,
     )
 
-    (tmp_path / ".antigravity").write_text("not a dir", encoding="utf-8")
+    (tmp_path / ".repobrain").write_text("not a dir", encoding="utf-8")
 
     with pytest.raises(RuntimeError, match="Project initialization failed"):
         _ensure_refresh_workspace_initialized(tmp_path)
@@ -90,11 +90,11 @@ async def test_refresh_pipeline_creates_conventions(tmp_path: Path, monkeypatch)
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
-    from antigravity_engine.config import reset_settings
+    from repobrain_engine.config import reset_settings
     reset_settings()
 
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir()
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
 
     mock_result = MagicMock()
     mock_result.final_output = "# Conventions\n\nThis is a Python project."
@@ -107,20 +107,20 @@ async def test_refresh_pipeline_creates_conventions(tmp_path: Path, monkeypatch)
 
     with patch.dict("sys.modules", {"agents": mock_agents_module}):
         import importlib
-        import antigravity_engine.hub.pipeline as pipeline_mod
+        import repobrain_engine.hub.pipeline as pipeline_mod
         importlib.reload(pipeline_mod)
 
         await pipeline_mod.refresh_pipeline(tmp_path, quick=False)
 
-    conventions = ag_dir / "conventions.md"
+    conventions = rb_dir / "conventions.md"
     assert conventions.exists()
     assert "Python project" in conventions.read_text(encoding="utf-8")
-    assert (ag_dir / "knowledge_graph.json").exists()
-    assert (ag_dir / "knowledge_graph.md").exists()
-    assert (ag_dir / "knowledge_graph.mmd").exists()
-    assert (ag_dir / "document_index.md").exists()
-    assert (ag_dir / "data_overview.md").exists()
-    assert (ag_dir / "media_manifest.md").exists()
+    assert (rb_dir / "knowledge_graph.json").exists()
+    assert (rb_dir / "knowledge_graph.md").exists()
+    assert (rb_dir / "knowledge_graph.mmd").exists()
+    assert (rb_dir / "document_index.md").exists()
+    assert (rb_dir / "data_overview.md").exists()
+    assert (rb_dir / "media_manifest.md").exists()
 
 
 @pytest.mark.asyncio
@@ -130,22 +130,22 @@ async def test_refresh_scan_only_can_be_enabled_from_env_file(
 ) -> None:
     """No-key refresh can run in scan-only mode from project .env."""
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
-    monkeypatch.delenv("AG_REFRESH_SCAN_ONLY", raising=False)
+    monkeypatch.delenv("RB_REFRESH_SCAN_ONLY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     (tmp_path / ".env").write_text(
-        "AG_REFRESH_SCAN_ONLY=1\nAG_HOST_RUNNER=codex\n",
+        "RB_REFRESH_SCAN_ONLY=1\nRB_HOST_RUNNER=codex\n",
         encoding="utf-8",
     )
 
-    from antigravity_engine.config import reset_settings
-    from antigravity_engine.hub.refresh_pipeline import refresh_pipeline
+    from repobrain_engine.config import reset_settings
+    from repobrain_engine.hub.refresh_pipeline import refresh_pipeline
 
     reset_settings()
 
     status = await refresh_pipeline(tmp_path, quick=False)
 
     assert status.stages["conventions"] == "skipped"
-    assert (tmp_path / ".antigravity" / "scan_report.json").exists()
+    assert (tmp_path / ".repobrain" / "scan_report.json").exists()
 
 
 @pytest.mark.asyncio
@@ -154,12 +154,12 @@ async def test_ask_pipeline_returns_answer(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
 
-    from antigravity_engine.config import reset_settings
+    from repobrain_engine.config import reset_settings
     reset_settings()
 
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir()
-    (ag_dir / "conventions.md").write_text("Python + FastAPI", encoding="utf-8")
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
+    (rb_dir / "conventions.md").write_text("Python + FastAPI", encoding="utf-8")
 
     mock_result = MagicMock()
     mock_result.final_output = "This project uses FastAPI."
@@ -171,7 +171,7 @@ async def test_ask_pipeline_returns_answer(tmp_path: Path, monkeypatch) -> None:
 
     with patch.dict("sys.modules", {"agents": mock_agents_module}):
         import importlib
-        import antigravity_engine.hub.pipeline as pipeline_mod
+        import repobrain_engine.hub.pipeline as pipeline_mod
         importlib.reload(pipeline_mod)
 
         answer = await pipeline_mod.ask_pipeline(tmp_path, "What framework?")
@@ -184,21 +184,21 @@ async def test_ask_pipeline_uses_codex_host_runner_without_model_config(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    """AG_HOST_RUNNER=codex bypasses the Agent SDK model path."""
+    """RB_HOST_RUNNER=codex bypasses the Agent SDK model path."""
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
-    monkeypatch.setenv("AG_HOST_RUNNER", "codex")
-    monkeypatch.setenv("AG_HOST_MODEL", "gpt-5.3-codex-spark")
+    monkeypatch.setenv("RB_HOST_RUNNER", "codex")
+    monkeypatch.setenv("RB_HOST_MODEL", "gpt-5.3-codex-spark")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
 
-    from antigravity_engine.config import reset_settings
+    from repobrain_engine.config import reset_settings
     reset_settings()
 
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir()
-    (ag_dir / "conventions.md").write_text("Python + FastAPI", encoding="utf-8")
-    (ag_dir / "map.md").write_text("api: FastAPI application module", encoding="utf-8")
-    agents_dir = ag_dir / "agents"
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
+    (rb_dir / "conventions.md").write_text("Python + FastAPI", encoding="utf-8")
+    (rb_dir / "map.md").write_text("api: FastAPI application module", encoding="utf-8")
+    agents_dir = rb_dir / "agents"
     agents_dir.mkdir()
     (agents_dir / "api.md").write_text("FastAPI agent says routes live here.", encoding="utf-8")
 
@@ -213,15 +213,15 @@ async def test_ask_pipeline_uses_codex_host_runner_without_model_config(
         raise AssertionError("create_model should not be called in host mode")
 
     monkeypatch.setattr(
-        "antigravity_engine.hub.host_runner.run_host_runner",
+        "repobrain_engine.hub.host_runner.run_host_runner",
         _fake_host_runner,
     )
     monkeypatch.setattr(
-        "antigravity_engine.hub.agents.create_model",
+        "repobrain_engine.hub.agents.create_model",
         _unexpected_create_model,
     )
 
-    from antigravity_engine.hub.ask_pipeline import ask_pipeline
+    from repobrain_engine.hub.ask_pipeline import ask_pipeline
 
     answer = await ask_pipeline(tmp_path, "What framework?")
 
@@ -234,16 +234,16 @@ async def test_ask_pipeline_rejects_unknown_host_runner(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
-    monkeypatch.setenv("AG_HOST_RUNNER", "codexx")
+    monkeypatch.setenv("RB_HOST_RUNNER", "codexx")
 
-    from antigravity_engine.config import reset_settings
-    from antigravity_engine.hub.host_runner import HostRunnerError
+    from repobrain_engine.config import reset_settings
+    from repobrain_engine.hub.host_runner import HostRunnerError
 
     reset_settings()
 
-    from antigravity_engine.hub.ask_pipeline import ask_pipeline
+    from repobrain_engine.hub.ask_pipeline import ask_pipeline
 
-    with pytest.raises(HostRunnerError, match="Unsupported AG_HOST_RUNNER"):
+    with pytest.raises(HostRunnerError, match="Unsupported RB_HOST_RUNNER"):
         await ask_pipeline(tmp_path, "What framework?")
 
 
@@ -253,22 +253,22 @@ async def test_ask_pipeline_host_runner_preserves_retrieval_first_mode(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
-    monkeypatch.setenv("AG_HOST_RUNNER", "codex")
-    monkeypatch.setenv("AG_ASK_RETRIEVAL_FIRST", "2")
+    monkeypatch.setenv("RB_HOST_RUNNER", "codex")
+    monkeypatch.setenv("RB_ASK_RETRIEVAL_FIRST", "2")
     (tmp_path / "app.py").write_text("def target_func():\n    return 1\n", encoding="utf-8")
 
-    from antigravity_engine.config import reset_settings
+    from repobrain_engine.config import reset_settings
     reset_settings()
 
     async def _unexpected_host_runner(**kwargs):
         raise AssertionError("host runner should be skipped by retrieval-first mode")
 
     monkeypatch.setattr(
-        "antigravity_engine.hub.host_runner.run_host_runner",
+        "repobrain_engine.hub.host_runner.run_host_runner",
         _unexpected_host_runner,
     )
 
-    from antigravity_engine.hub.ask_pipeline import ask_pipeline
+    from repobrain_engine.hub.ask_pipeline import ask_pipeline
 
     answer = await ask_pipeline(tmp_path, "Where is target_func defined?")
 
@@ -282,11 +282,11 @@ async def test_ask_pipeline_host_runner_failure_does_not_include_env_key(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("WORKSPACE_PATH", str(tmp_path))
-    monkeypatch.setenv("AG_HOST_RUNNER", "codex")
+    monkeypatch.setenv("RB_HOST_RUNNER", "codex")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-secret-value")
 
-    from antigravity_engine.config import reset_settings
-    from antigravity_engine.hub.host_runner import HostRunnerError
+    from repobrain_engine.config import reset_settings
+    from repobrain_engine.hub.host_runner import HostRunnerError
 
     reset_settings()
 
@@ -294,11 +294,11 @@ async def test_ask_pipeline_host_runner_failure_does_not_include_env_key(
         raise HostRunnerError("Codex host runner failed: no credentials available")
 
     monkeypatch.setattr(
-        "antigravity_engine.hub.host_runner.run_host_runner",
+        "repobrain_engine.hub.host_runner.run_host_runner",
         _fake_host_runner,
     )
 
-    from antigravity_engine.hub.ask_pipeline import ask_pipeline
+    from repobrain_engine.hub.ask_pipeline import ask_pipeline
 
     with pytest.raises(HostRunnerError) as excinfo:
         await ask_pipeline(tmp_path, "What framework?")
@@ -308,15 +308,15 @@ async def test_ask_pipeline_host_runner_failure_does_not_include_env_key(
 
 def test_build_ask_context_includes_root_and_memory_docs(tmp_path: Path) -> None:
     """ask context should include root docs and memory logs when present."""
-    ag_dir = tmp_path / ".antigravity"
-    memory_dir = ag_dir / "memory"
-    (ag_dir / "decisions").mkdir(parents=True)
+    rb_dir = tmp_path / ".repobrain"
+    memory_dir = rb_dir / "memory"
+    (rb_dir / "decisions").mkdir(parents=True)
     memory_dir.mkdir(parents=True)
 
-    (ag_dir / "conventions.md").write_text("Python + FastAPI", encoding="utf-8")
+    (rb_dir / "conventions.md").write_text("Python + FastAPI", encoding="utf-8")
     (tmp_path / "CONTEXT.md").write_text("Use service layer", encoding="utf-8")
     (tmp_path / "AGENTS.md").write_text(
-        "Read the antigravity files first",
+        "Read the repobrain files first",
         encoding="utf-8",
     )
     (memory_dir / "reports.md").write_text(
@@ -326,10 +326,10 @@ def test_build_ask_context_includes_root_and_memory_docs(tmp_path: Path) -> None
 
     context = _build_ask_context(tmp_path)
 
-    assert ".antigravity/conventions.md" in context
+    assert ".repobrain/conventions.md" in context
     assert "CONTEXT.md" in context
     assert "AGENTS.md" in context
-    assert ".antigravity/memory/reports.md" in context
+    assert ".repobrain/memory/reports.md" in context
     assert "Auth module needs cleanup" in context
 
 
@@ -339,21 +339,21 @@ def test_load_project_context_includes_conventions_and_registry(tmp_path: Path) 
     Regression guard: the new structured-facts path used to read only per-module
     agent docs, so questions answerable from conventions.md got refusal answers.
     """
-    from antigravity_engine.hub.ask_pipeline import _load_project_context
+    from repobrain_engine.hub.ask_pipeline import _load_project_context
 
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir()
-    (ag_dir / "conventions.md").write_text(
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
+    (rb_dir / "conventions.md").write_text(
         "# Project Conventions\n\nLint: Ruff. Format: Black.",
         encoding="utf-8",
     )
-    (ag_dir / "module_registry.md").write_text(
+    (rb_dir / "module_registry.md").write_text(
         "# Module Registry\n\n- core: business logic\n- api: HTTP layer\n",
         encoding="utf-8",
     )
 
     map_content = "# Module Map\n\n## core\n- Path: src/core/\n"
-    section = _load_project_context(ag_dir, map_content=map_content)
+    section = _load_project_context(rb_dir, map_content=map_content)
 
     assert "Project Context" in section
     assert "Lint: Ruff" in section
@@ -365,11 +365,11 @@ def test_load_project_context_includes_conventions_and_registry(tmp_path: Path) 
 
 def test_load_project_context_returns_empty_when_no_sources(tmp_path: Path) -> None:
     """No conventions/map/registry → empty string (callers skip the section)."""
-    from antigravity_engine.hub.ask_pipeline import _load_project_context
+    from repobrain_engine.hub.ask_pipeline import _load_project_context
 
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir()
-    assert _load_project_context(ag_dir, map_content="") == ""
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
+    assert _load_project_context(rb_dir, map_content="") == ""
 
 
 def test_ask_tools_can_be_wrapped_for_answer_agent() -> None:
@@ -377,8 +377,8 @@ def test_ask_tools_can_be_wrapped_for_answer_agent() -> None:
     agents at runtime. This test guards that the wiring exists and produces
     the SDK FunctionTool objects the Agent constructor expects."""
     from pathlib import Path
-    from antigravity_engine.hub.agents import _wrap_tools
-    from antigravity_engine.hub.ask_tools import create_ask_tools
+    from repobrain_engine.hub.agents import _wrap_tools
+    from repobrain_engine.hub.ask_tools import create_ask_tools
 
     tools = create_ask_tools(Path("/tmp"))
     wrapped = _wrap_tools(tools)
@@ -396,15 +396,15 @@ def test_ask_tools_can_be_wrapped_for_answer_agent() -> None:
 def test_load_project_context_respects_total_budget(tmp_path: Path) -> None:
     """Total budget caps overall section size; per-source cap prevents one big
     file from starving the others."""
-    from antigravity_engine.hub.ask_pipeline import _load_project_context
+    from repobrain_engine.hub.ask_pipeline import _load_project_context
 
-    ag_dir = tmp_path / ".antigravity"
-    ag_dir.mkdir()
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
     big = "x" * 50_000
-    (ag_dir / "conventions.md").write_text(big, encoding="utf-8")
-    (ag_dir / "module_registry.md").write_text("REGISTRY_MARKER\n" + big, encoding="utf-8")
+    (rb_dir / "conventions.md").write_text(big, encoding="utf-8")
+    (rb_dir / "module_registry.md").write_text("REGISTRY_MARKER\n" + big, encoding="utf-8")
 
-    section = _load_project_context(ag_dir, map_content="", max_chars=3_000)
+    section = _load_project_context(rb_dir, map_content="", max_chars=3_000)
 
     # Total stays roughly under the cap (header + per-source caps).
     assert len(section) <= 4_000
@@ -415,7 +415,7 @@ def test_load_project_context_respects_total_budget(tmp_path: Path) -> None:
 
 def test_ask_retry_classifier_handles_litellm_service_unavailable() -> None:
     """LiteLLM wraps provider 503s without always preserving the numeric code."""
-    from antigravity_engine.hub.ask_pipeline import _is_retryable_ask_error
+    from repobrain_engine.hub.ask_pipeline import _is_retryable_ask_error
 
     class ServiceUnavailableError(Exception):
         pass
@@ -468,8 +468,8 @@ def test_format_scan_report_includes_git() -> None:
 
 def test_build_module_registry_entries_humanizes_workspace_root(tmp_path: Path) -> None:
     """Workspace-root module summaries should avoid exposing the sentinel id."""
-    from antigravity_engine.hub.contracts import RefreshStatus
-    from antigravity_engine.hub.refresh_pipeline import _build_module_registry_entries
+    from repobrain_engine.hub.contracts import RefreshStatus
+    from repobrain_engine.hub.refresh_pipeline import _build_module_registry_entries
 
     (tmp_path / "main.go").write_text("package main\nfunc main() {}\n", encoding="utf-8")
 

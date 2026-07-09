@@ -1,7 +1,7 @@
 """Tests for hub.agents.create_model() LLM backend resolution."""
 import pytest
 
-from antigravity_engine.hub.agents import create_model
+from repobrain_engine.hub.agents import create_model
 
 
 def _make_settings(**overrides):
@@ -48,7 +48,7 @@ def test_base_url_with_key_routes_through_litellm():
     assert result == "litellm/openai/moonshotai/kimi-k2.5"
 
 
-def test_ag_setup_openai_config_ignores_unrelated_provider_attrs():
+def test_rb_setup_openai_config_ignores_unrelated_provider_attrs():
     settings = _make_settings(
         GOOGLE_API_KEY="goog-key-123",
         OPENAI_BASE_URL="https://api.deepseek.com/v1",

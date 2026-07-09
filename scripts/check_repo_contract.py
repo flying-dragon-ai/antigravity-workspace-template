@@ -38,7 +38,7 @@ def check_plugin_versions() -> None:
     claude_marketplace = read_json(".claude-plugin/marketplace.json")
     codex_plugin = read_json(".codex-plugin/plugin.json")
     engine_pyproject = read_text("engine/pyproject.toml")
-    engine_init = read_text("engine/antigravity_engine/__init__.py")
+    engine_init = read_text("engine/repobrain_engine/__init__.py")
     engine_version_match = re.search(
         r'^version = "([^"]+)"$', engine_pyproject, re.MULTILINE
     )
@@ -90,22 +90,22 @@ def check_llm_configuration_docs() -> None:
     require_contains("docker-compose.yml", "OPENAI_BASE_URL=")
     require_absent("docker-compose.yml", r"\./\.context:/app/\.context")
 
-    require_contains("commands/ag-setup.md", "OPENAI_BASE_URL=<chosen URL>")
-    require_contains("commands/ag-setup.md", "OPENAI_MODEL=<chosen model>")
-    require_absent("commands/ag-setup.md", r"Gemini|GOOGLE_API_KEY|GEMINI_MODEL_NAME")
-    require_absent("engine/antigravity_engine/config.py", r"GOOGLE_API_KEY|GEMINI_MODEL_NAME")
-    require_absent("engine/antigravity_engine/hub/agents.py", r"litellm/gemini|GOOGLE_API_KEY|GEMINI_MODEL_NAME")
+    require_contains("commands/rb-setup.md", "OPENAI_BASE_URL=<chosen URL>")
+    require_contains("commands/rb-setup.md", "OPENAI_MODEL=<chosen model>")
+    require_absent("commands/rb-setup.md", r"Gemini|GOOGLE_API_KEY|GEMINI_MODEL_NAME")
+    require_absent("engine/repobrain_engine/config.py", r"GOOGLE_API_KEY|GEMINI_MODEL_NAME")
+    require_absent("engine/repobrain_engine/hub/agents.py", r"litellm/gemini|GOOGLE_API_KEY|GEMINI_MODEL_NAME")
 
     provider_setup_paths = (
         "engine/install.sh",
         "engine/install.bat",
-        "engine/antigravity_engine/skills/agent_repo_init_core.py",
+        "engine/repobrain_engine/skills/agent_repo_init_core.py",
         "skills/agent-repo-init/scripts/init_project.py",
         "skills/agent-repo-init/SKILL.md",
-        "engine/antigravity_engine/skills/agent-repo-init/SKILL.md",
+        "engine/repobrain_engine/skills/agent-repo-init/SKILL.md",
     )
     for path in provider_setup_paths:
-        require_contains(path, "ag-setup")
+        require_contains(path, "rb-setup")
         require_absent(path, r"GEMINI_MODEL_NAME|GOOGLE_API_KEY")
 
 
@@ -117,7 +117,7 @@ def check_positioning_contract() -> None:
     require_contains("README.md", "## Support Matrix")
     require_contains(
         "docs/en/PHILOSOPHY.md",
-        "Antigravity is that repository knowledge layer.",
+        "RepoBrain is that repository knowledge layer.",
     )
     require_contains("mission.md", "portable, evidence-grounded knowledge layer")
     require_contains("VERSIONING.md", "Plugin metadata must stay aligned")
@@ -127,8 +127,8 @@ def check_productization_contract() -> None:
     install_paths = ("engine/install.sh", "engine/install.bat")
     for path in install_paths:
         require_contains(path, "Python 3.10")
-        require_contains(path, "ag-refresh --workspace .")
-        require_contains(path, "ag-ask")
+        require_contains(path, "rb-refresh --workspace .")
+        require_contains(path, "rb-ask")
         require_absent(path, r"Python 3\.8")
         require_absent(path, r"python agent\.py")
         require_absent(path, r"GOOGLE_API_KEY=your_api_key_here")
@@ -155,10 +155,10 @@ def check_productization_contract() -> None:
         "docs/zh/QUICK_START.md",
         "docs/es/QUICK_START.md",
     ):
-        require_contains(path, "AG_RETRIEVAL_MODE")
-        require_contains(path, "AG_ALLOW_MCP=true")
-        require_contains(path, "ag-refresh --workspace .")
-        require_contains(path, "ag-ask")
+        require_contains(path, "RB_RETRIEVAL_MODE")
+        require_contains(path, "RB_ALLOW_MCP=true")
+        require_contains(path, "rb-refresh --workspace .")
+        require_contains(path, "rb-ask")
         require_absent(path, r"pytest --cov")
 
     for path in (
@@ -167,11 +167,11 @@ def check_productization_contract() -> None:
         "docs/es/MCP_INTEGRATION.md",
         "INSTALL.md",
     ):
-        require_contains(path, "AG_ALLOW_MCP=true")
+        require_contains(path, "RB_ALLOW_MCP=true")
         require_contains(path, "env")
 
-    require_contains("engine/.env.example", "AG_RETRIEVAL_MODE=compact")
-    require_contains("engine/.env.example", "AG_ALLOW_MCP=false")
+    require_contains("engine/.env.example", "RB_RETRIEVAL_MODE=compact")
+    require_contains("engine/.env.example", "RB_ALLOW_MCP=false")
 
 
 def check_workflows() -> None:

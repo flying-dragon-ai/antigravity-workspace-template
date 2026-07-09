@@ -1,4 +1,4 @@
-from antigravity_engine.tools.memory_tools import read_memory_md, search_memory_md
+from repobrain_engine.tools.memory_tools import read_memory_md, search_memory_md
 
 
 def test_read_memory_md(tmp_path):
@@ -38,7 +38,7 @@ def test_search_memory_md_falls_back_when_rg_cannot_run(tmp_path, monkeypatch):
         raise PermissionError("rg is not executable")
 
     monkeypatch.setattr(
-        "antigravity_engine.tools.memory_tools.subprocess.run",
+        "repobrain_engine.tools.memory_tools.subprocess.run",
         raise_permission_error,
     )
 

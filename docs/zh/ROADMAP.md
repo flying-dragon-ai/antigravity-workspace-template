@@ -2,8 +2,8 @@
 
 ## 愿景：基于证据的代码库知识层
 
-Antigravity 正收敛为一个可移植的 repository knowledge engine：把 workspace
-刷新成 `.antigravity/`，用源码证据回答问题，并通过插件、CLI、MCP 暴露同一份知识。
+RepoBrain 正收敛为一个可移植的 repository knowledge engine：把 workspace
+刷新成 `.repobrain/`，用源码证据回答问题，并通过插件、CLI、MCP 暴露同一份知识。
 
 ## 当前状态
 
@@ -24,14 +24,14 @@ Antigravity 正收敛为一个可移植的 repository knowledge engine：把 wor
 
 - Sandbox：local 可信开发边界、Microsandbox/E2B opt-in、降级 warning。
 - Retrieval graph：默认保留开发体验，同时做 secret redaction 与风险说明。
-- MCP：保留 opt-in 便利性，明确 `AG_ALLOW_MCP`、环境变量和外部 server 权限风险。
-- 安装与文档：保持 `ag-setup -> ag-refresh -> ag-ask` 主线，减少旧入口漂移。
+- MCP：保留 opt-in 便利性，明确 `RB_ALLOW_MCP`、环境变量和外部 server 权限风险。
+- 安装与文档：保持 `rb-setup -> rb-refresh -> rb-ask` 主线，减少旧入口漂移。
 - Contract check：用 CI 检查安装脚本、sandbox 文档、模型默认值和 quick start。
 
 ## 使用场景
 
-- 新人理解项目：运行 `ag-refresh` 后用 `ag-ask` 提问，答案带文件证据。
-- 多 IDE 协作：Claude Code、Codex CLI、Cursor、Windsurf 等读取同一份 `.antigravity/`。
+- 新人理解项目：运行 `rb-refresh` 后用 `rb-ask` 提问，答案带文件证据。
+- 多 IDE 协作：Claude Code、Codex CLI、Cursor、Windsurf 等读取同一份 `.repobrain/`。
 - 安全发布：公开 repo 对本地可信边界、MCP 权限、retrieval graph 风险有清晰说明。
 
 ---

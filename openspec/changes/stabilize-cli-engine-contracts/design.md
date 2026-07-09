@@ -5,17 +5,17 @@
 The project has evolved from a single-engine package into a split-package
 layout:
 
-- `cli/` provides `ag` for template injection and offline logging.
+- `cli/` provides `rb` for template injection and offline logging.
 - `engine/` provides the knowledge-hub runtime and MCP server.
 
 The external contract did not converge after that split. Today:
 
-- `cli/src/ag_cli/cli.py` still searches for `ag-hub` and `ag-engine`.
-- `engine/antigravity_engine/hub/__main__.py` imports a `hub_main` function that
+- `cli/src/rb_cli/cli.py` still searches for `ag-hub` and `ag-engine`.
+- `engine/repobrain_engine/hub/__main__.py` imports a `hub_main` function that
   does not exist.
 - `Dockerfile`, `AGENTS.md`, and repo-init guidance still point at
   `ag-engine`.
-- CI verifies only `ag version`, so `cli/tests/` can fail at import time
+- CI verifies only `rb version`, so `cli/tests/` can fail at import time
   without blocking merges.
 
 ## Goals
@@ -39,17 +39,17 @@ The external contract did not converge after that split. Today:
 The project will use this contract:
 
 - CLI package:
-  - `ag init`
-  - `ag report`
-  - `ag log-decision`
-  - `ag ask`
-  - `ag refresh`
+  - `rb init`
+  - `rb report`
+  - `rb log-decision`
+  - `rb ask`
+  - `rb refresh`
 - Engine package:
-  - `ag-ask`
-  - `ag-refresh`
-  - `ag-mcp`
+  - `rb-ask`
+  - `rb-refresh`
+  - `rb-mcp`
 
-`ag ask` and `ag refresh` remain the user-facing convenience commands inside the
+`rb ask` and `rb refresh` remain the user-facing convenience commands inside the
 CLI package, but they proxy to the engine package's canonical scripts.
 
 `ag-engine` and `ag-hub` are treated as unsupported legacy names and removed
@@ -60,12 +60,12 @@ from runtime dependencies, docs, and generated guidance.
 The engine package will provide stable module entrypoints for local checkout
 execution:
 
-- `python -m antigravity_engine ask ...`
-- `python -m antigravity_engine refresh ...`
-- `python -m antigravity_engine mcp ...`
-- `python -m antigravity_engine.hub ask ...`
-- `python -m antigravity_engine.hub refresh ...`
-- `python -m antigravity_engine.hub mcp ...`
+- `python -m repobrain_engine ask ...`
+- `python -m repobrain_engine refresh ...`
+- `python -m repobrain_engine mcp ...`
+- `python -m repobrain_engine.hub ask ...`
+- `python -m repobrain_engine.hub refresh ...`
+- `python -m repobrain_engine.hub mcp ...`
 
 This removes the need for CLI fallbacks to shell out to unpublished binaries.
 
@@ -74,7 +74,7 @@ This removes the need for CLI fallbacks to shell out to unpublished binaries.
 Generated next steps and runtime surfaces will use supported knowledge-hub
 commands only:
 
-- Repo-init guidance points contributors to `ag-refresh` instead of
+- Repo-init guidance points contributors to `rb-refresh` instead of
   `ag-engine`.
 - The Docker runtime defaults to a supported long-running service entrypoint
   instead of an unpublished binary.

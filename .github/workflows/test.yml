@@ -33,11 +33,11 @@ jobs:
 
       - name: Verify engine entrypoints
         run: |
-          ag-ask --help
-          ag-refresh --help
-          ag-mcp --help
-          python -m antigravity_engine --help
-          python -m antigravity_engine.hub --help
+          rb-ask --help
+          rb-refresh --help
+          rb-mcp --help
+          python -m repobrain_engine --help
+          python -m repobrain_engine.hub --help
 
   docker-check:
     runs-on: ubuntu-latest
@@ -49,10 +49,10 @@ jobs:
         run: docker compose config --quiet
 
       - name: Build main Dockerfile
-        run: docker build -t ag-ci-test .
+        run: docker build -t rb-ci-test .
 
       - name: Build sandbox Dockerfile
-        run: docker build -f Dockerfile.sandbox -t ag-sandbox-ci-test .
+        run: docker build -f Dockerfile.sandbox -t rb-sandbox-ci-test .
 
   cli-check:
     runs-on: ubuntu-latest
@@ -80,6 +80,6 @@ jobs:
 
       - name: Verify CLI commands
         run: |
-          ag --help
-          ag ask --help
-          ag refresh --help
+          rb --help
+          rb ask --help
+          rb refresh --help

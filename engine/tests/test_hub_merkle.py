@@ -1,7 +1,7 @@
 """Tests for hub._merkle content-hash change detection."""
 from pathlib import Path
 
-from antigravity_engine.hub._merkle import (
+from repobrain_engine.hub._merkle import (
     SNAPSHOT_VERSION,
     MerkleTree,
     build_tree,

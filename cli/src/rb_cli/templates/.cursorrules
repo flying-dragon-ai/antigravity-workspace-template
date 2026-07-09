@@ -1,0 +1,11 @@
+# Cursor bootstrap rules
+
+Use `AGENTS.md` as the single authoritative behavior file.
+
+If include syntax is supported, include `@AGENTS.md`.
+
+Then load dynamic context from `.repobrain/`:
+- `.repobrain/conventions.md`
+- `.repobrain/structure.md`
+- `.repobrain/decisions/log.md`
+- `.repobrain/memory/`

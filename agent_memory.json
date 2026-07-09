@@ -93,12 +93,12 @@
     },
     {
       "role": "tool",
-      "content": "greet_user output: Hello, user! 🎉 Welcome to the Antigravity Agent with dynamic tool loading!",
+      "content": "greet_user output: Hello, user! 🎉 Welcome to the RepoBrain Agent with dynamic tool loading!",
       "metadata": {}
     },
     {
       "role": "assistant",
-      "content": "Hello, user! 🎉 Welcome to the Antigravity Agent with dynamic tool loading! I have completed the task as requested.",
+      "content": "Hello, user! 🎉 Welcome to the RepoBrain Agent with dynamic tool loading! I have completed the task as requested.",
       "metadata": {}
     },
     {

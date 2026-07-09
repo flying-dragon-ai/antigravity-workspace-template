@@ -1,26 +1,26 @@
-# Installing the Antigravity plugin
+# Installing the RepoBrain plugin
 
 ## Claude Code
 
 ```
 /plugin marketplace add study8677/repobrain
-/plugin install antigravity@antigravity
-/antigravity:ag-setup
-/antigravity:ag-refresh
-/antigravity:ag-ask "what does this project do?"
+/plugin install repobrain@repobrain
+/repobrain:rb-setup
+/repobrain:rb-refresh
+/repobrain:rb-ask "what does this project do?"
 ```
 
 1. **Marketplace add** — clones the plugin manifest into Claude Code's cache.
-2. **Install** — first session triggers `hooks/install_engine.py`, which auto-installs the engine CLI (`ag-ask`, `ag-refresh`, `ag-mcp`) via `pipx` (preferred), `pip --user` fallback, or prints a manual command if both fail. Cross-platform (macOS / Linux / Windows).
-3. **Setup** — interactive: choose your LLM provider (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA / Ollama), paste your API key, writes a `.env` to the current project root and ensures it's git-ignored. For local Codex users, setup can instead write `AG_HOST_RUNNER=codex` for experimental no-API-key `ag-ask`.
-4. **Refresh** — runs `ag-refresh` directly and builds `.antigravity/` for the current project. The first refresh creates the project knowledge directory automatically. Full LLM refresh requires an API key; Codex host-runner mode uses scan-only refresh artifacts.
-5. **Ask** — runs `ag-ask` directly and queries the refreshed project knowledge base.
+2. **Install** — first session triggers `hooks/install_engine.py`, which auto-installs the engine CLI (`rb-ask`, `rb-refresh`, `rb-mcp`) via `pipx` (preferred), `pip --user` fallback, or prints a manual command if both fail. Cross-platform (macOS / Linux / Windows).
+3. **Setup** — interactive: choose your LLM provider (OpenAI / DeepSeek / Groq / 阿里灵积 / NVIDIA / Ollama), paste your API key, writes a `.env` to the current project root and ensures it's git-ignored. For local Codex users, setup can instead write `RB_HOST_RUNNER=codex` for experimental no-API-key `rb-ask`.
+4. **Refresh** — runs `rb-refresh` directly and builds `.repobrain/` for the current project. The first refresh creates the project knowledge directory automatically. Full LLM refresh requires an API key; Codex host-runner mode uses scan-only refresh artifacts.
+5. **Ask** — runs `rb-ask` directly and queries the refreshed project knowledge base.
 
 MCP is optional. If you want tool-style integration in an MCP-compatible host,
-register `ag-mcp --workspace <project>` separately. To let `ag-ask` consume
-external MCP servers, set both `MCP_ENABLED=true` and `AG_ALLOW_MCP=true` only
+register `rb-mcp --workspace <project>` separately. To let `rb-ask` consume
+external MCP servers, set both `MCP_ENABLED=true` and `RB_ALLOW_MCP=true` only
 for servers you trust.
-An example MCP config lives at `docs/examples/antigravity.mcp.json`.
+An example MCP config lives at `docs/examples/repobrain.mcp.json`.
 
 You can also add the marketplace from a local checkout:
 
@@ -34,7 +34,7 @@ Codex CLI does not auto-run install hooks (as of April 2026), so install the eng
 
 ```
 pipx install /absolute/path/to/repobrain/engine
-ag-refresh --help    # verify
+rb-refresh --help    # verify
 ```
 
 Then register and install the plugin:
@@ -43,36 +43,36 @@ Then register and install the plugin:
 codex plugin marketplace add /absolute/path/to/repobrain
 ```
 
-Codex auto-discovers slash commands from the plugin's `commands/` directory (no manifest entry required), so the same four commands are available without the `antigravity:` prefix:
+Codex auto-discovers slash commands from the plugin's `commands/` directory (no manifest entry required), so the same four commands are available without the `repobrain:` prefix:
 
 ```
-/ag-setup
-/ag-refresh
-/ag-ask "what does this project do?"
-/ag-init my-new-project
+/rb-setup
+/rb-refresh
+/rb-ask "what does this project do?"
+/rb-init my-new-project
 ```
 
-You can also keep using the raw CLI directly: `ag-refresh --workspace <project>` and `ag-ask "question" --workspace <project>`.
+You can also keep using the raw CLI directly: `rb-refresh --workspace <project>` and `rb-ask "question" --workspace <project>`.
 If your Codex build supports MCP and you want tool-style integration, register
-`ag-mcp --workspace <project>` separately in your Codex MCP configuration.
+`rb-mcp --workspace <project>` separately in your Codex MCP configuration.
 
 ### Codex host-runner mode without an API key
 
-If you are only using Antigravity locally and your Codex CLI is already logged
-in with ChatGPT, you can use the experimental host runner for `ag-ask`:
+If you are only using RepoBrain locally and your Codex CLI is already logged
+in with ChatGPT, you can use the experimental host runner for `rb-ask`:
 
 ```
 codex login status
 cat >> .env <<'EOF'
-AG_HOST_RUNNER=codex
-AG_HOST_MODEL=gpt-5.3-codex-spark
-AG_HOST_TIMEOUT_SECONDS=240
-AG_HOST_MAX_CONTEXT_CHARS=60000
-AG_REFRESH_SCAN_ONLY=1
+RB_HOST_RUNNER=codex
+RB_HOST_MODEL=gpt-5.3-codex-spark
+RB_HOST_TIMEOUT_SECONDS=240
+RB_HOST_MAX_CONTEXT_CHARS=60000
+RB_REFRESH_SCAN_ONLY=1
 EOF
 
-ag-refresh --workspace .      # scan-only artifacts, no API key
-ag-ask "what does this project do?" --workspace .
+rb-refresh --workspace .      # scan-only artifacts, no API key
+rb-ask "what does this project do?" --workspace .
 ```
 
 This mode is ask-only and depends on the user's local Codex installation and
@@ -81,36 +81,36 @@ full refresh.
 
 ## Verifying
 
-- **Claude Code**: `/antigravity:ag-ask "what does the engine do?"` should run `ag-ask` and print a routed answer.
-- **Codex CLI**: `/ag-ask "what does the engine do?"` (or `ag-ask "..." --workspace <project>` from the shell) should print a routed answer.
+- **Claude Code**: `/repobrain:rb-ask "what does the engine do?"` should run `rb-ask` and print a routed answer.
+- **Codex CLI**: `/rb-ask "what does the engine do?"` (or `rb-ask "..." --workspace <project>` from the shell) should print a routed answer.
 
 ## Available slash commands
 
-Same four commands ship to both hosts. Claude Code namespaces them as `/antigravity:<name>`; Codex CLI surfaces them as bare `/<name>`.
+Same four commands ship to both hosts. Claude Code namespaces them as `/repobrain:<name>`; Codex CLI surfaces them as bare `/<name>`.
 
 | Claude Code | Codex CLI | What it does |
 |---|---|---|
-| `/antigravity:ag-setup` | `/ag-setup` | **First-time setup** — interactive `.env` writer (LLM provider + key + model, or local Codex host runner) |
-| `/antigravity:ag-refresh [quick]` | `/ag-refresh [quick]` | Rebuild / incrementally update the project knowledge base |
-| `/antigravity:ag-ask <question>` | `/ag-ask <question>` | Routed Q&A on the current codebase |
-| `/antigravity:ag-init <name>` | `/ag-init <name>` | Scaffold a new multi-agent repo from this template |
+| `/repobrain:rb-setup` | `/rb-setup` | **First-time setup** — interactive `.env` writer (LLM provider + key + model, or local Codex host runner) |
+| `/repobrain:rb-refresh [quick]` | `/rb-refresh [quick]` | Rebuild / incrementally update the project knowledge base |
+| `/repobrain:rb-ask <question>` | `/rb-ask <question>` | Routed Q&A on the current codebase |
+| `/repobrain:rb-init <name>` | `/rb-init <name>` | Scaffold a new multi-agent repo from this template |
 
-The plugin also bundles the `agent-repo-init` skill (description-matched in either host), which is what `/ag-init` invokes under the hood.
+The plugin also bundles the `agent-repo-init` skill (description-matched in either host), which is what `/rb-init` invokes under the hood.
 
 ## Optional MCP tools
 
-If you manually register `ag-mcp`, the `antigravity` MCP server exposes:
+If you manually register `rb-mcp`, the `repobrain` MCP server exposes:
 
 - `ask_project(question)` — routed Q&A with file paths and line numbers
 - `refresh_project(quick=False)` — rebuild knowledge base
 
-Example config: [docs/examples/antigravity.mcp.json](docs/examples/antigravity.mcp.json)
+Example config: [docs/examples/repobrain.mcp.json](docs/examples/repobrain.mcp.json)
 
 ## Uninstall
 
 ```
-pipx uninstall antigravity-engine
-/plugin uninstall antigravity
+pipx uninstall repobrain-engine
+/plugin uninstall repobrain
 ```
 
 ## Requirements
@@ -123,7 +123,7 @@ pipx uninstall antigravity-engine
 
 - Default local execution is intended for trusted local workspaces, not
   untrusted-code isolation.
-- `AG_RETRIEVAL_MODE=compact` is the default. `full` keeps richer retrieval
+- `RB_RETRIEVAL_MODE=compact` is the default. `full` keeps richer retrieval
   artifacts; common secrets are redacted before write, but source snippets can
   still be captured.
 - MCP stdio servers inherit process environment plus configured `env` values.
@@ -131,17 +131,17 @@ pipx uninstall antigravity-engine
 
 ## Troubleshooting
 
-**`ag-ask` / `ag-refresh` not found after install**
+**`rb-ask` / `rb-refresh` not found after install**
 The user-pip bin directory may not be on PATH. The installer prints the path; add it to your shell rc file (`~/.zshrc`, `~/.bashrc`, etc.).
 
 **Optional MCP tool is not connected**
-The default slash commands do not require MCP. If you manually enabled `ag-mcp`, restart the MCP host so it reloads server configuration.
+The default slash commands do not require MCP. If you manually enabled `rb-mcp`, restart the MCP host so it reloads server configuration.
 
 **Diagnostic log**
-`ag-mcp` writes startup and tool errors to `~/.claude/plugins/data/antigravity-antigravity/ag-mcp.log` unless Claude provides a plugin data directory.
+`rb-mcp` writes startup and tool errors to `~/.claude/plugins/data/repobrain-repobrain/rb-mcp.log` unless Claude provides a plugin data directory.
 
-**Do I need `/ag-init` before refresh?**
-No. `/ag-refresh` initializes the current project's `.antigravity/` directory automatically. `/ag-init` is for scaffolding a new repository from the Antigravity template.
+**Do I need `/rb-init` before refresh?**
+No. `/rb-refresh` initializes the current project's `.repobrain/` directory automatically. `/rb-init` is for scaffolding a new repository from the RepoBrain template.
 
 **Hook timed out**
 Slow network during first install. Increase the `timeout` in `hooks/hooks.json` or run `pipx install <plugin-root>/engine` manually before restarting.

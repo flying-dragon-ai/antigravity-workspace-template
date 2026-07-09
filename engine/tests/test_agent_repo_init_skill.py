@@ -22,12 +22,12 @@ def _load_skill_module() -> ModuleType:
 
     skill_tools_path = (
         Path(__file__).resolve().parents[1]
-        / "antigravity_engine"
+        / "repobrain_engine"
         / "skills"
         / "agent-repo-init"
         / "tools.py"
     )
-    spec = spec_from_file_location("antigravity_engine.skills.agent-repo-init.tools", skill_tools_path)
+    spec = spec_from_file_location("repobrain_engine.skills.agent-repo-init.tools", skill_tools_path)
     if spec is None or spec.loader is None:
         raise RuntimeError("Failed to load skill module spec.")
 
@@ -57,8 +57,8 @@ def test_init_agent_repo_creates_clean_project(tmp_path: Path) -> None:
     assert not (target_path / ".git").exists()
     assert not (target_path / "agent_memory.json").exists()
     assert "pip install -e ./cli -e './engine[dev]'" in result["next_steps"]
-    assert "ag-refresh --workspace ." in result["next_steps"]
-    assert "ag-engine" not in result["next_steps"]
+    assert "rb-refresh --workspace ." in result["next_steps"]
+    assert "run /rb-setup (or configure OPENAI_* in .env)" in result["next_steps"]
 
 
 def test_init_agent_repo_full_mode_writes_profile(tmp_path: Path) -> None:
@@ -97,7 +97,7 @@ def test_init_agent_repo_full_mode_writes_profile(tmp_path: Path) -> None:
     assert "Swarm workflow preference: `False`" in runtime_profile.read_text(
         encoding="utf-8"
     )
-    assert "ag-setup" in runtime_profile.read_text(encoding="utf-8")
+    assert "rb-setup" in runtime_profile.read_text(encoding="utf-8")
 
 
 def test_init_agent_repo_rejects_invalid_project_name(tmp_path: Path) -> None:
@@ -137,8 +137,8 @@ def test_portable_script_runs_with_template_override(tmp_path: Path) -> None:
 
     (template_root / "pyproject.toml").write_text("[project]\nname='test'", encoding="utf-8")
     (template_root / ".env.example").write_text("# sample env\n", encoding="utf-8")
-    (template_root / "antigravity_engine").mkdir(parents=True, exist_ok=True)
-    (template_root / "antigravity_engine" / "agent.py").write_text("print('ok')\n", encoding="utf-8")
+    (template_root / "repobrain_engine").mkdir(parents=True, exist_ok=True)
+    (template_root / "repobrain_engine" / "agent.py").write_text("print('ok')\n", encoding="utf-8")
 
     script_path = (
         Path(__file__).resolve().parents[2]
@@ -174,6 +174,6 @@ def test_portable_script_runs_with_template_override(tmp_path: Path) -> None:
     assert (project_path / "mission.md").exists()
     assert (project_path / ".context" / "agent_runtime_profile.md").exists()
     assert "pip install -e ./cli -e './engine[dev]'" in payload["next_steps"]
-    assert "run /ag-setup (or configure OPENAI_* in .env)" in payload["next_steps"]
-    assert "ag-refresh --workspace ." in payload["next_steps"]
-    assert "ag-engine" not in payload["next_steps"]
+    assert "run /rb-setup (or configure OPENAI_* in .env)" in payload["next_steps"]
+    assert "rb-refresh --workspace ." in payload["next_steps"]
+    assert "run /rb-setup (or configure OPENAI_* in .env)" in payload["next_steps"]

@@ -2,8 +2,8 @@
 
 ## Vision: Evidence-Grounded Repository Knowledge Layer
 
-Antigravity is converging on a portable repository knowledge engine: refresh a
-workspace into `.antigravity/`, ask grounded questions with source evidence, and
+RepoBrain is converging on a portable repository knowledge engine: refresh a
+workspace into `.repobrain/`, ask grounded questions with source evidence, and
 expose the same knowledge through plugins, CLI, and MCP without locking users to
 one IDE.
 
@@ -13,7 +13,7 @@ one IDE.
 |-------|--------|-------------|
 | 1️⃣ **Foundation** | ✅ Complete | Scaffold, configuration, memory system |
 | 2️⃣ **DevOps** | ✅ Complete | Docker, CI/CD pipelines |
-| 3️⃣ **Antigravity Compliance** | ✅ Complete | Rules, artifacts, protocols |
+| 3️⃣ **RepoBrain Compliance** | ✅ Complete | Rules, artifacts, protocols |
 | 4️⃣ **Advanced Memory** | ✅ Complete | Recursive summarization, buffer management |
 | 5️⃣ **Cognitive Architecture** | ✅ Complete | Generic tool dispatch, function calling |
 | 6️⃣ **Dynamic Discovery** | ✅ Complete | Auto tool & context loading |
@@ -42,11 +42,11 @@ one IDE.
 - GitHub Actions CI/CD workflows
 - Environment-based configuration
 
-### Phase 3: Antigravity Compliance ✅
-**Goal**: Full compliance with Antigravity platform specifications
+### Phase 3: RepoBrain Compliance ✅
+**Goal**: Full compliance with RepoBrain platform specifications
 
 **Achievements:**
-- `.antigravity/` rules integration
+- `.repobrain/` rules integration
 - `.cursorrules` IDE auto-detection
 - Artifact output structure
 - Think-Act-Reflect loop implementation
@@ -73,7 +73,7 @@ one IDE.
 **Goal**: Zero-config tool and knowledge loading
 
 **Achievements:**
-- Automatic tool discovery from `antigravity_engine/tools/`
+- Automatic tool discovery from `repobrain_engine/tools/`
 - Auto-injection from `.context/` files
 - Hot reload on file changes
 - Docstring-based help generation
@@ -101,7 +101,7 @@ one IDE.
 
 ## 🚀 Phase 9: Enterprise Core (In Progress)
 
-**Goal**: Transform Antigravity from a workspace into an autonomous **Agent Operating System**
+**Goal**: Transform RepoBrain from a workspace into an autonomous **Agent Operating System**
 
 The final vision is a production-grade system where enterprises can:
 - 🏗️ Build agents declaratively
@@ -123,7 +123,7 @@ The final vision is a production-grade system where enterprises can:
 
 **Example Usage:**
 ```python
-from antigravity_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.factory import get_sandbox
 
 sandbox = get_sandbox()
 result = sandbox.execute(
@@ -246,10 +246,10 @@ Ready to code? Pick a product-hardening component:
 **Completed:** March 2026
 
 **Achievements:**
-- Hub module (`antigravity_engine/hub/`) with scanner, agents, and pipeline
-- `ag-refresh` — scans project and generates `.antigravity/conventions.md` via LLM
-- `ag-ask` — answers project questions using reviewer agent
-- `ag report` / `ag log-decision` — local memory and decision logging
+- Hub module (`repobrain_engine/hub/`) with scanner, agents, and pipeline
+- `rb-refresh` — scans project and generates `.repobrain/conventions.md` via LLM
+- `rb-ask` — answers project questions using reviewer agent
+- `rb report` / `rb log-decision` — local memory and decision logging
 - OpenAI Agent SDK integration with LiteLLM for model flexibility
 
 ## 📈 Adoption Timeline
@@ -267,7 +267,7 @@ Ready to code? Pick a product-hardening component:
 ```
 User: "How does authentication work here?"
 
-Antigravity:
+RepoBrain:
 ├─ Reads map.md to select auth-related modules
 ├─ Pulls the relevant agent docs and source evidence
 ├─ Adds graph context when structural relationships matter
@@ -277,15 +277,15 @@ Antigravity:
 **Scenario 2: Shared Knowledge Across IDEs**
 ```
 Team:
-├─ Runs ag-refresh after meaningful source changes
-├─ Commits or shares the appropriate .antigravity/ artifacts
-├─ Uses ag-ask, slash commands, or ag-mcp from different hosts
+├─ Runs rb-refresh after meaningful source changes
+├─ Commits or shares the appropriate .repobrain/ artifacts
+├─ Uses rb-ask, slash commands, or rb-mcp from different hosts
 └─ Gets one consistent repository model instead of host-specific docs drift
 ```
 
 ## 🔮 The Vision
 
-Antigravity should make repository knowledge portable, grounded, and easy to
+RepoBrain should make repository knowledge portable, grounded, and easy to
 refresh. Advanced runtime features are useful only when they make that core
 workflow safer or more accurate.
 

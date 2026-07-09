@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 880" role="img" aria-label="Without RepoBrain vs With RepoBrain comparison">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="0%" r="90%">
+      <stop offset="0%" stop-color="#1E1B33"/>
+      <stop offset="100%" stop-color="#0B0D14"/>
+    </radialGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="880" fill="url(#glow)"/>
+
+  <!-- center divider -->
+  <line x1="800" y1="60" x2="800" y2="760" stroke="#2A2E3F" stroke-width="2" stroke-dasharray="2 10"/>
+
+  <!-- ===== LEFT: Without RepoBrain ===== -->
+  <g>
+    <circle cx="90" cy="86" r="22" fill="#2A1215" stroke="#F87171" stroke-width="2"/>
+    <path d="M81 77 L99 95 M99 77 L81 95" stroke="#F87171" stroke-width="4" stroke-linecap="round"/>
+    <text x="130" y="97" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#F87171">Without RepoBrain</text>
+
+    <!-- terminal window -->
+    <rect x="60" y="140" width="680" height="520" rx="14" fill="#12141D" stroke="#262B3D" stroke-width="1.5"/>
+    <rect x="60" y="140" width="680" height="44" rx="14" fill="#1A1D2B"/>
+    <rect x="60" y="170" width="680" height="14" fill="#1A1D2B"/>
+    <circle cx="92" cy="162" r="7" fill="#FF5F57"/>
+    <circle cx="116" cy="162" r="7" fill="#FEBC2E"/>
+    <circle cx="140" cy="162" r="7" fill="#28C840"/>
+
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21">
+      <text x="92" y="232" fill="#8B93A7">$ <tspan fill="#E5E7EB">agent "How does auth work in this repo?"</tspan></text>
+      <text x="92" y="286" fill="#8B93A7">grep -rn "auth" .</text>
+      <text x="92" y="320" fill="#8B93A7">→ 1,247 matches in 214 files</text>
+      <text x="92" y="374" fill="#8B93A7">reading files… 46 of 214</text>
+      <text x="92" y="408" fill="#FEBC2E">⚠ context window full — older files dropped</text>
+      <text x="92" y="462" fill="#8B93A7">retrying with fewer files…</text>
+      <text x="92" y="516" fill="#E5E7EB">"Auth is probably handled in utils/auth.py</text>
+      <text x="92" y="550" fill="#E5E7EB">using session cookies…"</text>
+      <text x="92" y="608" fill="#F87171">✗ utils/auth.py does not exist</text>
+      <text x="92" y="642" fill="#F87171">✗ no file paths · no line numbers · guesswork</text>
+    </g>
+
+    <text x="400" y="726" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" fill="#8B93A7">repo-wide grep · re-reads everything · hallucinates</text>
+  </g>
+
+  <!-- ===== RIGHT: With RepoBrain ===== -->
+  <g>
+    <circle cx="890" cy="86" r="22" fill="#0E2A1F" stroke="#34D399" stroke-width="2"/>
+    <path d="M880 87 L887 95 L901 77" stroke="#34D399" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="930" y="97" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#34D399">With RepoBrain</text>
+
+    <!-- terminal window -->
+    <rect x="860" y="140" width="680" height="520" rx="14" fill="#12141D" stroke="#3B3663" stroke-width="1.5"/>
+    <rect x="860" y="140" width="680" height="44" rx="14" fill="#1A1D2B"/>
+    <rect x="860" y="170" width="680" height="14" fill="#1A1D2B"/>
+    <circle cx="892" cy="162" r="7" fill="#FF5F57"/>
+    <circle cx="916" cy="162" r="7" fill="#FEBC2E"/>
+    <circle cx="940" cy="162" r="7" fill="#28C840"/>
+
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="21">
+      <text x="892" y="232" fill="#8B93A7">$ <tspan fill="#E5E7EB">rb-ask "How does auth work in this repo?"</tspan></text>
+      <text x="892" y="286" fill="#A78BFA">router → ModuleAgent: auth</text>
+      <text x="892" y="320" fill="#8B93A7">reading .repobrain/agents/auth.md + source</text>
+      <text x="892" y="374" fill="#E5E7EB">JWT middleware validates every request:</text>
+      <text x="892" y="428" fill="#34D399">src/auth/middleware.py:42 <tspan fill="#8B93A7">verify_token()</tspan></text>
+      <text x="892" y="462" fill="#34D399">src/auth/jwt.py:87 <tspan fill="#8B93A7">decode + expiry check</tspan></text>
+      <text x="892" y="496" fill="#34D399">src/api/deps.py:31 <tspan fill="#8B93A7">route dependency</tspan></text>
+      <text x="892" y="550" fill="#E5E7EB">Tokens are issued in login_handler and</text>
+      <text x="892" y="584" fill="#E5E7EB">refreshed by src/auth/refresh.py:19.</text>
+      <text x="892" y="642" fill="#34D399">✓ grounded in real code · paths + line numbers</text>
+    </g>
+
+    <text x="1200" y="726" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="24" fill="#8B93A7">routed Q&amp;A · reads only the right module · cites sources</text>
+  </g>
+
+  <!-- footer -->
+  <rect x="530" y="780" width="540" height="56" rx="28" fill="none" stroke="url(#brand)" stroke-width="2"/>
+  <text x="800" y="816" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#C4B5FD">RepoBrain <tspan fill="#8B93A7" font-weight="400">· give your repo a brain</tspan></text>
+</svg>

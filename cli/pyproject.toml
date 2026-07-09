@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "antigravity-cli"
+name = "repobrain-cli"
 version = "1.0.0"
-description = "Inject Antigravity context files and offline helpers into any project."
+description = "Inject RepoBrain context files and offline helpers into any project."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
@@ -15,8 +15,8 @@ dependencies = [
 ]
 
 [project.scripts]
-ag = "ag_cli.cli:app"
+rb = "rb_cli.cli:app"
 
 # ── Hatch build configuration ──────────────────────────────────────
 [tool.hatch.build.targets.wheel]
-packages = ["src/ag_cli"]
+packages = ["src/rb_cli"]

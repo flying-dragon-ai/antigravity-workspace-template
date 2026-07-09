@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""SessionStart hook: ensure `ag-mcp` is on PATH.
+"""SessionStart hook: ensure `rb-mcp` is on PATH.
 
 Single cross-platform installer for Claude Code's plugin SessionStart hook.
 Idempotent and silent on the happy path. All output goes to stderr (stdout
 on a hook is interpreted as injected context).
 
 Strategy:
-  1. If ag-mcp is already on PATH at the bundled engine version, exit 0.
+  1. If rb-mcp is already on PATH at the bundled engine version, exit 0.
   2. Ensure pipx exists:
        - macOS with Homebrew → `brew install pipx`
        - Otherwise → `python -m pip install --user pipx`
@@ -70,13 +70,13 @@ def ensure_pipx() -> bool:
 
     # macOS with Homebrew: cleanest path, no sudo.
     if sys.platform == "darwin" and has("brew"):
-        log("[antigravity] Installing pipx via Homebrew...")
+        log("[repobrain] Installing pipx via Homebrew...")
         run(["brew", "install", "pipx"])
 
     # Cross-platform fallback: pip install --user pipx.
     if not has("pipx"):
         py = sys.executable or ("python" if has("python") else "python3")
-        log(f"[antigravity] Installing pipx via pip --user ({py})...")
+        log(f"[repobrain] Installing pipx via pip --user ({py})...")
         run([py, "-m", "pip", "install", "--user", "--quiet", "pipx"])
         # User-base scripts/bin needs to be on PATH for `pipx` to be findable.
         ub = user_scripts_bin()
@@ -116,13 +116,13 @@ def read_project_version(engine_dir: Path) -> str | None:
 
 
 def get_installed_engine_version() -> str | None:
-    """Return the installed ag-mcp engine version, if it can be queried."""
-    ag_mcp = shutil.which("ag-mcp")
-    if ag_mcp is None:
+    """Return the installed rb-mcp engine version, if it can be queried."""
+    rb_mcp = shutil.which("rb-mcp")
+    if rb_mcp is None:
         return None
     try:
         completed = subprocess.run(
-            [ag_mcp, "--version"],
+            [rb_mcp, "--version"],
             check=False,
             capture_output=True,
             text=True,
@@ -150,7 +150,7 @@ def main() -> int:
     cli_dir = str(cli_path)
 
     # Claude Code starts hooks with a minimal PATH that often excludes user bin
-    # dirs, so an already-installed ag-mcp can look "missing". Prepend the
+    # dirs, so an already-installed rb-mcp can look "missing". Prepend the
     # common user-level shim locations BEFORE the fast-path check so a previous
     # successful install short-circuits cleanly.
     prepend_path(Path.home() / ".local" / "bin")
@@ -162,17 +162,17 @@ def main() -> int:
 
     target_version = read_project_version(engine_path)
     current_version = get_installed_engine_version()
-    if has("ag-mcp") and not needs_engine_install_or_upgrade(current_version, target_version):
+    if has("rb-mcp") and not needs_engine_install_or_upgrade(current_version, target_version):
         return 0
 
-    if has("ag-mcp"):
+    if has("rb-mcp"):
         log(
-            "[antigravity] ag-mcp is installed but engine version "
+            "[repobrain] rb-mcp is installed but engine version "
             f"{current_version or 'unknown'} != bundled {target_version or 'unknown'}. "
             "Attempting upgrade..."
         )
     else:
-        log("[antigravity] ag-mcp not found. Attempting auto-install...")
+        log("[repobrain] rb-mcp not found. Attempting auto-install...")
 
     if ensure_pipx():
         # After install or ensurepath, ~/.local/bin (POSIX) or %APPDATA%/Python/Scripts (Windows)
@@ -184,27 +184,27 @@ def main() -> int:
         if ub:
             prepend_path(ub)
 
-        if pipx(["install", "--force", engine_dir]) == 0 and has("ag-mcp"):
-            log("[antigravity] Installed/upgraded via pipx.")
-            log("[antigravity] Next: run /antigravity:ag-setup, then /antigravity:ag-refresh.")
-            log("[antigravity] If the MCP tool is not connected in this session, restart Claude Code once.")
+        if pipx(["install", "--force", engine_dir]) == 0 and has("rb-mcp"):
+            log("[repobrain] Installed/upgraded via pipx.")
+            log("[repobrain] Next: run /repobrain:rb-setup, then /repobrain:rb-refresh.")
+            log("[repobrain] If the MCP tool is not connected in this session, restart Claude Code once.")
             return 0
 
     # Fallback: pip --user
     py = sys.executable or ("python" if has("python") else "python3")
-    log(f"[antigravity] Falling back to pip --user ({py})...")
+    log(f"[repobrain] Falling back to pip --user ({py})...")
     if run([py, "-m", "pip", "install", "--user", "--upgrade", "--quiet", engine_dir, cli_dir]) == 0:
         ub = user_scripts_bin()
         if ub:
             prepend_path(ub)
-        if has("ag-mcp"):
-            log(f"[antigravity] Installed via pip --user. To persist on future shells, add this dir to PATH: {ub}")
-            log("[antigravity] Next: run /antigravity:ag-setup, then /antigravity:ag-refresh.")
-            log("[antigravity] If the MCP tool is not connected in this session, restart Claude Code once.")
+        if has("rb-mcp"):
+            log(f"[repobrain] Installed via pip --user. To persist on future shells, add this dir to PATH: {ub}")
+            log("[repobrain] Next: run /repobrain:rb-setup, then /repobrain:rb-refresh.")
+            log("[repobrain] If the MCP tool is not connected in this session, restart Claude Code once.")
             return 0
 
     log("")
-    log("[antigravity] AUTO-INSTALL FAILED. Run ONE of these manually:")
+    log("[repobrain] AUTO-INSTALL FAILED. Run ONE of these manually:")
     log("")
     log("  Option A (recommended, requires pipx):")
     log("    macOS:   brew install pipx && pipx ensurepath")

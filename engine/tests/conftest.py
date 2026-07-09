@@ -1,7 +1,7 @@
 """Pytest configuration helpers.
 
 This conftest ensures the engine root is on `sys.path` so tests can import
-the `antigravity_engine` package regardless of how pytest is invoked.
+the `repobrain_engine` package regardless of how pytest is invoked.
 """
 import os
 import sys

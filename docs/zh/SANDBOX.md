@@ -15,7 +15,7 @@ sandbox 模块为 Agent 生成的 Python 代码提供可配置执行环境。
 ### 本地执行（默认）
 
 ```python
-from antigravity_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.factory import get_sandbox
 
 sandbox = get_sandbox()
 result = sandbox.execute(code="print(2 + 2)", language="python", timeout=30)
@@ -85,7 +85,7 @@ export MSB_IMAGE=microsandbox/python
 ## 代码使用
 
 ```python
-from antigravity_engine.sandbox.factory import get_sandbox
+from repobrain_engine.sandbox.factory import get_sandbox
 
 sandbox = get_sandbox()
 result = sandbox.execute(code="print('Hello')", language="python", timeout=30)

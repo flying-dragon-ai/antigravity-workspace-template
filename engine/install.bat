@@ -1,5 +1,5 @@
 @echo off
-REM Antigravity repository knowledge engine installer for Windows.
+REM RepoBrain repository knowledge engine installer for Windows.
 
 setlocal enabledelayedexpansion
 
@@ -7,7 +7,7 @@ set SCRIPT_DIR=%~dp0
 pushd "%SCRIPT_DIR%.."
 
 echo.
-echo Antigravity Repository Knowledge Engine - Installer
+echo RepoBrain Repository Knowledge Engine - Installer
 echo ===================================================
 echo.
 
@@ -75,7 +75,7 @@ if errorlevel 1 (
     echo Warning: pip upgrade had issues, continuing...
 )
 
-echo Installing Antigravity CLI and engine...
+echo Installing RepoBrain CLI and engine...
 python -m pip install -e ./cli -e ./engine[dev] --quiet
 if errorlevel 1 (
     echo Error: Failed to install dependencies.
@@ -88,7 +88,7 @@ echo Dependencies installed
 echo Setting up local configuration...
 if not exist ".env" (
     (
-        echo # Antigravity local configuration
+        echo # RepoBrain local configuration
         echo # This file is for trusted local development. Keep real credentials out of git.
         echo.
         echo # OpenAI-compatible endpoint
@@ -97,7 +97,7 @@ if not exist ".env" (
         echo OPENAI_MODEL=your-model
         echo.
         echo # Retrieval graph mode: off, compact, or full.
-        echo AG_RETRIEVAL_MODE=compact
+        echo RB_RETRIEVAL_MODE=compact
     ) > .env
     echo Created .env file
 ) else (
@@ -113,19 +113,19 @@ if exist ".gitignore" (
 )
 
 if not exist "artifacts\" mkdir artifacts
-if not exist ".antigravity\" mkdir .antigravity
+if not exist ".repobrain\" mkdir .repobrain
 
 echo.
 echo ===================================================
 echo Installation complete.
 echo.
 echo Next steps:
-echo 1. Run /ag-setup in your agent host, or configure OPENAI_* in .env.
+echo 1. Run /rb-setup in your agent host, or configure OPENAI_* in .env.
 echo 2. The virtual environment is already activated.
 echo 3. Build repository knowledge:
-echo    ag-refresh --workspace .
+echo    rb-refresh --workspace .
 echo 4. Ask a repository question:
-echo    ag-ask "How does this project work?" --workspace .
+echo    rb-ask "How does this project work?" --workspace .
 echo.
 echo Documentation: docs/en/QUICK_START.md
 echo ===================================================

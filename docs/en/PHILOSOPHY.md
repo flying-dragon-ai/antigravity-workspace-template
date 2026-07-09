@@ -4,13 +4,13 @@
 
 AI coding tools are strongest when they can ask focused questions against a
 fresh model of the repository instead of rereading the whole tree on every task.
-Antigravity is that repository knowledge layer.
+RepoBrain is that repository knowledge layer.
 
 The core workflow is deliberately small:
 
-1. `ag-refresh` scans the workspace and builds `.antigravity/` knowledge
+1. `rb-refresh` scans the workspace and builds `.repobrain/` knowledge
    artifacts.
-2. `ag-ask` routes a question to the right module context and answers with
+2. `rb-ask` routes a question to the right module context and answers with
    source evidence.
 3. Plugins, CLI commands, context files, and MCP expose the same knowledge to
    different AI development environments.
@@ -19,14 +19,14 @@ The core workflow is deliberately small:
 
 ### One Knowledge Base, Many Hosts
 
-The generated `.antigravity/` directory is portable project state. Claude Code,
+The generated `.repobrain/` directory is portable project state. Claude Code,
 Codex CLI, Cursor, Windsurf, Gemini CLI, Cline, Aider, and other hosts should all
 benefit from the same repository model instead of maintaining separate context
 systems.
 
 ### Grounded Answers Beat Broad Context
 
-Large prompt dumps are easy to create and hard to trust. Antigravity favors
+Large prompt dumps are easy to create and hard to trust. RepoBrain favors
 routed answers backed by module-level knowledge, source paths, line evidence,
 and optional graph context.
 
@@ -34,7 +34,7 @@ and optional graph context.
 
 Claude Code and Codex CLI receive native slash commands because that is the most
 ergonomic path for those hosts. The product boundary remains the knowledge
-engine: `ag-refresh`, `ag-ask`, and the artifacts they produce.
+engine: `rb-refresh`, `rb-ask`, and the artifacts they produce.
 
 ### Compatibility Without Vendor Lock-In
 
@@ -45,7 +45,7 @@ providers without making any one model the product default.
 
 ## What Belongs Here
 
-Antigravity should prioritize:
+RepoBrain should prioritize:
 
 - better repository scanning and module grouping
 - better grounded Q&A and evidence validation

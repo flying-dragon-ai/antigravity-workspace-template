@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 def test_build_refresh_swarm_import_error():
     """build_refresh_swarm raises ImportError with helpful message when agents SDK missing."""
-    from antigravity_engine.hub.agents import build_refresh_swarm
+    from repobrain_engine.hub.agents import build_refresh_swarm
 
     with patch.dict(sys.modules, {"agents": None}):
         with pytest.raises(ImportError, match="OpenAI Agent SDK not found"):
@@ -18,7 +18,7 @@ def test_build_refresh_swarm_import_error():
 
 def test_build_ask_swarm_import_error():
     """build_ask_swarm raises ImportError with helpful message when agents SDK missing."""
-    from antigravity_engine.hub.agents import build_ask_swarm
+    from repobrain_engine.hub.agents import build_ask_swarm
 
     with patch.dict(sys.modules, {"agents": None}):
         with pytest.raises(ImportError, match="OpenAI Agent SDK not found"):
@@ -28,8 +28,8 @@ def test_build_ask_swarm_import_error():
 def test_reasoning_effort_is_passed_through_model_settings_extra_body(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """AG_REASONING_EFFORT is sent through ModelSettings.extra_body."""
-    from antigravity_engine.hub.agents import build_refresh_swarm
+    """RB_REASONING_EFFORT is sent through ModelSettings.extra_body."""
+    from repobrain_engine.hub.agents import build_refresh_swarm
 
     class ModelSettings:
         def __init__(self, extra_body: dict[str, str] | None = None) -> None:
@@ -58,7 +58,7 @@ def test_reasoning_effort_is_passed_through_model_settings_extra_body(
         "agents",
         types.SimpleNamespace(Agent=Agent, ModelSettings=ModelSettings),
     )
-    monkeypatch.setenv("AG_REASONING_EFFORT", "high")
+    monkeypatch.setenv("RB_REASONING_EFFORT", "high")
 
     swarm = build_refresh_swarm("test-model")
 
@@ -81,7 +81,7 @@ def test_detect_areas_finds_source_dirs(tmp_path: Path) -> None:
     Directories with only documentation (.md) are now excluded since they
     don't benefit from having a dedicated ModuleAgent.
     """
-    from antigravity_engine.hub.agents import _detect_areas
+    from repobrain_engine.hub.agents import _detect_areas
 
     (tmp_path / "engine").mkdir()
     (tmp_path / "engine" / "main.py").write_text("x = 1")
@@ -99,7 +99,7 @@ def test_detect_areas_finds_source_dirs(tmp_path: Path) -> None:
 
 def test_detect_areas_skips_hidden_and_skip_dirs(tmp_path: Path) -> None:
     """_detect_areas ignores .git, node_modules, etc."""
-    from antigravity_engine.hub.agents import _detect_areas
+    from repobrain_engine.hub.agents import _detect_areas
 
     (tmp_path / ".git").mkdir()
     (tmp_path / ".git" / "config").write_text("x")

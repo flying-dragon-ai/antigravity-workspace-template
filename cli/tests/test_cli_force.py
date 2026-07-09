@@ -1,9 +1,9 @@
-"""Tests for ag init --force flag."""
+"""Tests for rb init --force flag."""
 from pathlib import Path
 
 from typer.testing import CliRunner
 
-from ag_cli.cli import app
+from rb_cli.cli import app
 
 runner = CliRunner()
 
@@ -15,9 +15,9 @@ def test_init_skips_existing_without_force(tmp_path: Path) -> None:
     assert result.exit_code == 0
 
     # Write a marker into an existing file to check it stays intact
-    ag_dir = tmp_path / ".antigravity"
-    if ag_dir.exists():
-        md_files = list(ag_dir.glob("*.md"))
+    rb_dir = tmp_path / ".repobrain"
+    if rb_dir.exists():
+        md_files = list(rb_dir.glob("*.md"))
         if md_files:
             target = md_files[0]
             target.write_text("CUSTOM CONTENT", encoding="utf-8")
@@ -37,9 +37,9 @@ def test_init_overwrites_with_force(tmp_path: Path) -> None:
     assert result.exit_code == 0
 
     # Write a marker into an existing file
-    ag_dir = tmp_path / ".antigravity"
-    if ag_dir.exists():
-        md_files = list(ag_dir.glob("*.md"))
+    rb_dir = tmp_path / ".repobrain"
+    if rb_dir.exists():
+        md_files = list(rb_dir.glob("*.md"))
         if md_files:
             target = md_files[0]
             original = target.read_text(encoding="utf-8")
@@ -62,7 +62,7 @@ def test_init_bootstrap_files_defer_to_agents_md(tmp_path: Path) -> None:
     claude = (tmp_path / "CLAUDE.md").read_text(encoding="utf-8")
     cursor = (tmp_path / ".cursorrules").read_text(encoding="utf-8")
     context = (tmp_path / "CONTEXT.md").read_text(encoding="utf-8")
-    antigravity_rules = (tmp_path / ".antigravity" / "rules.md").read_text(
+    repobrain_rules = (tmp_path / ".repobrain" / "rules.md").read_text(
         encoding="utf-8"
     )
 
@@ -71,4 +71,4 @@ def test_init_bootstrap_files_defer_to_agents_md(tmp_path: Path) -> None:
     assert "Authoritative behavior rules live in `AGENTS.md`." in claude
     assert "Use `AGENTS.md` as the single authoritative behavior file." in cursor
     assert "`AGENTS.md` is the single source of truth for agent behavior." in context
-    assert "Behavioral rules are defined in `AGENTS.md`." in antigravity_rules
+    assert "Behavioral rules are defined in `AGENTS.md`." in repobrain_rules
