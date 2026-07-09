@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PLUGIN_VERSION = "0.2.1"
+PLUGIN_VERSION = "0.3.0"
 
 
 def test_plugin_versions_are_in_sync() -> None:
