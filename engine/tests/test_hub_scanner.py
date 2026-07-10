@@ -1,4 +1,5 @@
 """Tests for hub.scanner — pure Python, no LLM needed."""
+import subprocess
 from pathlib import Path
 
 from repobrain_engine.hub._constants import WORKSPACE_ROOT_MODULE_ID
@@ -124,6 +125,90 @@ def test_quick_scan_falls_back_to_full(tmp_path: Path) -> None:
     assert isinstance(report, ScanReport)
 
 
+def _init_git_repo(path: Path) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=path, check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "test@example.com"],
+        cwd=path,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test"],
+        cwd=path,
+        check=True,
+    )
+
+
+def test_quick_scan_includes_worktree_and_untracked_changes(tmp_path: Path) -> None:
+    """Quick scans include changes that have not been committed yet."""
+    _init_git_repo(tmp_path)
+    tracked = tmp_path / "tracked.py"
+    tracked.write_text("value = 1\n", encoding="utf-8")
+    subprocess.run(["git", "add", "tracked.py"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "base"], cwd=tmp_path, check=True)
+    base = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=tmp_path, text=True
+    ).strip()
+
+    tracked.write_text("value = 2\n", encoding="utf-8")
+    (tmp_path / "new.py").write_text("created = True\n", encoding="utf-8")
+
+    report = quick_scan(tmp_path, base)
+
+    assert report.changed_files == ["new.py", "tracked.py"]
+    assert report.file_count == 2
+    assert set(report.file_metadata) == {"tracked.py", "new.py"}
+
+
+def test_quick_scan_uses_workspace_relative_non_ascii_paths(tmp_path: Path) -> None:
+    """Git paths stay relative to a nested workspace and preserve Unicode."""
+    _init_git_repo(tmp_path)
+    subprocess.run(
+        ["git", "config", "core.quotePath", "true"], cwd=tmp_path, check=True
+    )
+    workspace = tmp_path / "子目录"
+    workspace.mkdir()
+    source = workspace / "测试.py"
+    source.write_text("value = 1\n", encoding="utf-8")
+    subprocess.run(["git", "add", "子目录/测试.py"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "base"], cwd=tmp_path, check=True)
+    base = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=tmp_path, text=True
+    ).strip()
+
+    source.write_text("value = 2\n", encoding="utf-8")
+    subprocess.run(["git", "commit", "-qam", "change"], cwd=tmp_path, check=True)
+
+    report = quick_scan(workspace, base)
+
+    assert report.changed_files == ["测试.py"]
+    assert report.scanned_file_samples == ["测试.py"]
+    assert report.file_count == 1
+    assert "测试.py" in report.file_metadata
+
+
+def test_quick_scan_reports_both_sides_of_rename(tmp_path: Path) -> None:
+    """Renames invalidate both the old and new paths for incremental refresh."""
+    _init_git_repo(tmp_path)
+    source = tmp_path / "old.py"
+    source.write_text("value = 1\n", encoding="utf-8")
+    subprocess.run(["git", "add", "old.py"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "base"], cwd=tmp_path, check=True)
+    base = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=tmp_path, text=True
+    ).strip()
+
+    source.rename(tmp_path / "new.py")
+    subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "rename"], cwd=tmp_path, check=True)
+
+    report = quick_scan(tmp_path, base)
+
+    assert report.changed_files == ["new.py", "old.py"]
+    assert report.file_count == 1
+    assert set(report.file_metadata) == {"new.py"}
+
+
 def test_detect_modules_finds_go_directories(tmp_path: Path) -> None:
     """Go source directories should be treated as analyzable modules."""
     cmd_dir = tmp_path / "cmd"
@@ -241,8 +326,6 @@ def test_full_scan_git_summary_no_git(tmp_path: Path) -> None:
 
 def test_full_scan_git_summary_with_repo(tmp_path: Path) -> None:
     """git_summary contains commit info when a git repo exists."""
-    import subprocess
-
     subprocess.run(["git", "init"], cwd=str(tmp_path), capture_output=True, check=True)
     subprocess.run(
         ["git", "config", "user.email", "test@test.com"],

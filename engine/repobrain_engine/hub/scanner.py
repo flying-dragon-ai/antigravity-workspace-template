@@ -889,16 +889,48 @@ def quick_scan(root: Path, since_sha: str) -> ScanReport:
 
     try:
         result = subprocess.run(
-            ["git", "diff", "--name-only", since_sha, "HEAD"],
+            [
+                "git",
+                "diff",
+                "--name-only",
+                "-z",
+                "--no-renames",
+                "--relative",
+                since_sha,
+                "--",
+                ".",
+            ],
             capture_output=True,
-            text=True,
             cwd=str(root),
             check=False,
         )
         if result.returncode != 0:
             return full_scan(root)
 
-        changed_files = [f.strip() for f in result.stdout.splitlines() if f.strip()]
+        untracked_result = subprocess.run(
+            [
+                "git",
+                "ls-files",
+                "--others",
+                "--exclude-standard",
+                "-z",
+                "--",
+                ".",
+            ],
+            capture_output=True,
+            cwd=str(root),
+            check=False,
+        )
+        if untracked_result.returncode != 0:
+            return full_scan(root)
+
+        raw_paths = (
+            result.stdout.split(b"\0")
+            + untracked_result.stdout.split(b"\0")
+        )
+        changed_files = sorted(
+            {os.fsdecode(raw_path) for raw_path in raw_paths if raw_path}
+        )
         report.changed_files = changed_files
     except FileNotFoundError:
         return full_scan(root)
