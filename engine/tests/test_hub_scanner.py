@@ -63,6 +63,19 @@ def test_full_scan_skips_node_modules(tmp_path: Path) -> None:
     assert report.file_count == 1
 
 
+def test_full_scan_skips_generated_artifacts(tmp_path: Path) -> None:
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    (artifacts / "plan.md").write_text("# generated plan\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("print('hi')\n", encoding="utf-8")
+
+    report = full_scan(tmp_path)
+
+    assert report.file_count == 1
+    assert "artifacts/plan.md" not in report.file_metadata
+    assert "app.py" in report.file_metadata
+
+
 def test_full_scan_top_dirs(tmp_path: Path) -> None:
     (tmp_path / "src").mkdir()
     (tmp_path / "tests").mkdir()
@@ -360,3 +373,22 @@ def test_extract_structure_skips_node_modules(tmp_path: Path) -> None:
     result = extract_structure(tmp_path)
     assert "node_modules" not in result
     assert "app.js" in result
+
+
+def test_extract_structure_skips_generated_state_and_artifacts(tmp_path: Path) -> None:
+    """Generated RepoBrain state and artifact files should not self-pollute."""
+    rb_dir = tmp_path / ".repobrain"
+    rb_dir.mkdir()
+    (rb_dir / "structure.md").write_text("# previous structure\n", encoding="utf-8")
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
+    (artifacts / "plan.md").write_text("# generated plan\n", encoding="utf-8")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "app.py").write_text("print('hi')\n", encoding="utf-8")
+
+    result = extract_structure(tmp_path)
+
+    assert ".repobrain" not in result
+    assert "artifacts" not in result
+    assert "src" in result
+    assert "app.py" in result
