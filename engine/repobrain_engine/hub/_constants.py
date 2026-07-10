@@ -26,6 +26,8 @@ SKIP_DIRS: frozenset[str] = frozenset({
     ".nuxt",
     "target",
     "vendor",
+    ".repobrain",
+    "artifacts",
 })
 """Superset of all previously duplicated ``_SKIP_DIRS`` definitions.
 
